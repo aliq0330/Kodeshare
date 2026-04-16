@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Compass, Star, Bell, User, Code2 } from 'lucide-react'
+import { Home, Compass, Star, User, Code2 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 import { useNotificationStore } from '@store/notificationStore'
@@ -8,7 +8,7 @@ const items = [
   { to: '/',             icon: Home,    label: 'Ana Sayfa', end: true },
   { to: '/explore',      icon: Compass, label: 'Keşfet' },
   { to: '/editor',       icon: Code2,   label: 'Editör' },
-  { to: '/notifications',icon: Bell,    label: 'Bildirimler', auth: true },
+  { to: '/featured',     icon: Star,    label: 'Öne Çıkanlar' },
 ]
 
 export default function MobileNav() {
