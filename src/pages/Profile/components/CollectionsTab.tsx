@@ -1,12 +1,23 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock, Folder } from 'lucide-react'
 import Badge from '@components/ui/Badge'
+import Spinner from '@components/ui/Spinner'
+import { collectionService } from '@services/collectionService'
 import type { Collection } from '@/types'
 
 interface CollectionsTabProps { username: string }
 
-export default function CollectionsTab({ username: _ }: CollectionsTabProps) {
-  const collections: Collection[] = []
+export default function CollectionsTab({ username }: CollectionsTabProps) {
+  const [collections, setCollections] = useState<Collection[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    setIsLoading(true)
+    collectionService.getUserCollections(username).then(setCollections).catch(() => {}).finally(() => setIsLoading(false))
+  }, [username])
+
+  if (isLoading) return <div className="flex justify-center py-10"><Spinner /></div>
 
   if (collections.length === 0) {
     return (
