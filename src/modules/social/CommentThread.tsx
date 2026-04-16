@@ -1,31 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Send } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import CommentItem from './CommentItem'
 import { useAuthStore } from '@store/authStore'
-import type { Comment } from '@/types'
+import { useCommentStore } from '@store/commentStore'
+import toast from 'react-hot-toast'
 
 interface CommentThreadProps {
   postId: string
 }
 
-export default function CommentThread({ postId: _ }: CommentThreadProps) {
+export default function CommentThread({ postId }: CommentThreadProps) {
   const { user, isAuthenticated } = useAuthStore()
+  const { commentsByPost, isLoading, fetchComments, addComment } = useCommentStore()
   const [text, setText] = useState('')
-  const [isLoading] = useState(false)
-  const [comments] = useState<Comment[]>([])
+  const [submitting, setSubmitting] = useState(false)
+
+  const comments = commentsByPost[postId] ?? []
+  const loading = isLoading[postId] ?? false
+
+  useEffect(() => {
+    fetchComments(postId)
+  }, [postId, fetchComments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!text.trim()) return
-    // dispatch to commentStore
-    setText('')
+    if (!text.trim() || submitting) return
+    setSubmitting(true)
+    try {
+      await addComment(postId, text.trim())
+      setText('')
+    } catch {
+      toast.error('Yorum gönderilemedi')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Composer */}
       {isAuthenticated && (
         <form onSubmit={handleSubmit} className="flex items-start gap-3">
           <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="sm" className="mt-1 shrink-0" />
@@ -42,10 +56,16 @@ export default function CommentThread({ postId: _ }: CommentThreadProps) {
                 t.style.height = 'auto'
                 t.style.height = t.scrollHeight + 'px'
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSubmit(e)
+                }
+              }}
             />
             <button
               type="submit"
-              disabled={!text.trim()}
+              disabled={!text.trim() || submitting}
               className="p-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-40 transition-colors shrink-0"
             >
               <Send className="w-3.5 h-3.5" />
@@ -54,8 +74,7 @@ export default function CommentThread({ postId: _ }: CommentThreadProps) {
         </form>
       )}
 
-      {/* Comments */}
-      {isLoading && comments.length === 0 ? (
+      {loading && comments.length === 0 ? (
         <div className="flex justify-center py-6"><Spinner /></div>
       ) : comments.length === 0 ? (
         <div className="card p-8 text-center text-gray-500">
@@ -65,7 +84,7 @@ export default function CommentThread({ postId: _ }: CommentThreadProps) {
       ) : (
         <div className="flex flex-col gap-3">
           {comments.map((comment) => (
-            <CommentItem key={comment.id} comment={comment} />
+            <CommentItem key={comment.id} comment={comment} postId={postId} />
           ))}
         </div>
       )}

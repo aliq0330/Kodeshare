@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
-import type { Collection, CreateCollectionPayload } from '@/types'
+import type { Collection, CreateCollectionPayload, PostPreview } from '@/types'
 
 export const collectionService = {
   async getUserCollections(username: string): Promise<Collection[]> {
@@ -66,6 +66,45 @@ export const collectionService = {
   async removePost(collectionId: string, postId: string): Promise<void> {
     await supabase.from('collection_posts').delete().eq('collection_id', collectionId).eq('post_id', postId)
   },
+
+  async getCollectionPosts(collectionId: string): Promise<PostPreview[]> {
+    const userId = (await supabase.auth.getUser()).data.user?.id
+    const { data, error } = await supabase
+      .from('collection_posts')
+      .select('post:posts!collection_posts_post_id_fkey(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))')
+      .eq('collection_id', collectionId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return (data ?? []).map((cp) => mapPostPreview((cp as Record<string, unknown>).post as Record<string, unknown>, userId))
+  },
+}
+
+function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPreview {
+  const likes = (p.post_likes as { user_id: string }[]) ?? []
+  const saves = (p.post_saves as { user_id: string }[]) ?? []
+  const files = (p.post_files as unknown[]) ?? []
+  return {
+    id:              p.id as string,
+    type:            p.type as PostPreview['type'],
+    title:           p.title as string,
+    description:     p.description as string | null,
+    tags:            (p.tags as string[]) ?? [],
+    filesCount:      files.length,
+    previewImageUrl: p.preview_image_url as string | null,
+    liveDemoUrl:     p.live_demo_url as string | null,
+    likesCount:      p.likes_count as number,
+    commentsCount:   p.comments_count as number,
+    sharesCount:     p.shares_count as number,
+    savesCount:      p.saves_count as number,
+    viewsCount:      p.views_count as number,
+    isLiked:         userId ? likes.some((l) => l.user_id === userId) : false,
+    isSaved:         userId ? saves.some((s) => s.user_id === userId) : false,
+    isReposted:      false,
+    author:          mapProfile(p.author as Record<string, unknown>),
+    repostedFrom:    null,
+    createdAt:       p.created_at as string,
+    updatedAt:       p.updated_at as string,
+  }
 }
 
 function mapCollection(c: Record<string, unknown>): Collection {

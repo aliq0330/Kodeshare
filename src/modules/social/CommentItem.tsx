@@ -1,26 +1,50 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Reply, ChevronDown, ChevronUp } from 'lucide-react'
+import { Heart, Reply, ChevronDown, ChevronUp, Send } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
+import { useCommentStore } from '@store/commentStore'
+import { useAuthStore } from '@store/authStore'
 import type { Comment } from '@/types'
+import toast from 'react-hot-toast'
 
 interface CommentItemProps {
   comment: Comment
+  postId: string
   depth?: number
 }
 
-export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
+export default function CommentItem({ comment, postId, depth = 0 }: CommentItemProps) {
+  const { isAuthenticated } = useAuthStore()
+  const { toggleLike, addReply } = useCommentStore()
   const [showReplies, setShowReplies] = useState(true)
-  const [isLiked, setIsLiked] = useState(comment.isLiked)
-  const [likesCount, setLikesCount] = useState(comment.likesCount)
   const [showReplyBox, setShowReplyBox] = useState(false)
   const [replyText, setReplyText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const toggleLike = () => {
-    setIsLiked((p) => !p)
-    setLikesCount((n) => n + (isLiked ? -1 : 1))
+  const handleLike = async () => {
+    if (!isAuthenticated) return
+    try {
+      await toggleLike(postId, comment.id)
+    } catch {
+      toast.error('Bir hata oluştu')
+    }
+  }
+
+  const handleReply = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!replyText.trim() || submitting) return
+    setSubmitting(true)
+    try {
+      await addReply(postId, comment.id, replyText.trim())
+      setReplyText('')
+      setShowReplyBox(false)
+    } catch {
+      toast.error('Yanıt gönderilemedi')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -37,22 +61,23 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
           <p className="text-sm text-gray-300 leading-relaxed">{comment.content}</p>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-3 mt-1 px-1">
           <button
-            onClick={toggleLike}
-            className={cn('flex items-center gap-1 text-xs transition-colors', isLiked ? 'text-red-400' : 'text-gray-600 hover:text-red-400')}
+            onClick={handleLike}
+            className={cn('flex items-center gap-1 text-xs transition-colors', comment.isLiked ? 'text-red-400' : 'text-gray-600 hover:text-red-400')}
           >
-            <Heart className={cn('w-3 h-3', isLiked && 'fill-current')} />
-            {likesCount > 0 && likesCount}
+            <Heart className={cn('w-3 h-3', comment.isLiked && 'fill-current')} />
+            {comment.likesCount > 0 && comment.likesCount}
           </button>
-          <button
-            onClick={() => setShowReplyBox((p) => !p)}
-            className="flex items-center gap-1 text-xs text-gray-600 hover:text-brand-400 transition-colors"
-          >
-            <Reply className="w-3 h-3" />
-            Yanıtla
-          </button>
+          {isAuthenticated && depth === 0 && (
+            <button
+              onClick={() => setShowReplyBox((p) => !p)}
+              className="flex items-center gap-1 text-xs text-gray-600 hover:text-brand-400 transition-colors"
+            >
+              <Reply className="w-3 h-3" />
+              Yanıtla
+            </button>
+          )}
           {comment.replies.length > 0 && (
             <button
               onClick={() => setShowReplies((p) => !p)}
@@ -64,9 +89,8 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
           )}
         </div>
 
-        {/* Reply box */}
         {showReplyBox && (
-          <div className="mt-2 flex gap-2">
+          <form onSubmit={handleReply} className="mt-2 flex gap-2">
             <input
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
@@ -74,19 +98,19 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
               className="flex-1 bg-surface-raised border border-surface-border rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
             <button
-              disabled={!replyText.trim()}
-              className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-medium disabled:opacity-40 transition-colors"
+              type="submit"
+              disabled={!replyText.trim() || submitting}
+              className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-medium disabled:opacity-40 transition-colors flex items-center gap-1"
             >
-              Gönder
+              <Send className="w-3 h-3" />
             </button>
-          </div>
+          </form>
         )}
 
-        {/* Nested replies */}
         {showReplies && comment.replies.length > 0 && (
           <div className="mt-3 flex flex-col gap-3">
             {comment.replies.map((reply) => (
-              <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
+              <CommentItem key={reply.id} comment={reply} postId={postId} depth={depth + 1} />
             ))}
           </div>
         )}
