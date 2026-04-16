@@ -1,39 +1,47 @@
 import { useState, useRef, useEffect } from 'react'
 import { ArrowLeft, Send, Smile } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
+import Spinner from '@components/ui/Spinner'
 import TypingIndicator from '@messages/TypingIndicator'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
-import type { Message } from '@/types'
+import { useMessageStore } from '@store/messageStore'
+import { useAuthStore } from '@store/authStore'
 
 interface ChatWindowProps {
   conversationId: string
   onBack: () => void
 }
 
-const MOCK_MESSAGES: Message[] = [
-  { id: 'm1', conversationId: '1', content: 'Merhaba! Projen harika görünüyor 🔥', sender: { id: '2', username: 'ayse_dev', displayName: 'Ayşe Kaya', avatarUrl: null, isVerified: false, isOnline: true }, status: 'read', createdAt: new Date(Date.now() - 10 * 60_000).toISOString() },
-  { id: 'm2', conversationId: '1', content: 'Teşekkürler! Monaco editor entegrasyonu biraz uğraştırdı ama oldu 😄', sender: { id: '1', username: 'ben', displayName: 'Ben', avatarUrl: null, isVerified: false, isOnline: true }, status: 'read', createdAt: new Date(Date.now() - 8 * 60_000).toISOString() },
-  { id: 'm3', conversationId: '1', content: 'Canlı preview özelliğini nasıl yaptın?', sender: { id: '2', username: 'ayse_dev', displayName: 'Ayşe Kaya', avatarUrl: null, isVerified: false, isOnline: true }, status: 'read', createdAt: new Date(Date.now() - 5 * 60_000).toISOString() },
-]
-
-const CURRENT_USER_ID = '1'
-
-export default function ChatWindow({ conversationId: _, onBack }: ChatWindowProps) {
-  const [messages] = useState<Message[]>(MOCK_MESSAGES)
+export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
+  const { user } = useAuthStore()
+  const { messages, conversations, fetchMessages, sendMessage } = useMessageStore()
   const [text, setText] = useState('')
-  const [isTyping] = useState(false)
+  const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const other = messages[0]?.sender.id !== CURRENT_USER_ID ? messages[0]?.sender : messages[1]?.sender
+
+  const msgs = messages[conversationId] ?? []
+  const conv = conversations.find((c) => c.id === conversationId)
+  const other = conv?.participants.find((p) => p.id !== user?.id) ?? conv?.participants[0]
+
+  useEffect(() => {
+    fetchMessages(conversationId)
+  }, [conversationId, fetchMessages])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [msgs])
 
-  const handleSend = () => {
-    if (!text.trim()) return
-    // dispatch to store / socket
+  const handleSend = async () => {
+    if (!text.trim() || sending) return
+    const content = text.trim()
     setText('')
+    setSending(true)
+    try {
+      await sendMessage(conversationId, content)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -56,8 +64,13 @@ export default function ChatWindow({ conversationId: _, onBack }: ChatWindowProp
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-        {messages.map((msg) => {
-          const isMine = msg.sender.id === CURRENT_USER_ID
+        {msgs.length === 0 && (
+          <div className="flex justify-center py-8 text-gray-500 text-sm">
+            Henüz mesaj yok — ilk mesajı sen gönder!
+          </div>
+        )}
+        {msgs.map((msg) => {
+          const isMine = msg.sender.id === user?.id
           return (
             <div key={msg.id} className={cn('flex gap-2 max-w-[70%]', isMine ? 'ml-auto flex-row-reverse' : '')}>
               {!isMine && <Avatar src={msg.sender.avatarUrl} alt={msg.sender.displayName} size="xs" className="mt-1 shrink-0" />}
@@ -72,12 +85,6 @@ export default function ChatWindow({ conversationId: _, onBack }: ChatWindowProp
             </div>
           )
         })}
-        {isTyping && (
-          <div className="flex gap-2 items-center">
-            {other && <Avatar src={other.avatarUrl} alt={other.displayName} size="xs" />}
-            <TypingIndicator />
-          </div>
-        )}
         <div ref={bottomRef} />
       </div>
 
@@ -96,10 +103,10 @@ export default function ChatWindow({ conversationId: _, onBack }: ChatWindowProp
           />
           <button
             onClick={handleSend}
-            disabled={!text.trim()}
+            disabled={!text.trim() || sending}
             className="p-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            <Send className="w-3.5 h-3.5" />
+            {sending ? <Spinner className="w-3.5 h-3.5" /> : <Send className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>

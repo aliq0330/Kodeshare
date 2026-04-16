@@ -4,6 +4,10 @@ import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 
 const items = [
+  { to: '/',             icon: Home,    label: 'Ana Sayfa', end: true },
+  { to: '/explore',      icon: Compass, label: 'Keşfet' },
+  { to: '/editor',       icon: Code2,   label: 'Editör' },
+  { to: '/featured',     icon: Star,    label: 'Öne Çıkanlar' },
   { to: '/',         icon: Home,   label: 'Ana Sayfa', end: true },
   { to: '/explore',  icon: Compass, label: 'Keşfet' },
   { to: '/editor',   icon: Code2,   label: 'Editör' },

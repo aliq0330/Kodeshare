@@ -27,6 +27,7 @@ interface EditorStoreState {
   toggleAutoSave:   () => void
   toggleFullscreen: () => void
   setProjectTitle:  (title: string) => void
+  loadProject:      (title: string, projectFiles: EditorFile[]) => void
   save:             () => void
   markAllSaved:     () => void
 }
@@ -77,6 +78,9 @@ export const useEditorStore = create<EditorStoreState>()(
       toggleAutoSave:   ()        => set((s) => ({ autoSave: !s.autoSave })),
       toggleFullscreen: ()        => set((s) => ({ isFullscreen: !s.isFullscreen })),
       setProjectTitle:  (title)   => set({ projectTitle: title }),
+
+      loadProject: (title, projectFiles) =>
+        set({ projectTitle: title, files: projectFiles, activeFileId: projectFiles[0]?.id ?? null }),
 
       save: () => {
         set({ isSaving: true })
