@@ -1,19 +1,33 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BadgeCheck, Heart } from 'lucide-react'
+import { BadgeCheck, Users } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
-import Button from '@components/ui/Button'
+import Spinner from '@components/ui/Spinner'
 import { compactNumber } from '@utils/formatters'
-
-const MOCK_TOP_USERS = [
-  { id: '1', username: 'mehmet_css', displayName: 'Mehmet Demir', avatarUrl: null, isVerified: true,  totalLikes: 28400, isOnline: true },
-  { id: '2', username: 'ayse_dev',   displayName: 'Ayşe Kaya',    avatarUrl: null, isVerified: false, totalLikes: 14200, isOnline: false },
-  { id: '3', username: 'zeynep_ui',  displayName: 'Zeynep Çelik', avatarUrl: null, isVerified: false, totalLikes: 9800,  isOnline: true },
-]
+import { userService } from '@services/userService'
+import FollowButton from '@modules/social/FollowButton'
+import { useAuthStore } from '@store/authStore'
+import type { User } from '@/types'
 
 export default function TopUsers() {
+  const { user: me } = useAuthStore()
+  const [users, setUsers] = useState<User[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    userService.getSuggested()
+      .then(setUsers)
+      .catch(() => {})
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  if (isLoading) return <div className="flex justify-center py-8"><Spinner /></div>
+
+  if (users.length === 0) return null
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {MOCK_TOP_USERS.map((user, i) => (
+      {users.slice(0, 3).map((user, i) => (
         <div key={user.id} className="card p-5 flex flex-col items-center gap-3 text-center">
           <div className="relative">
             <Avatar src={user.avatarUrl} alt={user.displayName} size="lg" online={user.isOnline} />
@@ -31,11 +45,13 @@ export default function TopUsers() {
             </Link>
             <p className="text-xs text-gray-500">@{user.username}</p>
           </div>
-          <div className="flex items-center gap-1.5 text-sm text-red-400">
-            <Heart className="w-4 h-4 fill-current" />
-            {compactNumber(user.totalLikes)} beğeni
+          <div className="flex items-center gap-1.5 text-sm text-gray-400">
+            <Users className="w-4 h-4" />
+            {compactNumber(user.followersCount ?? 0)} takipçi
           </div>
-          <Button variant="outline" size="sm" fullWidth>Takip Et</Button>
+          {me && me.id !== user.id && (
+            <FollowButton userId={user.id} isFollowing={false} size="sm" />
+          )}
         </div>
       ))}
     </div>

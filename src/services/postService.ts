@@ -62,10 +62,31 @@ export const postService = {
     return this.getPost((post as { id: string }).id)
   },
 
+  async update(postId: string, payload: Partial<CreatePostPayload>): Promise<void> {
+    await supabase.from('posts').update({
+      title: payload.title,
+      description: payload.description,
+      tags: payload.tags,
+    }).eq('id', postId)
+
+    if (payload.files) {
+      await supabase.from('post_files').delete().eq('post_id', postId)
+      if (payload.files.length) {
+        await supabase.from('post_files').insert(
+          payload.files.map((f, i) => ({ post_id: postId, name: f.name, language: f.language, content: f.content, order: i }))
+        )
+      }
+    }
+  },
+
   async like(postId: string): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('post_likes').insert({ user_id: user!.id, post_id: postId })
     if (error) throw new Error(error.message)
+    const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
+    if (post && (post as { author_id: string }).author_id !== user!.id) {
+      supabase.from('notifications').insert({ user_id: (post as { author_id: string }).author_id, actor_id: user!.id, type: 'like', post_id: postId }).then()
+    }
   },
 
   async unlike(postId: string): Promise<void> {
@@ -95,6 +116,19 @@ export const postService = {
       title: original.title, description: original.description,
       tags: original.tags, reposted_from: postId,
     })
+  },
+
+  async getWeeklyTop(limit = 6): Promise<PostPreview[]> {
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id)`)
+      .gte('created_at', since)
+      .order('likes_count', { ascending: false })
+      .limit(limit)
+    if (error) throw new Error(error.message)
+    const userId = (await supabase.auth.getUser()).data.user?.id
+    return (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
   },
 
   async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {
