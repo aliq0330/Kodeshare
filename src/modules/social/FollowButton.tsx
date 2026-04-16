@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { UserPlus, UserMinus } from 'lucide-react'
 import Button from '@components/ui/Button'
 import { cn } from '@utils/cn'
+import { useFollow } from '@hooks/useFollow'
 
 interface FollowButtonProps {
   userId: string
@@ -10,29 +11,21 @@ interface FollowButtonProps {
   className?: string
 }
 
-export default function FollowButton({ userId: _, isFollowing: initial, size = 'sm', className }: FollowButtonProps) {
-  const [following, setFollowing] = useState(initial)
-  const [loading, setLoading] = useState(false)
+export default function FollowButton({ userId, isFollowing: initial, size = 'sm', className }: FollowButtonProps) {
+  const { isFollowing, loading, toggle } = useFollow(userId, initial)
   const [hovered, setHovered] = useState(false)
-
-  const toggle = async () => {
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 300))
-    setFollowing((f) => !f)
-    setLoading(false)
-  }
 
   return (
     <Button
-      variant={following ? 'outline' : 'primary'}
+      variant={isFollowing ? 'outline' : 'primary'}
       size={size}
       loading={loading}
       onClick={toggle}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={cn(following && hovered && 'border-red-500 text-red-400 hover:bg-red-900/20', className)}
+      className={cn(isFollowing && hovered && 'border-red-500 text-red-400 hover:bg-red-900/20', className)}
     >
-      {following ? (
+      {isFollowing ? (
         hovered ? (
           <><UserMinus className="w-3.5 h-3.5" />Takipten Çık</>
         ) : (

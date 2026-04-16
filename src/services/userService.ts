@@ -35,6 +35,7 @@ export const userService = {
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('follows').insert({ follower_id: user!.id, following_id: userId })
     if (error) throw new Error(error.message)
+    supabase.from('notifications').insert({ user_id: userId, actor_id: user!.id, type: 'follow' }).then()
   },
 
   async unfollow(userId: string): Promise<void> {

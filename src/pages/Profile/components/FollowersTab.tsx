@@ -1,15 +1,30 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import Avatar from '@components/ui/Avatar'
-import Button from '@components/ui/Button'
 import { BadgeCheck } from 'lucide-react'
+import Avatar from '@components/ui/Avatar'
+import Spinner from '@components/ui/Spinner'
+import FollowButton from '@modules/social/FollowButton'
+import { userService } from '@services/userService'
+import { useAuthStore } from '@store/authStore'
+import type { User } from '@/types'
 
 interface FollowersTabProps {
   username: string
   type: 'followers' | 'following'
 }
 
-export default function FollowersTab({ username: _, type }: FollowersTabProps) {
-  const users: never[] = []
+export default function FollowersTab({ username, type }: FollowersTabProps) {
+  const { user: me, isAuthenticated } = useAuthStore()
+  const [users, setUsers] = useState<User[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    setIsLoading(true)
+    const fn = type === 'followers' ? userService.getFollowers : userService.getFollowing
+    fn(username).then(setUsers).catch(() => {}).finally(() => setIsLoading(false))
+  }, [username, type])
+
+  if (isLoading) return <div className="flex justify-center py-10"><Spinner /></div>
 
   if (users.length === 0) {
     return (
@@ -21,7 +36,7 @@ export default function FollowersTab({ username: _, type }: FollowersTabProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {users.map((user: any) => (
+      {users.map((user) => (
         <div key={user.id} className="card p-4 flex items-center justify-between gap-3">
           <Link to={`/profile/${user.username}`} className="flex items-center gap-3 min-w-0">
             <Avatar src={user.avatarUrl} alt={user.displayName} size="sm" online={user.isOnline} />
@@ -33,7 +48,9 @@ export default function FollowersTab({ username: _, type }: FollowersTabProps) {
               <p className="text-xs text-gray-500">@{user.username}</p>
             </div>
           </Link>
-          <Button variant="outline" size="xs">Takip Et</Button>
+          {isAuthenticated && me?.id !== user.id && (
+            <FollowButton userId={user.id} isFollowing={false} size="xs" />
+          )}
         </div>
       ))}
     </div>

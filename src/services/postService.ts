@@ -66,6 +66,10 @@ export const postService = {
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('post_likes').insert({ user_id: user!.id, post_id: postId })
     if (error) throw new Error(error.message)
+    const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
+    if (post && (post as { author_id: string }).author_id !== user!.id) {
+      supabase.from('notifications').insert({ user_id: (post as { author_id: string }).author_id, actor_id: user!.id, type: 'like', post_id: postId }).then()
+    }
   },
 
   async unlike(postId: string): Promise<void> {
