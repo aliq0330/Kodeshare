@@ -3,6 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // GitHub Pages SPA: restore path encoded by 404.html
+      (function () {
+        var p = window.location.search.match(/[?&]p=([^&]+)/)
+        if (p) {
+          var path = decodeURIComponent(p[1])
+          var q = path.match(/&q=(.*)/)
+          window.history.replaceState(
+            null, null,
+            window.location.pathname.split('/').slice(0, -1).join('/') + '/' +
+            path.replace(/&q=.*/, '') + (q ? '?' + q[1] : '') + window.location.hash
+          )
+        }
+      })()
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Kodeshare — Kod yaz, paylaş, keşfet." />
     <title>Kodeshare</title>
