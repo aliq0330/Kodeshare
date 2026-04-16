@@ -1,16 +1,19 @@
 import { useState } from 'react'
-import { Image, Code2, FileText, Link2, X } from 'lucide-react'
+import { Code2, Image, Link2 } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
 import Textarea from '@components/ui/Textarea'
 import { useAuthStore } from '@store/authStore'
+import { usePostStore } from '@store/postStore'
 import { POST_TYPES } from '@utils/constants'
+import toast from 'react-hot-toast'
 import type { PostType } from '@/types'
 
 export default function PostComposer() {
   const { user } = useAuthStore()
+  const { createPost } = usePostStore()
   const [open, setOpen] = useState(false)
   const [postType, setPostType] = useState<PostType>('snippet')
   const [title, setTitle] = useState('')
@@ -19,18 +22,31 @@ export default function PostComposer() {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
+    if (!title.trim()) return
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    setLoading(false)
-    setOpen(false)
-    setTitle('')
-    setDescription('')
-    setTags('')
+    try {
+      await createPost({
+        type: postType,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+        files: [],
+      })
+      toast.success('Gönderi paylaşıldı!')
+      setOpen(false)
+      setTitle('')
+      setDescription('')
+      setTags('')
+      setPostType('snippet')
+    } catch (err) {
+      toast.error((err as Error).message || 'Bir hata oluştu')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <>
-      {/* Trigger */}
       <div
         className="card p-4 flex items-center gap-3 cursor-pointer hover:border-surface-raised transition-colors"
         onClick={() => setOpen(true)}
@@ -45,10 +61,8 @@ export default function PostComposer() {
         </Button>
       </div>
 
-      {/* Composer modal */}
       <Modal open={open} onClose={() => setOpen(false)} title="Yeni Gönderi" size="lg">
         <div className="flex flex-col gap-4">
-          {/* Post type */}
           <div className="flex gap-2">
             {POST_TYPES.map((t) => (
               <button
@@ -87,7 +101,6 @@ export default function PostComposer() {
             placeholder="react, css, animation (virgülle ayır)"
           />
 
-          {/* Quick actions */}
           <div className="flex gap-2 pt-1">
             <Button variant="ghost" size="sm" className="text-gray-500">
               <Code2 className="w-4 h-4" />
@@ -105,7 +118,7 @@ export default function PostComposer() {
 
           <div className="flex justify-end gap-2 pt-2 border-t border-surface-border">
             <Button variant="ghost" onClick={() => setOpen(false)}>İptal</Button>
-            <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!title}>
+            <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!title.trim()}>
               Paylaş
             </Button>
           </div>

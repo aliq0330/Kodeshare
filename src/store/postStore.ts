@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { postService } from '@services/postService'
-import type { PostPreview } from '@/types'
+import type { PostPreview, CreatePostPayload } from '@/types'
 
 interface FetchParams {
   tab?: string
@@ -15,6 +15,7 @@ interface PostState {
   hasNextPage: boolean
   currentPage: number
   fetchPosts: (params: FetchParams) => Promise<void>
+  createPost: (payload: CreatePostPayload) => Promise<void>
   likePost: (id: string) => Promise<void>
   savePost: (id: string) => Promise<void>
   repostPost: (id: string) => Promise<void>
@@ -40,6 +41,13 @@ export const usePostStore = create<PostState>((set, get) => ({
     } finally {
       set({ isLoading: false })
     }
+  },
+
+  createPost: async (payload) => {
+    const post = await postService.create(payload)
+    set((s) => ({
+      posts: [{ ...post, filesCount: post.files.length }, ...s.posts],
+    }))
   },
 
   likePost: async (id) => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect } from 'react'
 import { useInView } from 'react-intersection-observer'
 import PostCard from '@components/shared/PostCard'
 import Spinner from '@components/ui/Spinner'
@@ -10,7 +10,7 @@ interface FeedProps {
 }
 
 export default function Feed({ tab, tag }: FeedProps) {
-  const { posts, isLoading, hasNextPage, fetchPosts, likePost, savePost } = usePostStore()
+  const { posts, isLoading, hasNextPage, currentPage, fetchPosts, likePost, savePost } = usePostStore()
   const { ref, inView } = useInView({ threshold: 0.1 })
 
   useEffect(() => {
@@ -19,9 +19,9 @@ export default function Feed({ tab, tag }: FeedProps) {
 
   useEffect(() => {
     if (inView && hasNextPage && !isLoading) {
-      fetchPosts({ tab, tag })
+      fetchPosts({ tab, tag, page: currentPage + 1 })
     }
-  }, [inView, hasNextPage, isLoading, tab, tag, fetchPosts])
+  }, [inView, hasNextPage, isLoading, tab, tag, currentPage, fetchPosts])
 
   if (isLoading && posts.length === 0) {
     return (

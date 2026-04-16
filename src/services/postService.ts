@@ -100,7 +100,19 @@ export const postService = {
   async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {
     const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
     if (!profile) return { data: [], total: 0, page: 1, limit: PAGE_SIZE, hasNextPage: false }
-    return this.getFeed({ ...params })
+
+    const page = params?.page ?? 1
+    const { data, error, count } = await supabase
+      .from('posts')
+      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id)`, { count: 'exact' })
+      .eq('author_id', (profile as { id: string }).id)
+      .order('created_at', { ascending: false })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
+
+    if (error) throw new Error(error.message)
+    const userId = (await supabase.auth.getUser()).data.user?.id
+    const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
+    return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
 }
 
