@@ -3,11 +3,18 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
+import { useAuthStore } from '@store/authStore'
+import { useSupabaseRealtime } from '@realtime/useSupabaseRealtime'
 import './styles/globals.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
+function Root() {
+  const init = useAuthStore((s) => s.init)
+
+  React.useEffect(() => { init() }, [init])
+  useSupabaseRealtime()
+
+  return (
+    <>
       <App />
       <Toaster
         position="bottom-right"
@@ -21,6 +28,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           },
         }}
       />
+    </>
+  )
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <Root />
     </BrowserRouter>
   </React.StrictMode>,
 )

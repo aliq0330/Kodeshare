@@ -31,7 +31,7 @@ export const usePostStore = create<PostState>((set, get) => ({
     if (get().isLoading) return
     set({ isLoading: true })
     try {
-      const res = await postService.getFeed({ tab, tag, query, page, limit: 20 })
+      const res = await postService.getFeed({ tab, tag, query, page })
       set((s) => ({
         posts: page === 1 ? res.data : [...s.posts, ...res.data],
         hasNextPage: res.hasNextPage,
