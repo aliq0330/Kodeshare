@@ -11,26 +11,15 @@ import { POST_TYPES } from '@utils/constants'
 import toast from 'react-hot-toast'
 import type { PostType } from '@/types'
 
-interface PostComposerProps {
-  forceOpen?: boolean
-  onClose?: () => void
-}
-
-export default function PostComposer({ forceOpen, onClose }: PostComposerProps = {}) {
+export default function PostComposer() {
   const { user } = useAuthStore()
   const { createPost } = usePostStore()
   const [open, setOpen] = useState(false)
-  const isOpen = forceOpen ?? open
   const [postType, setPostType] = useState<PostType>('snippet')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const handleClose = () => {
-    setOpen(false)
-    onClose?.()
-  }
 
   const handleSubmit = async () => {
     if (!title.trim()) return
@@ -44,7 +33,7 @@ export default function PostComposer({ forceOpen, onClose }: PostComposerProps =
         files: [],
       })
       toast.success('Gönderi paylaşıldı!')
-      handleClose()
+      setOpen(false)
       setTitle('')
       setDescription('')
       setTags('')
@@ -58,23 +47,21 @@ export default function PostComposer({ forceOpen, onClose }: PostComposerProps =
 
   return (
     <>
-      {forceOpen === undefined && (
-        <div
-          className="card p-4 flex items-center gap-3 cursor-pointer hover:border-surface-raised transition-colors"
-          onClick={() => setOpen(true)}
-        >
-          <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="sm" />
-          <span className="flex-1 text-sm text-gray-500 bg-surface-raised rounded-lg px-4 py-2 hover:bg-surface-border transition-colors">
-            Ne paylaşmak istiyorsun?
-          </span>
-          <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); setOpen(true) }}>
-            <Code2 className="w-4 h-4" />
-            Kod Paylaş
-          </Button>
-        </div>
-      )}
+      <div
+        className="card p-4 flex items-center gap-3 cursor-pointer hover:border-surface-raised transition-colors"
+        onClick={() => setOpen(true)}
+      >
+        <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="sm" />
+        <span className="flex-1 text-sm text-gray-500 bg-surface-raised rounded-lg px-4 py-2 hover:bg-surface-border transition-colors">
+          Ne paylaşmak istiyorsun?
+        </span>
+        <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); setOpen(true) }}>
+          <Code2 className="w-4 h-4" />
+          Kod Paylaş
+        </Button>
+      </div>
 
-      <Modal open={isOpen} onClose={handleClose} title="Yeni Gönderi" size="lg">
+      <Modal open={open} onClose={() => setOpen(false)} title="Yeni Gönderi" size="lg">
         <div className="flex flex-col gap-4">
           <div className="flex gap-2">
             {POST_TYPES.map((t) => (
@@ -130,7 +117,7 @@ export default function PostComposer({ forceOpen, onClose }: PostComposerProps =
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-surface-border">
-            <Button variant="ghost" onClick={handleClose}>İptal</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>İptal</Button>
             <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!title.trim()}>
               Paylaş
             </Button>
