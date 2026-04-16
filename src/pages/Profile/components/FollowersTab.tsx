@@ -1,0 +1,41 @@
+import { Link } from 'react-router-dom'
+import Avatar from '@components/ui/Avatar'
+import Button from '@components/ui/Button'
+import { BadgeCheck } from 'lucide-react'
+
+interface FollowersTabProps {
+  username: string
+  type: 'followers' | 'following'
+}
+
+export default function FollowersTab({ username: _, type }: FollowersTabProps) {
+  const users: never[] = []
+
+  if (users.length === 0) {
+    return (
+      <div className="card p-10 text-center text-gray-500">
+        <p className="font-medium">{type === 'followers' ? 'Henüz takipçi yok' : 'Henüz takip edilmiyor'}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {users.map((user: any) => (
+        <div key={user.id} className="card p-4 flex items-center justify-between gap-3">
+          <Link to={`/profile/${user.username}`} className="flex items-center gap-3 min-w-0">
+            <Avatar src={user.avatarUrl} alt={user.displayName} size="sm" online={user.isOnline} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="font-medium text-white text-sm truncate">{user.displayName}</span>
+                {user.isVerified && <BadgeCheck className="w-3.5 h-3.5 text-brand-400 shrink-0" />}
+              </div>
+              <p className="text-xs text-gray-500">@{user.username}</p>
+            </div>
+          </Link>
+          <Button variant="outline" size="xs">Takip Et</Button>
+        </div>
+      ))}
+    </div>
+  )
+}
