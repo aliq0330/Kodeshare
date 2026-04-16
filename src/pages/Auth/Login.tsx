@@ -6,21 +6,39 @@ import Button from '@components/ui/Button'
 import { useAuthStore } from '@store/authStore'
 import toast from 'react-hot-toast'
 
+const ERROR_MESSAGES: Record<string, string> = {
+  'Invalid login credentials':   'E-posta veya şifre hatalı',
+  'Email not confirmed':         'E-posta adresin onaylanmamış. Gelen kutunu kontrol et.',
+  'Too many requests':           'Çok fazla deneme yaptın, birkaç dakika bekle.',
+  'User not found':              'Bu e-posta ile kayıtlı hesap bulunamadı.',
+}
+
+function friendlyError(msg: string): string {
+  for (const [key, val] of Object.entries(ERROR_MESSAGES)) {
+    if (msg.includes(key)) return val
+  }
+  return msg
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     setLoading(true)
     try {
       await login(email, password)
+      toast.success('Hoş geldin!')
       navigate('/')
-    } catch {
-      toast.error('E-posta veya şifre hatalı')
+    } catch (err) {
+      const msg = friendlyError((err as Error).message)
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -53,7 +71,13 @@ export default function LoginPage() {
         required
       />
 
-      <div className="flex justify-end">
+      {error && (
+        <div className="bg-red-900/20 border border-red-800 rounded-lg px-3 py-2 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
+      <div className="flex justify-end -mt-2">
         <Link to="/forgot-password" className="text-xs link">Şifremi unuttum</Link>
       </div>
 
