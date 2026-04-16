@@ -15,7 +15,7 @@ export default function MainLayout() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 min-w-0 py-4">
+        <main className="flex-1 min-w-0 py-4 pb-24 lg:pb-4">
           <Outlet />
         </main>
 
