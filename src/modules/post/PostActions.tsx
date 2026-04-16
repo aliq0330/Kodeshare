@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Share2, Bookmark, GitFork } from 'lucide-react'
+import { Heart, MessageCircle, Bookmark, GitFork } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { compactNumber } from '@utils/formatters'
 import type { PostPreview } from '@/types'

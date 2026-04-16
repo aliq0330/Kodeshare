@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import type { EditorFile } from '@/types'

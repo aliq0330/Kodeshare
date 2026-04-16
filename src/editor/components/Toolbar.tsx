@@ -1,4 +1,4 @@
-import { WrapText, Map, LayoutPanelLeft, Maximize2, Minimize2 } from 'lucide-react'
+import { WrapText, Map, Maximize2, Minimize2 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import type { EditorTheme } from '@/types'
 

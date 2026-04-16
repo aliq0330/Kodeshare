@@ -15,7 +15,7 @@ export default function CollectionDetailPage() {
     id: '1',
     name: 'UI Components',
     description: 'Beğendiğim ve kullandığım UI bileşenleri',
-    visibility: 'public' as const,
+    visibility: 'public' as 'public' | 'private',
     postsCount: 24,
     owner: { id: '1', username: 'ayse_dev', displayName: 'Ayşe Kaya', avatarUrl: null as null, isVerified: false, isOnline: true },
     posts: [] as any[],

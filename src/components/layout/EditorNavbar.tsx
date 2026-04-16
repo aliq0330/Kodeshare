@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Code2, Save, Share2, Play, Settings2, ArrowLeft } from 'lucide-react'
+import { Code2, Save, Share2, Play, ArrowLeft } from 'lucide-react'
 import Button from '@components/ui/Button'
 import Avatar from '@components/ui/Avatar'
 import { useAuthStore } from '@store/authStore'

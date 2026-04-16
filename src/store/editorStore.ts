@@ -32,9 +32,9 @@ interface EditorStoreState {
 }
 
 const DEFAULT_FILES: EditorFile[] = [
-  { id: '1', name: 'index.html',  language: 'html',       content: '<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="UTF-8" />\n  <title>Yeni Proje</title>\n  <link rel="stylesheet" href="style.css" />\n</head>\n<body>\n  <h1>Merhaba Dünya!</h1>\n  <script src="script.js"><\/script>\n</body>\n</html>', isModified: false, order: 0 },
-  { id: '2', name: 'style.css',   language: 'css',        content: '/* Stiller */\nbody {\n  margin: 0;\n  font-family: sans-serif;\n  display: grid;\n  place-items: center;\n  min-height: 100vh;\n  background: #0f1117;\n  color: white;\n}\n', isModified: false, order: 1 },
-  { id: '3', name: 'script.js',   language: 'javascript', content: '// JavaScript\nconsole.log("Hazır!");\n', isModified: false, order: 2 },
+  { id: '1', name: 'index.html',  language: 'html',       content: '<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="UTF-8" />\n  <title>Yeni Proje</title>\n  <link rel="stylesheet" href="style.css" />\n</head>\n<body>\n  <h1>Merhaba Dünya!</h1>\n  <script src="script.js"><\/script>\n</body>\n</html>', isModified: false },
+  { id: '2', name: 'style.css',   language: 'css',        content: '/* Stiller */\nbody {\n  margin: 0;\n  font-family: sans-serif;\n  display: grid;\n  place-items: center;\n  min-height: 100vh;\n  background: #0f1117;\n  color: white;\n}\n', isModified: false },
+  { id: '3', name: 'script.js',   language: 'javascript', content: '// JavaScript\nconsole.log("Hazır!");\n', isModified: false },
 ]
 
 export const useEditorStore = create<EditorStoreState>()(

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   Home, Compass, Star, User, Settings,
-  Hash, TrendingUp, Bookmark, Users,
+  Hash, TrendingUp,
 } from 'lucide-react'
 import { useAuthStore } from '@store/authStore'
 import { cn } from '@utils/cn'
