@@ -1,1 +1,943 @@
-merhaba
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeStudio - Web Kod Editörü</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-darker: #121212;
+            --bg-panel: #252526;
+            --bg-tab: #2d2d30;
+            --bg-tab-active: #1e1e1e;
+            --border-color: #3e3e42;
+            --text-primary: #d4d4d4;
+            --text-secondary: #858585;
+            --accent-blue: #007acc;
+            --accent-green: #4ec9b0;
+            --accent-orange: #ce9178;
+            --accent-yellow: #dcdcaa;
+            --accent-purple: #c586c0;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Üst Toolbar */
+        .toolbar {
+            height: 40px;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 10px;
+        }
+
+        .logo {
+            font-weight: bold;
+            color: var(--accent-blue);
+            margin-right: 20px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            background: var(--bg-tab);
+            border-color: var(--accent-blue);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .btn-primary:hover {
+            background: #005a9e;
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border-color);
+            margin: 0 10px;
+        }
+
+        /* Ana Container */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 40px);
+        }
+
+        /* Sol Panel - Editör */
+        .editor-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* Sekmeler */
+        .tabs {
+            display: flex;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            height: 35px;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            cursor: pointer;
+            border-right: 1px solid var(--border-color);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: var(--bg-tab);
+        }
+
+        .tab.active {
+            background: var(--bg-tab-active);
+            border-top: 2px solid var(--accent-blue);
+        }
+
+        .tab-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .tab-icon.html { background: #e34c26; color: white; }
+        .tab-icon.css { background: #264de4; color: white; }
+        .tab-icon.js { background: #f0db4f; color: #323330; }
+
+        .tab-close {
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tab:hover .tab-close {
+            opacity: 1;
+        }
+
+        /* Editör Alanı */
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-editor {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: none;
+            outline: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            tab-size: 2;
+        }
+
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 100%;
+            background: var(--bg-dark);
+            border-right: 1px solid var(--border-color);
+            padding: 15px 10px;
+            text-align: right;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .editor-with-lines {
+            padding-left: 65px;
+        }
+
+        /* Sağ Panel - Önizleme */
+        .preview-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .preview-header {
+            height: 35px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            justify-content: space-between;
+        }
+
+        .preview-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preview-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            background: white;
+        }
+
+        /* Konsol */
+        .console-panel {
+            height: 150px;
+            background: var(--bg-dark);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-header {
+            height: 30px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .console-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .console-line {
+            padding: 3px 0;
+            border-bottom: 1px solid var(--bg-panel);
+        }
+
+        .console-log { color: var(--text-primary); }
+        .console-error { color: #f48771; }
+        .console-warn { color: #dcdcaa; }
+        .console-info { color: #4fc1ff; }
+
+        /* Ayırıcı (Resizer) */
+        .resizer {
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            position: relative;
+        }
+
+        .resizer:hover {
+            background: var(--accent-blue);
+        }
+
+        /* Dosya Gezgini (Sol Sidebar) */
+        .sidebar {
+            width: 200px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            height: 35px;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .file-item {
+            padding: 8px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .file-item:hover {
+            background: var(--bg-tab);
+        }
+
+        .file-item.active {
+            background: var(--bg-tab-active);
+        }
+
+        .file-icon {
+            font-size: 12px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            min-width: 300px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 3px;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Sözdizimi Vurgulama Basit Versiyonu */
+        .syntax-tag { color: #569cd6; }
+        .syntax-attr { color: #9cdcfe; }
+        .syntax-string { color: #ce9178; }
+        .syntax-comment { color: #6a9955; }
+        .syntax-keyword { color: #c586c0; }
+        .syntax-function { color: #dcdcaa; }
+
+        /* Mobil Uyumlu */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .editor-panel, .preview-panel {
+                width: 100%;
+                height: 50%;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="logo">◆ CodeStudio</div>
+        <button class="btn" onclick="newFile()">
+            <span>+</span> Yeni
+        </button>
+        <button class="btn" onclick="openFile()">
+            <span>📂</span> Aç
+        </button>
+        <button class="btn" onclick="saveFile()">
+            <span>💾</span> Kaydet
+        </button>
+        <div class="toolbar-divider"></div>
+        <button class="btn btn-primary" onclick="runCode()">
+            <span>▶</span> Çalıştır
+        </button>
+        <button class="btn" onclick="formatCode()">
+            <span>✨</span> Format
+        </button>
+        <div class="toolbar-divider"></div>
+        <button class="btn" onclick="toggleLayout()">
+            <span>🔄</span> Düzen
+        </button>
+    </div>
+
+    <!-- Ana Container -->
+    <div class="main-container">
+        <!-- Sol Sidebar - Dosya Gezgini -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">EXPLORER</div>
+            <div class="file-list" id="fileList">
+                <div class="file-item active" onclick="switchTab('html')">
+                    <span class="file-icon">📄</span> index.html
+                </div>
+                <div class="file-item" onclick="switchTab('css')">
+                    <span class="file-icon">🎨</span> style.css
+                </div>
+                <div class="file-item" onclick="switchTab('js')">
+                    <span class="file-icon">⚡</span> script.js
+                </div>
+            </div>
+        </div>
+
+        <!-- Sol Panel - Editör -->
+        <div class="editor-panel" id="editorPanel">
+            <!-- Sekmeler -->
+            <div class="tabs">
+                <div class="tab active" data-tab="html" onclick="switchTab('html')">
+                    <span class="tab-icon html">H</span>
+                    <span>HTML</span>
+                    <span class="tab-close" onclick="closeTab(event, 'html')">×</span>
+                </div>
+                <div class="tab" data-tab="css" onclick="switchTab('css')">
+                    <span class="tab-icon css">C</span>
+                    <span>CSS</span>
+                    <span class="tab-close" onclick="closeTab(event, 'css')">×</span>
+                </div>
+                <div class="tab" data-tab="js" onclick="switchTab('js')">
+                    <span class="tab-icon js">J</span>
+                    <span>JS</span>
+                    <span class="tab-close" onclick="closeTab(event, 'js')">×</span>
+                </div>
+            </div>
+
+            <!-- Editör Alanı -->
+            <div class="editor-wrapper">
+                <div class="line-numbers" id="lineNumbers">1</div>
+                <textarea class="code-editor editor-with-lines" id="editor" 
+                    placeholder="Kodunuzu buraya yazın..." 
+                    spellcheck="false"></textarea>
+            </div>
+
+            <!-- Konsol -->
+            <div class="console-panel">
+                <div class="console-header">Terminal / Konsol</div>
+                <div class="console-output" id="consoleOutput">
+                    <div class="console-line console-info">CodeStudio v1.0 - Hazır</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ayırıcı -->
+        <div class="resizer" id="resizer"></div>
+
+        <!-- Sağ Panel - Önizleme -->
+        <div class="preview-panel" id="previewPanel">
+            <div class="preview-header">
+                <div class="preview-title">
+                    <span>🌐</span>
+                    <span>Live Preview</span>
+                </div>
+                <div class="preview-actions">
+                    <button class="btn" onclick="refreshPreview()" title="Yenile">🔄</button>
+                    <button class="btn" onclick="openInNewWindow()" title="Yeni Pencere">↗</button>
+                </div>
+            </div>
+            <iframe class="preview-frame" id="preview"></iframe>
+        </div>
+    </div>
+
+    <!-- Dosya Açma Modal -->
+    <div class="modal" id="openModal">
+        <div class="modal-content">
+            <div class="modal-title">Dosya Aç</div>
+            <input type="file" id="fileInput" accept=".html,.css,.js,.txt" style="margin-bottom: 15px; color: var(--text-primary);">
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeModal('openModal')">İptal</button>
+                <button class="btn btn-primary" onclick="confirmOpen()">Aç</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dosya Kaydetme Modal -->
+    <div class="modal" id="saveModal">
+        <div class="modal-content">
+            <div class="modal-title">Dosyayı Kaydet</div>
+            <input type="text" class="modal-input" id="filenameInput" placeholder="örn: projem.html" value="projem.html">
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeModal('saveModal')">İptal</button>
+                <button class="btn btn-primary" onclick="confirmSave()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentTab = 'html';
+        let files = {
+            html: {
+                name: 'index.html',
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <title>Benim Projem</title>
+</head>
+<body>
+    <h1>Merhaba Dünya!</h1>
+    <p>CodeStudio ile kodlamaya başlayın.</p>
+    <button onclick="selam()">Tıkla!</button>
+</body>
+</html>`
+            },
+            css: {
+                name: 'style.css',
+                content: `body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+button:hover {
+    transform: scale(1.1);
+}`
+            },
+            js: {
+                name: 'script.js',
+                content: `function selam() {
+    alert('CodeStudio harika! 🎉');
+    console.log('Buton tıklandı!');
+}
+
+// Sayfa yüklendiğinde
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Sayfa hazır!');
+});`
+            }
+        };
+
+        // DOM Elements
+        const editor = document.getElementById('editor');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const preview = document.getElementById('preview');
+        const consoleOutput = document.getElementById('consoleOutput');
+
+        // Başlangıç
+        window.onload = function() {
+            loadFromStorage();
+            switchTab('html');
+            updateLineNumbers();
+            runCode();
+        };
+
+        // Sekme Değiştirme
+        function switchTab(tab) {
+            // Önceki sekmeyi kaydet
+            files[currentTab].content = editor.value;
+            
+            // Aktif sekmeyi güncelle
+            currentTab = tab;
+            
+            // UI Güncelle
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+            
+            // Dosya listesi güncelle
+            document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
+            document.querySelectorAll('.file-item')[getTabIndex(tab)].classList.add('active');
+            
+            // Editör içeriğini güncelle
+            editor.value = files[tab].content;
+            updateLineNumbers();
+        }
+
+        function getTabIndex(tab) {
+            const tabs = ['html', 'css', 'js'];
+            return tabs.indexOf(tab);
+        }
+
+        // Sekme Kapatma
+        function closeTab(e, tab) {
+            e.stopPropagation();
+            log(`Sekme kapatıldı: ${tab}`, 'info');
+        }
+
+        // Satır Numaraları
+        function updateLineNumbers() {
+            const lines = editor.value.split('\n').length;
+            lineNumbers.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
+        }
+
+        editor.addEventListener('input', () => {
+            updateLineNumbers();
+            files[currentTab].content = editor.value;
+            autoSave();
+        });
+
+        editor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = editor.scrollTop;
+        });
+
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 2;
+            }
+        });
+
+        // Kod Çalıştırma
+        function runCode() {
+            files[currentTab].content = editor.value;
+            
+            const html = files.html.content;
+            const css = files.css.content;
+            const js = files.js.content;
+            
+            const source = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>${css}</style>
+                </head>
+                <body>
+                    ${html.replace(/<html>|<\/html>|<head>.*<\/head>|<!DOCTYPE html>/gs, '')}
+                    <script>
+                        (function() {
+                            const oldLog = console.log;
+                            const oldError = console.error;
+                            const oldWarn = console.warn;
+                            
+                            console.log = function(...args) {
+                                oldLog.apply(console, args);
+                                window.parent.postMessage({type: 'log', data: args.join(' ')}, '*');
+                            };
+                            console.error = function(...args) {
+                                oldError.apply(console, args);
+                                window.parent.postMessage({type: 'error', data: args.join(' ')}, '*');
+                            };
+                            console.warn = function(...args) {
+                                oldWarn.apply(console, args);
+                                window.parent.postMessage({type: 'warn', data: args.join(' ')}, '*');
+                            };
+                        })();
+                        ${js}
+                    <\/script>
+                </body>
+                </html>
+            `;
+            
+            preview.srcdoc = source;
+            log('Kod çalıştırıldı...', 'info');
+        }
+
+        // Konsol Mesajları
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type) {
+                log(e.data.data, e.data.type);
+            }
+        });
+
+        function log(message, type = 'log') {
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            line.textContent = `[${timestamp}] ${message}`;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        // Yeni Dosya
+        function newFile() {
+            files.html.content = '<h1>Yeni Proje</h1>';
+            files.css.content = 'body { font-family: Arial; }';
+            files.js.content = '// Yeni kod';
+            switchTab('html');
+            runCode();
+            log('Yeni dosya oluşturuldu', 'info');
+        }
+
+        // Dosya Açma
+        function openFile() {
+            document.getElementById('openModal').classList.add('active');
+        }
+
+        function confirmOpen() {
+            const input = document.getElementById('fileInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    
+                    if (ext === 'html' || ext === 'htm') {
+                        files.html.content = content;
+                        switchTab('html');
+                    } else if (ext === 'css') {
+                        files.css.content = content;
+                        switchTab('css');
+                    } else if (ext === 'js') {
+                        files.js.content = content;
+                        switchTab('js');
+                    }
+                    
+                    runCode();
+                    log(`Dosya açıldı: ${file.name}`, 'success');
+                };
+                reader.readAsText(file);
+            }
+            closeModal('openModal');
+        }
+
+        // Dosya Kaydetme
+        function saveFile() {
+            document.getElementById('saveModal').classList.add('active');
+            const currentFile = files[currentTab].name;
+            document.getElementById('filenameInput').value = currentFile;
+        }
+
+        function confirmSave() {
+            const filename = document.getElementById('filenameInput').value;
+            const content = editor.value;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            closeModal('saveModal');
+            log(`Dosya kaydedildi: ${filename}`, 'success');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Otomatik Kaydetme (localStorage)
+        function autoSave() {
+            localStorage.setItem('codestudio_files', JSON.stringify(files));
+        }
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('codestudio_files');
+            if (saved) {
+                files = JSON.parse(saved);
+                log('Önceki oturumdan dosyalar yüklendi', 'info');
+            }
+        }
+
+        // Format Kod
+        function formatCode() {
+            let code = editor.value;
+            // Basit formatlama
+            code = code.replace(/;/g, ';\n').replace(/{/g, ' {\n').replace(/}/g, '}\n');
+            editor.value = code;
+            updateLineNumbers();
+            log('Kod formatlandı', 'info');
+        }
+
+        // Önizleme Yenileme
+        function refreshPreview() {
+            runCode();
+        }
+
+        // Yeni Pencerede Aç
+        function openInNewWindow() {
+            const html = files.html.content;
+            const css = files.css.content;
+            const js = files.js.content;
+            const source = `<html><head><style>${css}</style></head><body>${html}<script>${js}</script></body></html>`;
+            const win = window.open('', '_blank');
+            win.document.write(source);
+            win.document.close();
+        }
+
+        // Düzen Değiştirme
+        let layoutMode = 0;
+        function toggleLayout() {
+            layoutMode = (layoutMode + 1) % 3;
+            const container = document.querySelector('.main-container');
+            const editorPanel = document.getElementById('editorPanel');
+            const previewPanel = document.getElementById('previewPanel');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (layoutMode === 0) {
+                // Yatay bölme
+                container.style.flexDirection = 'row';
+                editorPanel.style.width = '50%';
+                editorPanel.style.height = '100%';
+                previewPanel.style.width = '50%';
+                previewPanel.style.height = '100%';
+                sidebar.style.display = 'flex';
+            } else if (layoutMode === 1) {
+                // Dikey bölme
+                container.style.flexDirection = 'column';
+                editorPanel.style.width = '100%';
+                editorPanel.style.height = '50%';
+                previewPanel.style.width = '100%';
+                previewPanel.style.height = '50%';
+                sidebar.style.display = 'none';
+            } else {
+                // Sadece editör
+                container.style.flexDirection = 'row';
+                editorPanel.style.width = '100%';
+                previewPanel.style.display = 'none';
+                sidebar.style.display = 'flex';
+            }
+            
+            if (layoutMode !== 2) {
+                previewPanel.style.display = 'flex';
+            }
+        }
+
+        // Panel Yeniden Boyutlandırma
+        let isResizing = false;
+        const resizer = document.getElementById('resizer');
+        const editorPanel = document.getElementById('editorPanel');
+        const previewPanel = document.getElementById('previewPanel');
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const containerWidth = document.querySelector('.main-container').offsetWidth;
+            const sidebarWidth = document.getElementById('sidebar').offsetWidth;
+            const newEditorWidth = ((e.clientX - sidebarWidth) / (containerWidth - sidebarWidth)) * 100;
+            
+            if (newEditorWidth > 20 && newEditorWidth < 80) {
+                editorPanel.style.width = newEditorWidth + '%';
+                previewPanel.style.width = (100 - newEditorWidth) + '%';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isResizing = false;
+            document.body.style.cursor = 'default';
+        });
+
+        // Klavye Kısayolları
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 's') {
+                    e.preventDefault();
+                    saveFile();
+                } else if (e.key === 'o') {
+                    e.preventDefault();
+                    openFile();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runCode();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
