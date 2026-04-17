@@ -1,11 +1,11 @@
 -- ============================================================
 -- KODESHARE — Mevcut deployment'a uygula
--- Supabase SQL Editor'a kopyalayıp çalıştır
+-- Supabase SQL Editor'a kopyalayip calistir
+-- PostgreSQL'de CREATE POLICY IF NOT EXISTS desteklenmez,
+-- bu yuzden DO block ile kontrol yapilir.
 -- ============================================================
 
--- 1. conversation_participants INSERT policy eksikti
---    PostgreSQL'de CREATE POLICY IF NOT EXISTS desteklenmez,
---    bu yüzden DO block ile kontrol yapılır.
+-- 1. conversation_participants INSERT policy
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -34,7 +34,7 @@ SET followers_count = (SELECT COUNT(*) FROM public.follows f WHERE f.following_i
 UPDATE public.comments c
 SET likes_count = (SELECT COUNT(*) FROM public.comment_likes cl WHERE cl.comment_id = c.id);
 
--- 5. comment_likes trigger (eger yoksa olustur)
+-- 5. comment_likes trigger
 CREATE OR REPLACE FUNCTION public.update_comment_likes_count()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
