@@ -1,42 +1,40 @@
 -- ============================================================
 -- KODESHARE — Mevcut deployment'a uygula
--- Supabase SQL Editor'a kopyalayıp çalıştır
+-- Supabase SQL Editor'a kopyalayip calistir
+-- PostgreSQL'de CREATE POLICY IF NOT EXISTS desteklenmez,
+-- bu yuzden DO block ile kontrol yapilir.
 -- ============================================================
 
--- 1. conversation_participants INSERT policy eksikti
---    (Mesaj başlatma çalışmıyorsa bu policy gerekli)
+-- 1. conversation_participants INSERT policy
 DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE tablename = 'conversation_participants'
-    AND policyname = 'Giriş yapanlar konuşmaya katılabilir'
+    AND policyname = 'Giris yapanlar konusmaya katilabilir'
   ) THEN
-    EXECUTE 'CREATE POLICY "Giriş yapanlar konuşmaya katılabilir"
+    EXECUTE 'CREATE POLICY "Giris yapanlar konusmaya katilabilir"
       ON public.conversation_participants
       FOR INSERT WITH CHECK (auth.uid() IS NOT NULL)';
   END IF;
 END $$;
 
--- 2. Sayaç senkronizasyonu
---    (likes_count 0 kalıyor, comments_count güncellenmiyorsa çalıştır)
-
--- Post beğeni, yorum ve kaydetme sayıları
+-- 2. Post sayaclari senkronizasyonu
 UPDATE public.posts p
 SET likes_count    = (SELECT COUNT(*) FROM public.post_likes pl WHERE pl.post_id = p.id),
     comments_count = (SELECT COUNT(*) FROM public.comments c   WHERE c.post_id   = p.id),
     saves_count    = (SELECT COUNT(*) FROM public.post_saves ps WHERE ps.post_id  = p.id);
 
--- Profil takipçi/takip sayıları
+-- 3. Profil takipci/takip sayilari
 UPDATE public.profiles p
 SET followers_count = (SELECT COUNT(*) FROM public.follows f WHERE f.following_id = p.id),
     following_count = (SELECT COUNT(*) FROM public.follows f WHERE f.follower_id   = p.id);
 
--- Yorum beğeni sayıları
+-- 4. Yorum begeni sayilari
 UPDATE public.comments c
 SET likes_count = (SELECT COUNT(*) FROM public.comment_likes cl WHERE cl.comment_id = c.id);
 
--- 3. Eğer comment_likes trigger yoksa (yorum beğeni sayısı hiç güncellenmediyse)
+-- 5. comment_likes trigger
 CREATE OR REPLACE FUNCTION public.update_comment_likes_count()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
