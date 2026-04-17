@@ -168,8 +168,8 @@ function ProjectsSidebar({
                   className="p-0.5 rounded text-gray-600 hover:text-gray-300 shrink-0 transition-colors"
                 >
                   {isExpanded
-                    ? <ChevronDown  className="w-5 h-5" />
-                    : <ChevronRight className="w-5 h-5" />}
+                    ? <ChevronDown  className="w-4 h-4" />
+                    : <ChevronRight className="w-4 h-4" />}
                 </button>
 
                 {/* Proje adı — tıklayınca expand/collapse */}
@@ -178,13 +178,13 @@ function ProjectsSidebar({
                     value={project.title}
                     onSave={(v) => { onRenameProject(project, v); setEditingProject(null) }}
                     onCancel={() => setEditingProject(null)}
-                    className="flex-1 text-base font-medium text-[#8aa8ff]"
+                    className="flex-1 text-sm font-medium text-[#8aa8ff]"
                   />
                 ) : (
                   <span
                     onClick={() => toggleExpand(project.id)}
                     className={cn(
-                      'flex-1 text-base font-medium truncate transition-colors',
+                      'flex-1 text-sm font-medium truncate transition-colors',
                       isActive ? 'text-[#8aa8ff]' : 'text-[#7a8aa8] hover:text-[#c8d8f0]',
                     )}
                     title="Dosyaları göster / gizle"
@@ -218,21 +218,21 @@ function ProjectsSidebar({
                     className="p-1.5 rounded hover:bg-[#1e2a3a] text-gray-600 hover:text-[#8aa8ff] transition-colors"
                     title="Yeniden adlandır"
                   >
-                    <Pencil className="w-5 h-5" />
+                    <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onSaveProject(project) }}
-                    className="p-1.5 rounded hover:bg-[#1e2a3a] text-gray-600 hover:text-[#8aa8ff] transition-colors"
+                    className="p-1 rounded hover:bg-[#1e2a3a] text-gray-600 hover:text-[#8aa8ff] transition-colors"
                     title="Kaydet"
                   >
-                    <Save className="w-5 h-5" />
+                    <Save className="w-4 h-4" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteProject(project) }}
-                    className="p-1.5 rounded hover:bg-red-900/30 text-gray-600 hover:text-red-400 transition-colors"
+                    className="p-1 rounded hover:bg-red-900/30 text-gray-600 hover:text-red-400 transition-colors"
                     title="Projeyi sil"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -250,14 +250,14 @@ function ProjectsSidebar({
                         key={file.id}
                         onClick={() => onOpenFile(project, file.id)}
                         className={cn(
-                          'group/file flex items-center gap-2 pl-8 pr-2 py-2 cursor-pointer select-none transition-colors',
+                          'group/file flex items-center gap-2 pl-8 pr-2 py-1.5 cursor-pointer select-none transition-colors',
                           isFileActive
                             ? 'bg-[#1e2a4a] text-[#8aa8ff]'
                             : 'text-[#6b7a99] hover:bg-[#111827] hover:text-[#c0cce0]',
                         )}
                       >
                         <span
-                          className="text-xs font-bold shrink-0 w-9"
+                          className="text-[10px] font-bold shrink-0 w-8"
                           style={{ color }}
                         >
                           {ext.toUpperCase()}
@@ -271,10 +271,10 @@ function ProjectsSidebar({
                               setEditingFile(null)
                             }}
                             onCancel={() => setEditingFile(null)}
-                            className="flex-1 text-sm font-mono text-[#c0cce0]"
+                            className="flex-1 text-[13px] font-mono text-[#c0cce0]"
                           />
                         ) : (
-                          <span className="flex-1 text-sm font-mono truncate">
+                          <span className="flex-1 text-[13px] font-mono truncate">
                             {file.name}
                           </span>
                         )}
@@ -285,14 +285,14 @@ function ProjectsSidebar({
                           className="opacity-0 group-hover/file:opacity-100 p-1 rounded hover:bg-[#2a3347] text-gray-600 hover:text-gray-300 transition-all shrink-0"
                           title="Dosyayı yeniden adlandır"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); onDeleteFile(project, file.id) }}
                           className="opacity-0 group-hover/file:opacity-100 p-1 rounded hover:bg-red-900/40 text-gray-600 hover:text-red-400 transition-all shrink-0"
                           title="Dosyayı sil"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     )
@@ -301,9 +301,9 @@ function ProjectsSidebar({
                   {/* Add file to project */}
                   <button
                     onClick={() => onAddFile(project)}
-                    className="flex items-center gap-1.5 pl-8 pr-2 py-2 w-full text-sm text-gray-600 hover:text-[#8aa8ff] transition-colors"
+                    className="flex items-center gap-1.5 pl-8 pr-2 py-1.5 w-full text-xs text-gray-600 hover:text-[#8aa8ff] transition-colors"
                   >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4" />
                     Dosya ekle
                   </button>
                 </div>
