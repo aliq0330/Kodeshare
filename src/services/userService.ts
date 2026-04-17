@@ -2,6 +2,10 @@ import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
 import type { User } from '@/types'
 
+async function currentUserId(): Promise<string | undefined> {
+  return (await supabase.auth.getSession()).data.session?.user?.id
+}
+
 export const userService = {
   async getProfile(username: string): Promise<User> {
     const { data, error } = await supabase
@@ -11,7 +15,7 @@ export const userService = {
   },
 
   async updateProfile(updates: Partial<User>): Promise<User> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const userId = await currentUserId()
     const { data, error } = await supabase
       .from('profiles')
       .update({
@@ -24,7 +28,7 @@ export const userService = {
         avatar_url:   updates.avatarUrl,
         cover_url:    updates.coverUrl,
       })
-      .eq('id', user!.id)
+      .eq('id', userId!)
       .select()
       .single()
     if (error) throw new Error(error.message)
@@ -32,22 +36,22 @@ export const userService = {
   },
 
   async follow(userId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('follows').insert({ follower_id: user!.id, following_id: userId })
+    const myId = await currentUserId()
+    const { error } = await supabase.from('follows').insert({ follower_id: myId!, following_id: userId })
     if (error) throw new Error(error.message)
-    supabase.from('notifications').insert({ user_id: userId, actor_id: user!.id, type: 'follow' }).then()
+    supabase.from('notifications').insert({ user_id: userId, actor_id: myId!, type: 'follow', message: 'Seni takip etmeye başladı' }).then()
   },
 
   async unfollow(userId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('follows').delete().eq('follower_id', user!.id).eq('following_id', userId)
+    const myId = await currentUserId()
+    await supabase.from('follows').delete().eq('follower_id', myId!).eq('following_id', userId)
   },
 
   async isFollowing(userId: string): Promise<boolean> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return false
+    const myId = await currentUserId()
+    if (!myId) return false
     const { data } = await supabase
-      .from('follows').select('follower_id').eq('follower_id', user.id).eq('following_id', userId).maybeSingle()
+      .from('follows').select('follower_id').eq('follower_id', myId).eq('following_id', userId).maybeSingle()
     return !!data
   },
 

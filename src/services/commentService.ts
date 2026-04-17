@@ -2,9 +2,13 @@ import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
 import type { Comment } from '@/types'
 
+async function currentUserId(): Promise<string | undefined> {
+  return (await supabase.auth.getSession()).data.session?.user?.id
+}
+
 export const commentService = {
   async getComments(postId: string): Promise<Comment[]> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const userId = await currentUserId()
 
     const { data, error } = await supabase
       .from('comments')
@@ -14,7 +18,7 @@ export const commentService = {
       .order('created_at', { ascending: true })
     if (error) throw new Error(error.message)
 
-    const topLevel = (data ?? []).map((c) => mapComment(c as Record<string, unknown>, user?.id))
+    const topLevel = (data ?? []).map((c) => mapComment(c as Record<string, unknown>, userId))
 
     const withReplies = await Promise.all(
       topLevel.map(async (c) => {
@@ -23,7 +27,7 @@ export const commentService = {
           .select('*, author:profiles!comments_author_id_fkey(*), comment_likes(user_id)')
           .eq('parent_id', c.id)
           .order('created_at', { ascending: true })
-        return { ...c, replies: (replies ?? []).map((r) => mapComment(r as Record<string, unknown>, user?.id)) }
+        return { ...c, replies: (replies ?? []).map((r) => mapComment(r as Record<string, unknown>, userId)) }
       })
     )
 
@@ -31,23 +35,22 @@ export const commentService = {
   },
 
   async create(postId: string, content: string, parentId?: string): Promise<Comment> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Giriş yapmalısın')
+    const userId = await currentUserId()
+    if (!userId) throw new Error('Giriş yapmalısın')
 
     const { data, error } = await supabase
       .from('comments')
-      .insert({ post_id: postId, author_id: user.id, content, parent_id: parentId ?? null })
+      .insert({ post_id: postId, author_id: userId, content, parent_id: parentId ?? null })
       .select('*, author:profiles!comments_author_id_fkey(*), comment_likes(user_id)')
       .single()
     if (error) throw new Error(error.message)
 
-    // Bildirim: yorum yapıldığında gönderi sahibine haber ver
     if (!parentId) {
       const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
-      if (post && (post as { author_id: string }).author_id !== user.id) {
+      if (post && (post as { author_id: string }).author_id !== userId) {
         supabase.from('notifications').insert({
           user_id: (post as { author_id: string }).author_id,
-          actor_id: user.id,
+          actor_id: userId,
           type: 'comment',
           post_id: postId,
           message: 'Gönderini yorumladı',
@@ -55,7 +58,7 @@ export const commentService = {
       }
     }
 
-    return { ...mapComment(data as Record<string, unknown>, user.id), replies: [] }
+    return { ...mapComment(data as Record<string, unknown>, userId), replies: [] }
   },
 
   async delete(commentId: string): Promise<void> {
@@ -63,15 +66,15 @@ export const commentService = {
   },
 
   async like(commentId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Giriş yapmalısın')
-    await supabase.from('comment_likes').insert({ user_id: user.id, comment_id: commentId })
+    const userId = await currentUserId()
+    if (!userId) throw new Error('Giriş yapmalısın')
+    await supabase.from('comment_likes').insert({ user_id: userId, comment_id: commentId })
   },
 
   async unlike(commentId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    await supabase.from('comment_likes').delete().eq('user_id', user.id).eq('comment_id', commentId)
+    const userId = await currentUserId()
+    if (!userId) return
+    await supabase.from('comment_likes').delete().eq('user_id', userId).eq('comment_id', commentId)
   },
 }
 

@@ -2,19 +2,23 @@ import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
 import type { Collection, CreateCollectionPayload, PostPreview } from '@/types'
 
+async function currentUserId(): Promise<string | undefined> {
+  return (await supabase.auth.getSession()).data.session?.user?.id
+}
+
 export const collectionService = {
   async getUserCollections(username: string): Promise<Collection[]> {
     const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
     if (!profile) return []
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const userId = await currentUserId()
     let q = supabase
       .from('collections')
       .select('*, owner:profiles!collections_owner_id_fkey(*)')
       .eq('owner_id', (profile as { id: string }).id)
       .order('updated_at', { ascending: false })
 
-    if (user?.id !== (profile as { id: string }).id) {
+    if (userId !== (profile as { id: string }).id) {
       q = q.eq('visibility', 'public')
     }
 
@@ -34,10 +38,10 @@ export const collectionService = {
   },
 
   async create(payload: CreateCollectionPayload): Promise<Collection> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const userId = await currentUserId()
     const { data, error } = await supabase
       .from('collections')
-      .insert({ owner_id: user!.id, name: payload.name, description: payload.description, visibility: payload.visibility })
+      .insert({ owner_id: userId!, name: payload.name, description: payload.description, visibility: payload.visibility })
       .select('*, owner:profiles!collections_owner_id_fkey(*)')
       .single()
     if (error) throw new Error(error.message)
@@ -68,7 +72,7 @@ export const collectionService = {
   },
 
   async getCollectionPosts(collectionId: string): Promise<PostPreview[]> {
-    const userId = (await supabase.auth.getUser()).data.user?.id
+    const userId = await currentUserId()
     const { data, error } = await supabase
       .from('collection_posts')
       .select('post:posts!collection_posts_post_id_fkey(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))')
