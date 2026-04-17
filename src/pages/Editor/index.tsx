@@ -3,7 +3,7 @@ import {
   Files, Code2, Eye, WrapText, Sun, Moon, Plus, Trash2, X,
   RefreshCw, ExternalLink, Monitor, Tablet, Smartphone,
   Loader2, Save, ChevronRight, ChevronDown, FolderOpen, Cloud,
-  Pencil, Check,
+  Pencil, Check, GripHorizontal,
 } from 'lucide-react'
 import { useEditor } from '@editor/hooks/useEditor'
 import { useAutoSave } from '@editor/hooks/useAutoSave'
@@ -111,10 +111,10 @@ function ProjectsSidebar({
       style={{ background: '#0a0f1a', borderRight: '1px solid #1e2535' }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#1e2535]">
+      <div className="flex items-center justify-between px-3 py-3 border-b border-[#1e2535]">
         <div className="flex items-center gap-2">
-          <FolderOpen className="w-3.5 h-3.5 text-[#8aa8ff]" />
-          <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-500">
+          <FolderOpen className="w-4 h-4 text-[#8aa8ff]" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-gray-500">
             Projelerim
           </span>
         </div>
@@ -124,7 +124,7 @@ function ProjectsSidebar({
             title="Yeni proje"
             className="p-1.5 rounded-md hover:bg-[#1e2535] text-gray-600 hover:text-[#8aa8ff] transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -158,7 +158,7 @@ function ProjectsSidebar({
               {/* Project row */}
               <div
                 className={cn(
-                  'group flex items-center gap-1 px-2 py-1.5 cursor-pointer select-none transition-colors',
+                  'group flex items-center gap-1 px-2 py-2 cursor-pointer select-none transition-colors',
                   isActive ? 'bg-[#151e30]' : 'hover:bg-[#111827]',
                 )}
               >
@@ -168,8 +168,8 @@ function ProjectsSidebar({
                   className="p-0.5 rounded text-gray-600 hover:text-gray-300 shrink-0 transition-colors"
                 >
                   {isExpanded
-                    ? <ChevronDown  className="w-3.5 h-3.5" />
-                    : <ChevronRight className="w-3.5 h-3.5" />}
+                    ? <ChevronDown  className="w-4 h-4" />
+                    : <ChevronRight className="w-4 h-4" />}
                 </button>
 
                 {/* Project name / inline edit */}
@@ -178,13 +178,13 @@ function ProjectsSidebar({
                     value={project.title}
                     onSave={(v) => { onRenameProject(project, v); setEditingProject(null) }}
                     onCancel={() => setEditingProject(null)}
-                    className="flex-1 text-[12px] font-medium text-[#8aa8ff]"
+                    className="flex-1 text-sm font-medium text-[#8aa8ff]"
                   />
                 ) : (
                   <span
                     onClick={() => setEditingProject(project.id)}
                     className={cn(
-                      'flex-1 text-[12px] font-medium truncate transition-colors',
+                      'flex-1 text-sm font-medium truncate transition-colors',
                       isActive ? 'text-[#8aa8ff]' : 'text-[#7a8aa8] hover:text-[#c8d8f0]',
                     )}
                     title="Tıkla: yeniden adlandır"
@@ -198,21 +198,34 @@ function ProjectsSidebar({
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                 )}
 
-                {/* Hover actions */}
-                <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0 transition-opacity ml-1">
+                {/* Aç butonu (hover'da görünür) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleExpand(project.id)
+                    if (project.files[0]) onOpenFile(project, project.files[0].id)
+                  }}
+                  className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-xs font-medium bg-brand-500/20 text-brand-300 hover:bg-brand-500 hover:text-white transition-all shrink-0 focus:opacity-100"
+                  title="Projeyi aç"
+                >
+                  Aç
+                </button>
+
+                {/* Diğer hover eylemleri */}
+                <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0 transition-opacity">
                   <button
                     onClick={(e) => { e.stopPropagation(); onSaveProject(project) }}
                     className="p-1 rounded hover:bg-[#1e2a3a] text-gray-600 hover:text-[#8aa8ff] transition-colors"
                     title="Kaydet"
                   >
-                    <Save className="w-3 h-3" />
+                    <Save className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteProject(project) }}
                     className="p-1 rounded hover:bg-red-900/30 text-gray-600 hover:text-red-400 transition-colors"
                     title="Projeyi sil"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -230,14 +243,14 @@ function ProjectsSidebar({
                         key={file.id}
                         onClick={() => onOpenFile(project, file.id)}
                         className={cn(
-                          'group/file flex items-center gap-2 pl-8 pr-2 py-1 cursor-pointer select-none transition-colors',
+                          'group/file flex items-center gap-2 pl-8 pr-2 py-1.5 cursor-pointer select-none transition-colors',
                           isFileActive
                             ? 'bg-[#1e2a4a] text-[#8aa8ff]'
                             : 'text-[#6b7a99] hover:bg-[#111827] hover:text-[#c0cce0]',
                         )}
                       >
                         <span
-                          className="text-[9px] font-bold shrink-0 w-7"
+                          className="text-[10px] font-bold shrink-0 w-8"
                           style={{ color }}
                         >
                           {ext.toUpperCase()}
@@ -251,13 +264,12 @@ function ProjectsSidebar({
                               setEditingFile(null)
                             }}
                             onCancel={() => setEditingFile(null)}
-                            className="flex-1 text-[12px] font-mono text-[#c0cce0]"
+                            className="flex-1 text-sm font-mono text-[#c0cce0]"
                           />
                         ) : (
                           <span
-                            className="flex-1 text-[12px] font-mono truncate"
+                            className="flex-1 text-sm font-mono truncate"
                             onClick={(e) => {
-                              // second click on already-active file → rename
                               if (isFileActive) { e.stopPropagation(); setEditingFile(file.id) }
                             }}
                             title={isFileActive ? 'Tıkla: yeniden adlandır' : ''}
@@ -288,9 +300,9 @@ function ProjectsSidebar({
                   {/* Add file to project */}
                   <button
                     onClick={() => onAddFile(project)}
-                    className="flex items-center gap-1.5 pl-8 pr-2 py-1 w-full text-[11px] text-gray-700 hover:text-[#8aa8ff] transition-colors"
+                    className="flex items-center gap-1.5 pl-8 pr-2 py-1.5 w-full text-xs text-gray-700 hover:text-[#8aa8ff] transition-colors"
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-3.5 h-3.5" />
                     Dosya ekle
                   </button>
                 </div>
@@ -454,7 +466,12 @@ export default function EditorPage() {
   const [showProjects, setShowProjects] = useState(true)
   const [showPreview,  setShowPreview]  = useState(true)
   const [isSaving,     setIsSaving]     = useState(false)
-  const [mobilePanel,  setMobilePanel]  = useState<'projects' | 'editor' | 'preview'>('editor')
+  const [mobilePanel,  setMobilePanel]  = useState<'projects' | 'editor'>('editor')
+
+  // Mobil dikey bölme: editör yüzdesi (20–80)
+  const [mobileEditorPct, setMobileEditorPct] = useState(50)
+  const mobileDragRef    = useRef<{ startY: number; startPct: number } | null>(null)
+  const mobileContentRef = useRef<HTMLDivElement>(null)
 
   // Fetch saved projects on auth
   useEffect(() => {
@@ -628,6 +645,21 @@ export default function EditorPage() {
     addFile({ name, language: lang, content: defaultContentForLanguage(lang), isModified: false })
   }
 
+  const handleMobileDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    mobileDragRef.current = { startY: e.clientY, startPct: mobileEditorPct }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const handleMobileDragMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!mobileDragRef.current || !mobileContentRef.current) return
+    const totalH = mobileContentRef.current.clientHeight
+    if (totalH === 0) return
+    const delta = e.clientY - mobileDragRef.current.startY
+    setMobileEditorPct(Math.min(80, Math.max(20, mobileDragRef.current.startPct + (delta / totalH) * 100)))
+  }
+
+  const handleMobileDragEnd = () => { mobileDragRef.current = null }
+
   const hasUnsaved = files.some((f) => f.isModified)
   const isDark     = theme !== 'vs-light'
 
@@ -703,9 +735,8 @@ export default function EditorPage() {
       style={{ background: '#07090f', borderBottom: '1px solid #1e2535' }}
     >
       {([
-        { id: 'projects', icon: Files,  label: 'Projeler' },
-        { id: 'editor',   icon: Code2,  label: 'Editör'   },
-        { id: 'preview',  icon: Eye,    label: 'Önizleme' },
+        { id: 'projects', icon: Files, label: 'Projeler' },
+        { id: 'editor',   icon: Code2, label: 'Editör'   },
       ] as const).map(({ id, icon: Icon, label }) => (
         <button
           key={id}
@@ -802,13 +833,52 @@ export default function EditorPage() {
         )}
       </div>
 
-      {/* Mobile: single panel */}
+      {/* Mobile: projeler veya editör+önizleme dikey bölme */}
       <div className="sm:hidden flex-1 overflow-hidden">
         {mobilePanel === 'projects' && (
           <ProjectsSidebar {...sidebarProps} />
         )}
-        {mobilePanel === 'editor' && EditorColumn}
-        {mobilePanel === 'preview' && <PreviewPanel files={files} />}
+        {mobilePanel === 'editor' && (
+          <div ref={mobileContentRef} className="flex flex-col h-full overflow-hidden">
+            {/* Editör — sürüklenebilir yükseklik */}
+            <div
+              className="flex flex-col overflow-hidden shrink-0"
+              style={{ height: `${mobileEditorPct}%` }}
+            >
+              <FileTabs
+                files={files}
+                activeFileId={activeFileId}
+                onSelect={setActiveFile}
+                onClose={removeFile}
+              />
+              <div className="flex-1 overflow-hidden">
+                <EditorPane
+                  file={activeFile}
+                  theme={theme}
+                  wordWrap={wordWrap}
+                  onChange={updateActiveFile}
+                />
+              </div>
+            </div>
+
+            {/* Sürükleme tutacağı */}
+            <div
+              className="h-3 shrink-0 flex items-center justify-center touch-none select-none cursor-row-resize transition-colors"
+              style={{ background: '#1e2535' }}
+              onPointerDown={handleMobileDragStart}
+              onPointerMove={handleMobileDragMove}
+              onPointerUp={handleMobileDragEnd}
+              onPointerCancel={handleMobileDragEnd}
+            >
+              <GripHorizontal className="w-6 h-3 text-gray-600" />
+            </div>
+
+            {/* Canlı önizleme — kalan alan */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <PreviewPanel files={files} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

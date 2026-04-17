@@ -7,44 +7,48 @@ import { useEditorStore } from '@store/editorStore'
 
 export default function EditorNavbar() {
   const { user } = useAuthStore()
-  const { projectTitle, isSaving, save } = useEditorStore()
+  const { projectTitle, isSaving, save, setProjectTitle } = useEditorStore()
 
   return (
-    <header className="h-12 border-b border-[#2a3347] bg-[#0d1117] flex items-center justify-between px-3 shrink-0">
-      {/* Left */}
-      <div className="flex items-center gap-2">
-        <Link to="/" className="p-1.5 rounded hover:bg-[#1e2535] text-gray-400 hover:text-white transition-colors">
+    <header className="h-12 border-b border-[#2a3347] bg-[#0d1117] flex items-center gap-2 px-3 shrink-0 min-w-0 overflow-hidden">
+      {/* Left — proje adı */}
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <Link
+          to="/"
+          className="p-1.5 rounded hover:bg-[#1e2535] text-gray-400 hover:text-white transition-colors shrink-0"
+        >
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <div className="w-px h-4 bg-[#2a3347]" />
-        <Code2 className="w-4 h-4 text-brand-400" />
+        <div className="hidden sm:block w-px h-4 bg-[#2a3347] shrink-0" />
+        <Code2 className="hidden sm:block w-4 h-4 text-brand-400 shrink-0" />
         <input
           type="text"
-          defaultValue={projectTitle}
-          className="bg-transparent text-sm font-medium text-white focus:outline-none focus:bg-[#1e2535] rounded px-2 py-1 w-48"
+          value={projectTitle}
+          onChange={(e) => setProjectTitle(e.target.value)}
+          className="bg-transparent text-sm font-medium text-white focus:outline-none focus:bg-[#1e2535] rounded px-2 py-1 min-w-0 w-0 flex-1 max-w-[180px]"
           placeholder="Proje adı..."
         />
         {isSaving && (
-          <span className="text-xs text-gray-500 flex items-center gap-1">
+          <span className="hidden md:flex text-xs text-gray-500 items-center gap-1 shrink-0">
             <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
             Kaydediliyor...
           </span>
         )}
       </div>
 
-      {/* Right */}
-      <div className="flex items-center gap-2">
+      {/* Right — eylemler */}
+      <div className="flex items-center gap-1 shrink-0">
         <Button variant="ghost" size="sm" onClick={save}>
           <Save className="w-4 h-4" />
-          <span className="hidden sm:inline">Kaydet</span>
+          <span className="hidden md:inline ml-1">Kaydet</span>
         </Button>
         <Button variant="secondary" size="sm">
           <Play className="w-4 h-4" />
-          <span className="hidden sm:inline">Çalıştır</span>
+          <span className="hidden md:inline ml-1">Çalıştır</span>
         </Button>
         <Button variant="primary" size="sm">
           <Share2 className="w-4 h-4" />
-          <span className="hidden sm:inline">Paylaş</span>
+          <span className="hidden md:inline ml-1">Paylaş</span>
         </Button>
         {user && (
           <Avatar src={user.avatarUrl} alt={user.displayName} size="sm" className="ml-1" />
