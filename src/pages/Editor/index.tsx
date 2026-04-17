@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { GripVertical, Cloud, CloudOff } from 'lucide-react'
+import { GripVertical, Cloud, CloudOff, PanelLeft } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import FileTree from '@editor/components/FileTree'
 import FileTabs from '@editor/components/FileTabs'
@@ -29,6 +29,7 @@ export default function EditorPage() {
   const [showPreview, setShowPreview] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(projectId ?? null)
+  const [showExplorer, setShowExplorer] = useState(false)
 
   // Load project from URL param on mount
   useEffect(() => {
@@ -83,16 +84,45 @@ export default function EditorPage() {
   const hasUnsaved = files.some((f) => f.isModified)
 
   return (
-    <div className="flex h-full overflow-hidden">
-      <FileTree
-        files={files}
-        activeFileId={activeFileId}
-        onSelect={setActiveFile}
-        onAddFile={handleAddFile}
-        onDeleteFile={removeFile}
-      />
+    <div className="flex h-full overflow-hidden relative">
+      {/* Explorer overlay on mobile */}
+      {showExplorer && (
+        <div
+          className="lg:hidden fixed inset-0 z-30 bg-black/50"
+          onClick={() => setShowExplorer(false)}
+        />
+      )}
+
+      {/* File explorer — always visible on desktop, slide-in on mobile */}
+      <div className={`
+        lg:relative lg:translate-x-0 lg:flex
+        fixed inset-y-0 left-0 z-40 transition-transform duration-200
+        ${showExplorer ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <FileTree
+          files={files}
+          activeFileId={activeFileId}
+          onSelect={(id) => { setActiveFile(id); setShowExplorer(false) }}
+          onAddFile={handleAddFile}
+          onDeleteFile={removeFile}
+        />
+      </div>
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        {/* Mobile explorer toggle button */}
+        <div className="lg:hidden flex items-center gap-2 px-2 py-1 bg-[#1a2235] border-b border-surface-border">
+          <button
+            onClick={() => setShowExplorer((p) => !p)}
+            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-surface-raised"
+          >
+            <PanelLeft className="w-4 h-4" />
+            <span>EXPLORER</span>
+          </button>
+          <span className="text-xs text-gray-600 truncate">
+            {files.find((f) => f.id === activeFileId)?.name ?? ''}
+          </span>
+        </div>
+
         <FileTabs files={files} activeFileId={activeFileId} onSelect={setActiveFile} onClose={removeFile} />
         <Toolbar
           wordWrap={wordWrap}
