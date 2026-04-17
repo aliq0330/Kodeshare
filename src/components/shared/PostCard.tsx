@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
+import AddToCollectionModal from '@collections/AddToCollectionModal'
 import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
+import { useAuth } from '@/hooks/useAuth'
 import type { PostPreview } from '@/types'
 
 interface PostCardProps {
@@ -14,6 +17,8 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onLike, onSave, onShare }: PostCardProps) {
+  const { isAuthenticated } = useAuth()
+  const [collectModalOpen, setCollectModalOpen] = useState(false)
   const mainTag = post.tags[0]
 
   return (
@@ -108,15 +113,34 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
           {compactNumber(post.sharesCount)}
         </button>
 
-        <button
-          onClick={() => onSave?.(post.id)}
-          className={`ml-auto flex items-center gap-1.5 text-sm transition-colors ${
-            post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
-          }`}
-        >
-          <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          {isAuthenticated && (
+            <button
+              onClick={() => setCollectModalOpen(true)}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-400 transition-colors"
+              title="Koleksiyona ekle"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={() => onSave?.(post.id)}
+            className={`flex items-center gap-1.5 text-sm transition-colors ${
+              post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
+            }`}
+          >
+            <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
+          </button>
+        </div>
       </div>
+
+      {isAuthenticated && (
+        <AddToCollectionModal
+          postId={post.id}
+          open={collectModalOpen}
+          onClose={() => setCollectModalOpen(false)}
+        />
+      )}
     </article>
   )
 }
