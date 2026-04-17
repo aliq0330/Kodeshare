@@ -8,26 +8,13 @@ import { useSupabaseRealtime } from '@realtime/useSupabaseRealtime'
 import './styles/globals.css'
 
 function Root() {
-  const init      = useAuthStore((s) => s.init)
-  const isLoading = useAuthStore((s) => s.isLoading)
+  const init = useAuthStore((s) => s.init)
 
   React.useEffect(() => {
-    const timeout = setTimeout(() => {
-      useAuthStore.setState({ isLoading: false })
-    }, 5000)
-    init().finally(() => clearTimeout(timeout))
+    init()
   }, []) // eslint-disable-line
 
   useSupabaseRealtime()
-
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0a0f1a' }}>
-        <div style={{ width: 32, height: 32, border: '3px solid #1e2535', borderTopColor: '#8aa8ff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      </div>
-    )
-  }
 
   return (
     <>
