@@ -43,4 +43,6 @@ export interface CreatePostPayload {
   description?: string
   tags?: string[]
   files: Omit<PostFile, 'id'>[]
+  previewImageUrl?: string
+  liveDemoUrl?: string
 }

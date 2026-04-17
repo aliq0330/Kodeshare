@@ -53,7 +53,15 @@ export const postService = {
 
     const { data: post, error } = await supabase
       .from('posts')
-      .insert({ author_id: userId, type: payload.type, title: payload.title, description: payload.description, tags: payload.tags ?? [] })
+      .insert({
+        author_id: userId,
+        type: payload.type,
+        title: payload.title,
+        description: payload.description,
+        tags: payload.tags ?? [],
+        preview_image_url: payload.previewImageUrl ?? null,
+        live_demo_url: payload.liveDemoUrl ?? null,
+      })
       .select()
       .single()
     if (error) throw new Error(error.message)
