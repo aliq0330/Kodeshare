@@ -138,8 +138,7 @@ export const postService = {
     return (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
   },
 
-  async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {
-    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
+  async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
     if (!profile) return { data: [], total: 0, page: 1, limit: PAGE_SIZE, hasNextPage: false }
 
     const page = params?.page ?? 1
@@ -154,6 +153,37 @@ export const postService = {
     const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
+  },
+
+  async getSavedPosts(): Promise<PostPreview[]> {
+    const userId = await currentUserId()
+    if (!userId) return []
+    const { data, error } = await supabase
+      .from('post_saves')
+      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))`)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return (data ?? [])
+      .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
+      .filter(Boolean)
+      .map((p) => mapPostPreview(p, userId))
+  },
+
+  async getLikedPosts(username: string): Promise<PostPreview[]> {
+    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
+    if (!profile) return []
+    const { data, error } = await supabase
+      .from('post_likes')
+      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))`)
+      .eq('user_id', (profile as { id: string }).id)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    const userId = await currentUserId()
+    return (data ?? [])
+      .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
+      .filter(Boolean)
+      .map((p) => mapPostPreview(p, userId))
   },
 }
 
