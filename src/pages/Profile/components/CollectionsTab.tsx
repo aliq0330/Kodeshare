@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock, Folder, Plus } from 'lucide-react'
 import Badge from '@components/ui/Badge'
+import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
 import CollectionModal from '@collections/CollectionModal'
 import { collectionService } from '@services/collectionService'
@@ -35,13 +36,10 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
     <div className="flex flex-col gap-4">
       {isOwn && (
         <div className="flex justify-end">
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors"
-          >
+          <Button variant="primary" size="sm" onClick={() => setModalOpen(true)}>
             <Plus className="w-4 h-4" />
             Yeni Koleksiyon
-          </button>
+          </Button>
         </div>
       )}
 

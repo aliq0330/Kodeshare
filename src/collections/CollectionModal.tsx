@@ -22,9 +22,12 @@ export default function CollectionModal({ open, onClose, onSave, initial }: Coll
 
   const handleSave = async () => {
     setLoading(true)
-    await onSave({ name, description, visibility })
-    setLoading(false)
-    onClose()
+    try {
+      await onSave({ name, description, visibility })
+      onClose()
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
