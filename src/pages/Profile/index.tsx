@@ -48,7 +48,7 @@ export default function ProfilePage() {
       />
 
       {activeTab === 'posts'       && <PostsTab username={username} />}
-      {activeTab === 'collections' && <CollectionsTab username={username} />}
+      {activeTab === 'collections' && <CollectionsTab username={username} isOwn={isOwn} />}
       {activeTab === 'likes'       && <LikesTab username={username} />}
       {activeTab === 'saved'       && isOwn && <SavedTab />}
       {activeTab === 'followers'   && <FollowersTab username={username} type="followers" />}
