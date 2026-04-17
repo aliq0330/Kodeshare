@@ -5,28 +5,26 @@ import { postService } from '@services/postService'
 import { usePostStore } from '@store/postStore'
 import type { PostPreview } from '@/types'
 
-interface LikesTabProps { username: string }
-
-export default function LikesTab({ username }: LikesTabProps) {
+export default function SavedTab() {
   const { likePost, savePost } = usePostStore()
   const [posts, setPosts] = useState<PostPreview[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     setIsLoading(true)
-    postService.getLikedPosts(username)
+    postService.getSavedPosts()
       .then(setPosts)
       .catch(() => setPosts([]))
       .finally(() => setIsLoading(false))
-  }, [username])
+  }, [])
 
   if (isLoading) return <div className="flex justify-center py-8"><Spinner /></div>
 
   if (posts.length === 0) {
     return (
       <div className="card p-10 text-center text-gray-500">
-        <p className="font-medium">Henüz beğenilen gönderi yok</p>
-        <p className="text-sm mt-1">Beğenilen gönderiler burada görünür.</p>
+        <p className="font-medium">Henüz kaydedilen gönderi yok</p>
+        <p className="text-sm mt-1">Gönderilerdeki yer imi ikonuna tıklayarak kaydedebilirsin.</p>
       </div>
     )
   }

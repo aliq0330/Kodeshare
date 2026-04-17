@@ -23,7 +23,10 @@ export const postService = {
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (tag && tag !== 'all') q = q.contains('tags', [tag])
-    if (query) q = q.ilike('title', `%${query}%`)
+    if (query) {
+      const t = query.toLowerCase().trim()
+      q = q.or(`title.ilike.%${query}%,tags.cs.{${t}}`)
+    }
     q = tab === 'trending'
       ? q.order('likes_count', { ascending: false })
       : q.order('created_at', { ascending: false })
@@ -143,8 +146,7 @@ export const postService = {
     return (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
   },
 
-  async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {
-    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
+  async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
     if (!profile) return { data: [], total: 0, page: 1, limit: PAGE_SIZE, hasNextPage: false }
 
     const page = params?.page ?? 1
@@ -159,6 +161,37 @@ export const postService = {
     const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
+  },
+
+  async getSavedPosts(): Promise<PostPreview[]> {
+    const userId = await currentUserId()
+    if (!userId) return []
+    const { data, error } = await supabase
+      .from('post_saves')
+      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))`)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return (data ?? [])
+      .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
+      .filter(Boolean)
+      .map((p) => mapPostPreview(p, userId))
+  },
+
+  async getLikedPosts(username: string): Promise<PostPreview[]> {
+    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
+    if (!profile) return []
+    const { data, error } = await supabase
+      .from('post_likes')
+      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))`)
+      .eq('user_id', (profile as { id: string }).id)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    const userId = await currentUserId()
+    return (data ?? [])
+      .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
+      .filter(Boolean)
+      .map((p) => mapPostPreview(p, userId))
   },
 }
 
@@ -175,7 +208,7 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     filesCount:      files.length,
     previewImageUrl: p.preview_image_url as string | null,
     liveDemoUrl:     p.live_demo_url as string | null,
-    likesCount:      p.likes_count as number,
+    likesCount:      (p.post_likes as unknown[] | null)?.length ?? (p.likes_count as number ?? 0),
     commentsCount:   p.comments_count as number,
     sharesCount:     p.shares_count as number,
     savesCount:      p.saves_count as number,

@@ -21,6 +21,8 @@ interface AuthState {
   init:     () => Promise<void>
 }
 
+let authListenerRegistered = false
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -30,21 +32,31 @@ export const useAuthStore = create<AuthState>()(
 
       init: async () => {
         set({ isLoading: true })
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id)
-          set({ user: profile, isAuthenticated: !!profile })
-        }
-        set({ isLoading: false })
-
-        supabase.auth.onAuthStateChange(async (_event, session) => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
           if (session?.user) {
             const profile = await fetchProfile(session.user.id)
             set({ user: profile, isAuthenticated: !!profile })
           } else {
             set({ user: null, isAuthenticated: false })
           }
-        })
+        } catch {
+          set({ user: null, isAuthenticated: false })
+        } finally {
+          set({ isLoading: false })
+        }
+
+        if (!authListenerRegistered) {
+          authListenerRegistered = true
+          supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+              const profile = await fetchProfile(session.user.id)
+              set({ user: profile, isAuthenticated: !!profile })
+            } else {
+              set({ user: null, isAuthenticated: false })
+            }
+          })
+        }
       },
 
       login: async (email, password) => {

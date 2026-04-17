@@ -2,11 +2,11 @@ import { useState, useRef, useEffect } from 'react'
 import { ArrowLeft, Send, Smile } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
-import TypingIndicator from '@messages/TypingIndicator'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import { useMessageStore } from '@store/messageStore'
 import { useAuthStore } from '@store/authStore'
+import toast from 'react-hot-toast'
 
 interface ChatWindowProps {
   conversationId: string
@@ -39,6 +39,9 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
     setSending(true)
     try {
       await sendMessage(conversationId, content)
+    } catch (err) {
+      toast.error((err as Error).message || 'Mesaj gönderilemedi')
+      setText(content)
     } finally {
       setSending(false)
     }

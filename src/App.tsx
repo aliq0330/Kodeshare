@@ -18,6 +18,13 @@ import { useAuthStore } from '@store/authStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isLoading       = useAuthStore((s) => s.isLoading)
+  // Wait for auth check, but never longer than what init() allows (has try/finally)
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-7 h-7 rounded-full border-2 border-surface-raised border-t-brand-400 animate-spin" />
+    </div>
+  )
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 

@@ -1,0 +1,97 @@
+-- ============================================================
+-- KODESHARE — Mevcut deployment'a uygula
+-- Supabase SQL Editor'a kopyalayip calistir
+-- PostgreSQL'de CREATE POLICY IF NOT EXISTS desteklenmez,
+-- bu yuzden DO block ile kontrol yapilir.
+-- ============================================================
+
+-- 1. conversation_participants INSERT policy
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'conversation_participants'
+    AND policyname = 'Giris yapanlar konusmaya katilabilir'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Giris yapanlar konusmaya katilabilir"
+      ON public.conversation_participants
+      FOR INSERT WITH CHECK (auth.uid() IS NOT NULL)';
+  END IF;
+END $$;
+
+-- 2. Post sayaclari senkronizasyonu
+UPDATE public.posts p
+SET likes_count    = (SELECT COUNT(*) FROM public.post_likes pl WHERE pl.post_id = p.id),
+    comments_count = (SELECT COUNT(*) FROM public.comments c   WHERE c.post_id   = p.id),
+    saves_count    = (SELECT COUNT(*) FROM public.post_saves ps WHERE ps.post_id  = p.id);
+
+-- 3. Profil takipci/takip sayilari
+UPDATE public.profiles p
+SET followers_count = (SELECT COUNT(*) FROM public.follows f WHERE f.following_id = p.id),
+    following_count = (SELECT COUNT(*) FROM public.follows f WHERE f.follower_id   = p.id);
+
+-- 4. Yorum begeni sayilari
+UPDATE public.comments c
+SET likes_count = (SELECT COUNT(*) FROM public.comment_likes cl WHERE cl.comment_id = c.id);
+
+-- 5. comment_likes trigger
+CREATE OR REPLACE FUNCTION public.update_comment_likes_count()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.comments SET likes_count = likes_count + 1 WHERE id = NEW.comment_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = OLD.comment_id;
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS comment_likes_count ON public.comment_likes;
+CREATE TRIGGER comment_likes_count
+  AFTER INSERT OR DELETE ON public.comment_likes
+  FOR EACH ROW EXECUTE PROCEDURE public.update_comment_likes_count();
+
+-- 6. Mesaj RLS recursive dongu duzeltmesi
+-- conversation_participants SELECT politikasi kendi tablosunu
+-- sorgulayarak recursive donguye giriyordu. SECURITY DEFINER
+-- fonksiyon ile bu sorun giderildi.
+
+CREATE OR REPLACE FUNCTION public.is_conversation_member(conv_id uuid)
+RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.conversation_participants
+    WHERE conversation_id = conv_id AND user_id = auth.uid()
+  );
+$$;
+
+-- conversation_participants SELECT politikasini duzelт
+DROP POLICY IF EXISTS "Katılımcılar üyeleri görebilir" ON public.conversation_participants;
+DROP POLICY IF EXISTS "Katilimcilar uyeleri gorebilir" ON public.conversation_participants;
+CREATE POLICY "Katilimcilar uyeleri gorebilir"
+  ON public.conversation_participants
+  FOR SELECT USING (is_conversation_member(conversation_id));
+
+-- messages SELECT politikasini duzelt
+DROP POLICY IF EXISTS "Konuşma üyesi mesaj görebilir" ON public.messages;
+DROP POLICY IF EXISTS "Konusma uyesi mesaj gorebilir" ON public.messages;
+CREATE POLICY "Konusma uyesi mesaj gorebilir"
+  ON public.messages
+  FOR SELECT USING (is_conversation_member(conversation_id));
+
+-- messages INSERT politikasini duzelt
+DROP POLICY IF EXISTS "Konuşma üyesi mesaj gönderebilir" ON public.messages;
+DROP POLICY IF EXISTS "Konusma uyesi mesaj gonderebilir" ON public.messages;
+CREATE POLICY "Konusma uyesi mesaj gonderebilir"
+  ON public.messages
+  FOR INSERT WITH CHECK (
+    auth.uid() = sender_id
+    AND is_conversation_member(conversation_id)
+  );
+
+-- conversations SELECT politikasini duzelt
+DROP POLICY IF EXISTS "Katılımcılar konuşmayı görebilir" ON public.conversations;
+DROP POLICY IF EXISTS "Katilimcilar konusmayi gorebilir" ON public.conversations;
+CREATE POLICY "Katilimcilar konusmayi gorebilir"
+  ON public.conversations
+  FOR SELECT USING (is_conversation_member(id));

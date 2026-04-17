@@ -10,7 +10,10 @@ import './styles/globals.css'
 function Root() {
   const init = useAuthStore((s) => s.init)
 
-  React.useEffect(() => { init() }, [init])
+  React.useEffect(() => {
+    init()
+  }, []) // eslint-disable-line
+
   useSupabaseRealtime()
 
   return (
