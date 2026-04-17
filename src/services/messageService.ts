@@ -21,19 +21,27 @@ export const messageService = {
 
     return (data ?? []).map((row: Record<string, unknown>) => {
       const conv = row.conversation as Record<string, unknown>
-      const participants = (conv.conversation_participants as { user: Record<string, unknown> }[])
-        .map((p) => mapProfile(p.user))
+      if (!conv) return null
+
+      const participants = (conv.conversation_participants as { user: Record<string, unknown> | null }[])
+        .filter((p) => p.user != null)
+        .map((p) => mapProfile(p.user!))
         .filter((p) => p.id !== user.id)
+
       const msgs = (conv.messages as Record<string, unknown>[]) ?? []
       const lastMsg = msgs.length ? msgs[msgs.length - 1] : null
+      const lastMsgSender = participants[0] as unknown as Record<string, unknown> | undefined
+
       return {
-        id:           conv.id as string,
+        id:          conv.id as string,
         participants,
-        lastMessage:  lastMsg ? mapMessage(lastMsg, participants[0] as unknown as Record<string, unknown>) : null,
-        unreadCount:  msgs.filter((m) => m.sender_id !== user.id && m.status !== 'read').length,
-        updatedAt:    conv.updated_at as string,
+        lastMessage: lastMsg && lastMsgSender
+          ? mapMessage(lastMsg, lastMsgSender)
+          : null,
+        unreadCount: msgs.filter((m) => m.sender_id !== user.id && m.status !== 'read').length,
+        updatedAt:   conv.updated_at as string,
       }
-    })
+    }).filter(Boolean) as Conversation[]
   },
 
   async getMessages(conversationId: string, page = 1): Promise<PaginatedResponse<Message>> {
@@ -46,15 +54,18 @@ export const messageService = {
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (error) throw new Error(error.message)
-    const messages = (data ?? []).map((m) => mapMessage(m as Record<string, unknown>, m.sender as Record<string, unknown>))
+    const messages = (data ?? [])
+      .filter((m) => m.sender != null)
+      .map((m) => mapMessage(m as Record<string, unknown>, m.sender as Record<string, unknown>))
     return { data: messages, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
 
   async send(conversationId: string, content: string): Promise<Message> {
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Giriş yapmalısın')
     const { data, error } = await supabase
       .from('messages')
-      .insert({ conversation_id: conversationId, sender_id: user!.id, content, status: 'sent' })
+      .insert({ conversation_id: conversationId, sender_id: user.id, content, status: 'sent' })
       .select('*, sender:profiles!messages_sender_id_fkey(*)')
       .single()
     if (error) throw new Error(error.message)
@@ -65,7 +76,7 @@ export const messageService = {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Giriş yapmalısın')
 
-    // Check if a 1-on-1 conversation already exists
+    // Mevcut konuşmayı kontrol et
     const { data: myConvs } = await supabase
       .from('conversation_participants')
       .select('conversation_id')
@@ -83,41 +94,56 @@ export const messageService = {
         .maybeSingle()
 
       if (existing) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
+        const convId = (existing as Record<string, unknown>).conversation_id as string
+        const { data: profileData } = await supabase.from('profiles').select('*').eq('id', userId).single()
+        if (!profileData) throw new Error('Kullanıcı bulunamadı')
         return {
-          id:           (existing as Record<string, unknown>).conversation_id as string,
-          participants: [mapProfile(profile as Record<string, unknown>)],
-          lastMessage:  null,
-          unreadCount:  0,
-          updatedAt:    new Date().toISOString(),
+          id:          convId,
+          participants: [mapProfile(profileData as Record<string, unknown>)],
+          lastMessage: null,
+          unreadCount: 0,
+          updatedAt:   new Date().toISOString(),
         }
       }
     }
 
-    const { data: conv } = await supabase.from('conversations').insert({}).select().single()
-    const convId = (conv as { id: string }).id
-    await supabase.from('conversation_participants').insert([
-      { conversation_id: convId, user_id: user.id },
-      { conversation_id: convId, user_id: userId },
-    ])
+    // Yeni konuşma: INSERT sonrası SELECT RLS'i engellediği için
+    // crypto.randomUUID() ile ID'yi kendimiz üretiyoruz.
+    const convId = crypto.randomUUID()
 
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    const { error: convErr } = await supabase
+      .from('conversations')
+      .insert({ id: convId })
+    if (convErr) throw new Error(convErr.message)
+
+    const { error: partErr } = await supabase
+      .from('conversation_participants')
+      .insert([
+        { conversation_id: convId, user_id: user.id },
+        { conversation_id: convId, user_id: userId },
+      ])
+    if (partErr) throw new Error(partErr.message)
+
+    const { data: profileData } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    if (!profileData) throw new Error('Kullanıcı bulunamadı')
+
     return {
-      id:           convId,
-      participants: [mapProfile(profile as Record<string, unknown>)],
-      lastMessage:  null,
-      unreadCount:  0,
-      updatedAt:    new Date().toISOString(),
+      id:          convId,
+      participants: [mapProfile(profileData as Record<string, unknown>)],
+      lastMessage: null,
+      unreadCount: 0,
+      updatedAt:   new Date().toISOString(),
     }
   },
 
   async markRead(conversationId: string): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
     await supabase
       .from('messages')
       .update({ status: 'read' })
       .eq('conversation_id', conversationId)
-      .neq('sender_id', user!.id)
+      .neq('sender_id', user.id)
   },
 }
 
