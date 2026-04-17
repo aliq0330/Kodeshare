@@ -31,7 +31,8 @@ export const usePostStore = create<PostState>((set, get) => ({
 
   fetchPosts: async ({ tab, tag, query, page = 1 }) => {
     if (page > 1 && get().isLoading) return
-    set({ isLoading: true })
+    if (page === 1) set({ posts: [], isLoading: true })
+    else set({ isLoading: true })
     try {
       const res = await postService.getFeed({ tab, tag, query, page })
       set((s) => ({
