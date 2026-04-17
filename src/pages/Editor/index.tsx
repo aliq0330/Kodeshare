@@ -12,6 +12,7 @@ import { useEditorStore } from '@store/editorStore'
 import { useAuthStore } from '@store/authStore'
 import { postService } from '@services/postService'
 import { languageFromFilename, defaultContentForLanguage } from '@editor/utils/languageUtils'
+import type { EditorLanguage } from '@/types'
 import '@/styles/editor.css'
 import toast from 'react-hot-toast'
 
@@ -36,7 +37,7 @@ export default function EditorPage() {
       loadProject(post.title, post.files.map((f) => ({
         id: f.id,
         name: f.name,
-        language: f.language,
+        language: f.language as EditorLanguage,
         content: f.content,
         isModified: false,
       })))
@@ -51,9 +52,9 @@ export default function EditorPage() {
       const payload = {
         type: 'snippet' as const,
         title: projectTitle || 'İsimsiz Proje',
-        description: null,
+        description: undefined,
         tags: [],
-        files: files.map((f) => ({ name: f.name, language: f.language, content: f.content })),
+        files: files.map((f, i) => ({ name: f.name, language: f.language, content: f.content, order: i })),
       }
       if (savedId) {
         await postService.update(savedId, payload)
