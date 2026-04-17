@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus, Chec
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
+import SyntaxHighlight from '@components/shared/SyntaxHighlight'
 import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
@@ -16,10 +17,23 @@ interface PostCardProps {
   onShare?: (postId: string) => void
 }
 
+function buildPreviewSrc(code: string, lang: string): string {
+  const head = '<!doctype html><html><head><meta charset="utf-8">'
+  if (lang === 'html') {
+    return `${head}<style>*{box-sizing:border-box}body{margin:0;padding:8px;font-family:system-ui,sans-serif;font-size:13px;background:#fff;color:#333}</style></head><body>${code}</body></html>`
+  }
+  if (lang === 'css') {
+    return `${head}<style>body{margin:0;padding:8px;font-family:system-ui,sans-serif;font-size:13px;background:#fff;color:#333}${code}</style></head><body><p>Metin örneği</p><button>Buton</button></body></html>`
+  }
+  const safe = code.replace(/<\/script>/gi, '<\\/script>')
+  return `${head}</head><body style="margin:0;padding:8px;background:#0d1117;color:#abb2bf;font-family:ui-monospace,monospace;font-size:12px"><pre id="o" style="margin:0;white-space:pre-wrap"></pre><script>const _p=document.getElementById('o');console.log=(...a)=>{_p.textContent+=a.map(String).join(' ')+'\\n'};try{${safe}}catch(e){_p.textContent='Hata: '+e.message}<\/script></body></html>`
+}
+
 export default function PostCard({ post, onLike, onSave, onShare }: PostCardProps) {
   const { isAuthenticated } = useAuth()
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [snippetView, setSnippetView] = useState<'code' | 'preview'>('code')
   const mainTag = post.tags[0]
 
   const handleCopySnippet = async (e: React.MouseEvent) => {
@@ -69,9 +83,10 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
         )}
       </Link>
 
-      {/* Snippet code preview */}
+      {/* Snippet code/preview panel */}
       {post.type === 'snippet' && post.snippetPreview && (
         <div className="mb-3 rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden">
+          {/* Header bar */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
             <span
               className="text-[11px] font-bold uppercase tracking-widest"
@@ -79,24 +94,62 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
             >
               {post.snippetLanguage ?? 'code'}
             </span>
-            <button
-              onClick={handleCopySnippet}
-              className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-colors ${
-                copied
-                  ? 'text-emerald-400 bg-emerald-900/20'
-                  : 'text-gray-400 hover:bg-surface-raised hover:text-white'
-              }`}
-            >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Kopyalandı!' : 'Kopyala'}</span>
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Copy icon only */}
+              <button
+                onClick={handleCopySnippet}
+                className={`p-1.5 rounded-md transition-colors ${
+                  copied
+                    ? 'text-emerald-400 bg-emerald-900/20'
+                    : 'text-gray-400 hover:bg-surface-raised hover:text-white'
+                }`}
+                title={copied ? 'Kopyalandı!' : 'Kopyala'}
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+              {/* Kod / Önizle tabs */}
+              <button
+                onClick={() => setSnippetView('code')}
+                className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                  snippetView === 'code'
+                    ? 'bg-surface-raised text-white'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                Kod
+              </button>
+              <button
+                onClick={() => setSnippetView('preview')}
+                className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                  snippetView === 'preview'
+                    ? 'bg-surface-raised text-white'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                Önizle
+              </button>
+            </div>
           </div>
-          <Link to={`/post/${post.id}`} className="block relative">
-            <pre className="px-4 py-3 text-[12px] leading-[1.65] font-mono text-gray-300 overflow-hidden max-h-[7.5rem] whitespace-pre select-none">
-              {post.snippetPreview}
-            </pre>
-            <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
-          </Link>
+
+          {/* Code view */}
+          {snippetView === 'code' && (
+            <Link to={`/post/${post.id}`} className="block relative">
+              <pre className="px-4 py-3 text-[12px] leading-[1.65] font-mono overflow-hidden max-h-[7.5rem] whitespace-pre select-none">
+                <SyntaxHighlight code={post.snippetPreview} lang={post.snippetLanguage ?? 'javascript'} />
+              </pre>
+              <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
+            </Link>
+          )}
+
+          {/* Preview view */}
+          {snippetView === 'preview' && (
+            <iframe
+              srcDoc={buildPreviewSrc(post.snippetPreview, post.snippetLanguage ?? 'javascript')}
+              sandbox="allow-scripts"
+              className="w-full h-[7.5rem] border-0"
+              title="Kod önizleme"
+            />
+          )}
         </div>
       )}
 
