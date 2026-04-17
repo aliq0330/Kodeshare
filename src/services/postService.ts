@@ -11,6 +11,10 @@ interface FeedParams {
   page?: number
 }
 
+async function currentUserId(): Promise<string | undefined> {
+  return (await supabase.auth.getSession()).data.session?.user?.id
+}
+
 export const postService = {
   async getFeed({ tab = 'trending', tag, query, page = 1 }: FeedParams): Promise<PaginatedResponse<PostPreview>> {
     let q = supabase
@@ -27,7 +31,7 @@ export const postService = {
     const { data, error, count } = await q
     if (error) throw new Error(error.message)
 
-    const userId = (await supabase.auth.getUser()).data.user?.id
+    const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
@@ -39,17 +43,25 @@ export const postService = {
       .eq('id', id)
       .single()
     if (error) throw new Error(error.message)
-    const userId = (await supabase.auth.getUser()).data.user?.id
+    const userId = await currentUserId()
     return mapPost(data as Record<string, unknown>, userId)
   },
 
   async create(payload: CreatePostPayload): Promise<Post> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Giriş yapmalısın')
+    const userId = await currentUserId()
+    if (!userId) throw new Error('Giriş yapmalısın')
 
     const { data: post, error } = await supabase
       .from('posts')
-      .insert({ author_id: user.id, type: payload.type, title: payload.title, description: payload.description, tags: payload.tags ?? [] })
+      .insert({
+        author_id: userId,
+        type: payload.type,
+        title: payload.title,
+        description: payload.description,
+        tags: payload.tags ?? [],
+        preview_image_url: payload.previewImageUrl ?? null,
+        live_demo_url: payload.liveDemoUrl ?? null,
+      })
       .select()
       .single()
     if (error) throw new Error(error.message)
@@ -80,28 +92,28 @@ export const postService = {
   },
 
   async like(postId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('post_likes').insert({ user_id: user!.id, post_id: postId })
+    const userId = await currentUserId()
+    const { error } = await supabase.from('post_likes').insert({ user_id: userId!, post_id: postId })
     if (error) throw new Error(error.message)
     const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
-    if (post && (post as { author_id: string }).author_id !== user!.id) {
-      supabase.from('notifications').insert({ user_id: (post as { author_id: string }).author_id, actor_id: user!.id, type: 'like', post_id: postId }).then()
+    if (post && (post as { author_id: string }).author_id !== userId) {
+      supabase.from('notifications').insert({ user_id: (post as { author_id: string }).author_id, actor_id: userId!, type: 'like', post_id: postId, message: 'Gönderini beğendi' }).then()
     }
   },
 
   async unlike(postId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('post_likes').delete().eq('user_id', user!.id).eq('post_id', postId)
+    const userId = await currentUserId()
+    await supabase.from('post_likes').delete().eq('user_id', userId!).eq('post_id', postId)
   },
 
   async save(postId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('post_saves').insert({ user_id: user!.id, post_id: postId })
+    const userId = await currentUserId()
+    await supabase.from('post_saves').insert({ user_id: userId!, post_id: postId })
   },
 
   async unsave(postId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('post_saves').delete().eq('user_id', user!.id).eq('post_id', postId)
+    const userId = await currentUserId()
+    await supabase.from('post_saves').delete().eq('user_id', userId!).eq('post_id', postId)
   },
 
   async delete(postId: string): Promise<void> {
@@ -109,10 +121,10 @@ export const postService = {
   },
 
   async repost(postId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const userId = await currentUserId()
     const original = await this.getPost(postId)
     await supabase.from('posts').insert({
-      author_id: user!.id, type: 'repost',
+      author_id: userId!, type: 'repost',
       title: original.title, description: original.description,
       tags: original.tags, reposted_from: postId,
     })
@@ -127,7 +139,7 @@ export const postService = {
       .order('likes_count', { ascending: false })
       .limit(limit)
     if (error) throw new Error(error.message)
-    const userId = (await supabase.auth.getUser()).data.user?.id
+    const userId = await currentUserId()
     return (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
   },
 
@@ -144,7 +156,7 @@ export const postService = {
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (error) throw new Error(error.message)
-    const userId = (await supabase.auth.getUser()).data.user?.id
+    const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
