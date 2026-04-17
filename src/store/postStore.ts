@@ -24,6 +24,8 @@ interface PostState {
   reset: () => void
 }
 
+let fetchSeq = 0
+
 export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
   isLoading: false,
@@ -32,17 +34,21 @@ export const usePostStore = create<PostState>((set, get) => ({
 
   fetchPosts: async ({ tab, tag, query, page = 1 }) => {
     if (page > 1 && get().isLoading) return
-    if (page === 1) set({ posts: [], isLoading: true })
+    const seq = ++fetchSeq
+    if (page === 1) set({ posts: [], isLoading: true, currentPage: 1, hasNextPage: true })
     else set({ isLoading: true })
     try {
       const res = await postService.getFeed({ tab, tag, query, page })
+      if (seq !== fetchSeq) return
       set((s) => ({
         posts: page === 1 ? res.data : [...s.posts, ...res.data],
         hasNextPage: res.hasNextPage,
         currentPage: page,
       }))
+    } catch {
+      // ignore — still need isLoading cleared
     } finally {
-      set({ isLoading: false })
+      if (seq === fetchSeq) set({ isLoading: false })
     }
   },
 

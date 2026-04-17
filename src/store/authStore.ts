@@ -33,7 +33,11 @@ export const useAuthStore = create<AuthState>()(
       init: async () => {
         set({ isLoading: true })
         try {
-          const { data: { session } } = await supabase.auth.getSession()
+          const sessionResult = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('auth timeout')), 8_000)),
+          ])
+          const session = sessionResult.data.session
           if (session?.user) {
             const profile = await fetchProfile(session.user.id)
             set({ user: profile, isAuthenticated: !!profile })
@@ -41,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
             set({ user: null, isAuthenticated: false })
           }
         } catch {
-          set({ user: null, isAuthenticated: false })
+          // timeout or network error — keep persisted auth state, just unblock UI
         } finally {
           set({ isLoading: false })
         }
