@@ -4,49 +4,50 @@
 -- ============================================================
 
 -- 1. conversation_participants INSERT policy eksikti
---    (Mesaj başlatma çalışmıyorsa bu policy gerekli)
-create policy if not exists "Giriş yapanlar konuşmaya katılabilir"
-  on public.conversation_participants
-  for insert
-  with check (auth.uid() is not null);
+--    PostgreSQL'de CREATE POLICY IF NOT EXISTS desteklenmez,
+--    bu yüzden DO block ile kontrol yapılır.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'conversation_participants'
+    AND policyname = 'Giris yapanlar konusmaya katilabilir'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Giris yapanlar konusmaya katilabilir"
+      ON public.conversation_participants
+      FOR INSERT WITH CHECK (auth.uid() IS NOT NULL)';
+  END IF;
+END $$;
 
--- 2. Sayaç senkronizasyonu
---    (likes_count 0 kalıyor, comments_count güncellenmiyorsa çalıştır)
+-- 2. Post sayaclari senkronizasyonu
+UPDATE public.posts p
+SET likes_count    = (SELECT COUNT(*) FROM public.post_likes pl WHERE pl.post_id = p.id),
+    comments_count = (SELECT COUNT(*) FROM public.comments c   WHERE c.post_id   = p.id),
+    saves_count    = (SELECT COUNT(*) FROM public.post_saves ps WHERE ps.post_id  = p.id);
 
--- Post beğeni sayıları
-update public.posts p
-set likes_count = (select count(*) from public.post_likes pl where pl.post_id = p.id);
+-- 3. Profil takipci/takip sayilari
+UPDATE public.profiles p
+SET followers_count = (SELECT COUNT(*) FROM public.follows f WHERE f.following_id = p.id),
+    following_count = (SELECT COUNT(*) FROM public.follows f WHERE f.follower_id   = p.id);
 
--- Post yorum sayıları
-update public.posts p
-set comments_count = (select count(*) from public.comments c where c.post_id = p.id);
+-- 4. Yorum begeni sayilari
+UPDATE public.comments c
+SET likes_count = (SELECT COUNT(*) FROM public.comment_likes cl WHERE cl.comment_id = c.id);
 
--- Post kaydetme sayıları
-update public.posts p
-set saves_count = (select count(*) from public.post_saves ps where ps.post_id = p.id);
-
--- Profil takipçi/takip sayıları
-update public.profiles p
-set followers_count = (select count(*) from public.follows f where f.following_id = p.id),
-    following_count = (select count(*) from public.follows f where f.follower_id  = p.id);
-
--- Yorum beğeni sayıları
-update public.comments c
-set likes_count = (select count(*) from public.comment_likes cl where cl.comment_id = c.id);
-
--- 3. Eğer comment_likes trigger yoksa (yorum beğeni sayısı hiç güncellenmediyse)
-create or replace function public.update_comment_likes_count()
-returns trigger language plpgsql as $$
-begin
-  if tg_op = 'INSERT' then
-    update public.comments set likes_count = likes_count + 1 where id = new.comment_id;
-  elsif tg_op = 'DELETE' then
-    update public.comments set likes_count = greatest(likes_count - 1, 0) where id = old.comment_id;
-  end if;
-  return null;
-end;
+-- 5. comment_likes trigger (eger yoksa olustur)
+CREATE OR REPLACE FUNCTION public.update_comment_likes_count()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.comments SET likes_count = likes_count + 1 WHERE id = NEW.comment_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = OLD.comment_id;
+  END IF;
+  RETURN NULL;
+END;
 $$;
 
-drop trigger if exists comment_likes_count on public.comment_likes;
-create trigger comment_likes_count after insert or delete on public.comment_likes
-  for each row execute procedure public.update_comment_likes_count();
+DROP TRIGGER IF EXISTS comment_likes_count ON public.comment_likes;
+CREATE TRIGGER comment_likes_count
+  AFTER INSERT OR DELETE ON public.comment_likes
+  FOR EACH ROW EXECUTE PROCEDURE public.update_comment_likes_count();
