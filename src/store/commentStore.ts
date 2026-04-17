@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { commentService } from '@services/commentService'
+import { usePostStore } from '@store/postStore'
 import type { Comment } from '@/types'
 
 interface CommentState {
@@ -33,6 +34,7 @@ export const useCommentStore = create<CommentState>((set, get) => ({
         [postId]: [...(s.commentsByPost[postId] ?? []), comment],
       },
     }))
+    usePostStore.getState().incrementCommentCount(postId)
   },
 
   addReply: async (postId, parentId, content) => {

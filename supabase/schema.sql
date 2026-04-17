@@ -375,8 +375,9 @@ create policy "Katılımcılar konuşmayı görebilir" on public.conversations f
 create policy "Giriş yapanlar konuşma başlatabilir" on public.conversations for insert with check (auth.uid() is not null);
 
 create policy "Katılımcılar üyeleri görebilir" on public.conversation_participants for select using (
-  auth.uid() in (select user_id from public.conversation_participants where conversation_id = conversation_id)
+  auth.uid() in (select user_id from public.conversation_participants cp where cp.conversation_id = conversation_id)
 );
+create policy "Giriş yapanlar konuşmaya katılabilir" on public.conversation_participants for insert with check (auth.uid() is not null);
 create policy "Konuşma üyesi mesaj görebilir" on public.messages for select using (
   auth.uid() in (select user_id from public.conversation_participants where conversation_id = conversation_id)
 );
@@ -397,3 +398,28 @@ alter publication supabase_realtime add table public.messages;
 alter publication supabase_realtime add table public.notifications;
 alter publication supabase_realtime add table public.post_likes;
 alter publication supabase_realtime add table public.follows;
+
+-- ============================================================
+-- 11. SAYAÇ SENKRONIZASYONU (Mevcut veride tutarsızlık varsa çalıştır)
+-- ============================================================
+
+-- Post beğeni sayılarını post_likes tablosundan yeniden hesapla
+update public.posts p
+set likes_count = (select count(*) from public.post_likes pl where pl.post_id = p.id);
+
+-- Post yorum sayılarını comments tablosundan yeniden hesapla
+update public.posts p
+set comments_count = (select count(*) from public.comments c where c.post_id = p.id);
+
+-- Post kaydetme sayılarını post_saves tablosundan yeniden hesapla
+update public.posts p
+set saves_count = (select count(*) from public.post_saves ps where ps.post_id = p.id);
+
+-- Profil takipçi/takip sayılarını follows tablosundan yeniden hesapla
+update public.profiles p
+set followers_count = (select count(*) from public.follows f where f.following_id = p.id),
+    following_count = (select count(*) from public.follows f where f.follower_id  = p.id);
+
+-- Yorum beğeni sayılarını comment_likes tablosundan yeniden hesapla
+update public.comments c
+set likes_count = (select count(*) from public.comment_likes cl where cl.comment_id = c.id);

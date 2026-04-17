@@ -20,6 +20,7 @@ interface PostState {
   likePost: (id: string) => Promise<void>
   savePost: (id: string) => Promise<void>
   repostPost: (id: string) => Promise<void>
+  incrementCommentCount: (postId: string) => void
   reset: () => void
 }
 
@@ -59,7 +60,7 @@ export const usePostStore = create<PostState>((set, get) => ({
     set((s) => ({
       posts: s.posts.map((p) =>
         p.id === id
-          ? { ...p, isLiked: !wasLiked, likesCount: p.likesCount + (wasLiked ? -1 : 1) }
+          ? { ...p, isLiked: !wasLiked, likesCount: Math.max(0, p.likesCount + (wasLiked ? -1 : 1)) }
           : p,
       ),
     }))
@@ -68,7 +69,7 @@ export const usePostStore = create<PostState>((set, get) => ({
     } catch {
       set((s) => ({
         posts: s.posts.map((p) =>
-          p.id === id ? { ...p, isLiked: wasLiked, likesCount: p.likesCount + (wasLiked ? 1 : -1) } : p,
+          p.id === id ? { ...p, isLiked: wasLiked, likesCount: Math.max(0, p.likesCount + (wasLiked ? 1 : -1)) } : p,
         ),
       }))
       toast.error('Bir hata oluştu')
@@ -106,6 +107,13 @@ export const usePostStore = create<PostState>((set, get) => ({
       ),
     }))
   },
+
+  incrementCommentCount: (postId) =>
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p,
+      ),
+    })),
 
   reset: () => set({ posts: [], currentPage: 1, hasNextPage: true }),
 }))

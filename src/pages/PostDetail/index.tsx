@@ -31,11 +31,11 @@ export default function PostDetailPage() {
   const handleLike = async () => {
     if (!post || !isAuthenticated) return
     const wasLiked = post.isLiked
-    setPost((p) => p ? { ...p, isLiked: !p.isLiked, likesCount: p.likesCount + (p.isLiked ? -1 : 1) } : p)
+    setPost((p) => p ? { ...p, isLiked: !p.isLiked, likesCount: Math.max(0, p.likesCount + (p.isLiked ? -1 : 1)) } : p)
     try {
       await (wasLiked ? postService.unlike(post.id) : postService.like(post.id))
     } catch {
-      setPost((p) => p ? { ...p, isLiked: wasLiked, likesCount: p.likesCount + (wasLiked ? 1 : -1) } : p)
+      setPost((p) => p ? { ...p, isLiked: wasLiked, likesCount: Math.max(0, p.likesCount + (wasLiked ? 1 : -1)) } : p)
     }
   }
 
@@ -140,7 +140,10 @@ export default function PostDetailPage() {
 
       <div id="comments">
         <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({post.commentsCount})</h2>
-        <CommentThread postId={post.id} />
+        <CommentThread
+          postId={post.id}
+          onCommentAdded={() => setPost((p) => p ? { ...p, commentsCount: p.commentsCount + 1 } : p)}
+        />
       </div>
     </div>
   )

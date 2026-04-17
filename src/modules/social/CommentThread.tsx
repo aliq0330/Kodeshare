@@ -9,9 +9,10 @@ import toast from 'react-hot-toast'
 
 interface CommentThreadProps {
   postId: string
+  onCommentAdded?: () => void
 }
 
-export default function CommentThread({ postId }: CommentThreadProps) {
+export default function CommentThread({ postId, onCommentAdded }: CommentThreadProps) {
   const { user, isAuthenticated } = useAuthStore()
   const { commentsByPost, isLoading, fetchComments, addComment } = useCommentStore()
   const [text, setText] = useState('')
@@ -31,6 +32,7 @@ export default function CommentThread({ postId }: CommentThreadProps) {
     try {
       await addComment(postId, text.trim())
       setText('')
+      onCommentAdded?.()
     } catch {
       toast.error('Yorum gönderilemedi')
     } finally {

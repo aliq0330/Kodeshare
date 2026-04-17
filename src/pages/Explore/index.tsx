@@ -34,8 +34,8 @@ export default function ExplorePage() {
         onChange={setActiveCategory}
       />
 
-      {/* Suggested users */}
-      <SuggestedUsers />
+      {/* Suggested users / user search results */}
+      <SuggestedUsers query={debouncedQuery} />
 
       {/* Project grid */}
       <ProjectGrid query={debouncedQuery} category={activeCategory} />
