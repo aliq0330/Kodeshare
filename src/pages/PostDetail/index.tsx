@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, GitFork } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, GitFork, Copy, Check } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
 import CodePreview from '@components/shared/CodePreview'
+import SyntaxHighlight from '@components/shared/SyntaxHighlight'
 import CommentThread from '@modules/social/CommentThread'
 import { timeAgo, compactNumber } from '@utils/formatters'
+import { LANGUAGE_COLORS } from '@utils/constants'
 import { postService } from '@services/postService'
 import { useAuthStore } from '@store/authStore'
 import toast from 'react-hot-toast'
@@ -18,6 +20,8 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [snippetView, setSnippetView] = useState<'code' | 'preview'>('code')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!postId) return
@@ -60,6 +64,15 @@ export default function PostDetailPage() {
     }
   }
 
+  const handleCopy = async () => {
+    if (!post?.files[0]?.content) return
+    try {
+      await navigator.clipboard.writeText(post.files[0].content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* clipboard API yoksa sessiz geç */ }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -76,6 +89,8 @@ export default function PostDetailPage() {
       </div>
     )
   }
+
+  const snippetFile = post.type === 'snippet' ? post.files[0] : null
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-6">
@@ -108,7 +123,68 @@ export default function PostDetailPage() {
           </div>
         </Link>
 
-        {post.files.length > 0 && (
+        {/* Snippet: Kod / Önizle panel */}
+        {snippetFile && (
+          <div className="rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden mb-5">
+            {/* Header */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
+              <span
+                className="text-[11px] font-bold uppercase tracking-widest"
+                style={{ color: LANGUAGE_COLORS[snippetFile.language] ?? '#8b9ab5' }}
+              >
+                {snippetFile.language}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleCopy}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    copied
+                      ? 'text-emerald-400 bg-emerald-900/20'
+                      : 'text-gray-400 hover:bg-surface-raised hover:text-white'
+                  }`}
+                  title={copied ? 'Kopyalandı!' : 'Kopyala'}
+                >
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+                <button
+                  onClick={() => setSnippetView('code')}
+                  className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                    snippetView === 'code'
+                      ? 'bg-surface-raised text-white'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  Kod
+                </button>
+                <button
+                  onClick={() => setSnippetView('preview')}
+                  className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                    snippetView === 'preview'
+                      ? 'bg-surface-raised text-white'
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  Önizle
+                </button>
+              </div>
+            </div>
+
+            {/* Code view: syntax highlighted, no line numbers, scrollable */}
+            {snippetView === 'code' && (
+              <pre className="px-4 py-3 text-[13px] leading-[1.65] font-mono overflow-auto max-h-[60vh] whitespace-pre">
+                <SyntaxHighlight code={snippetFile.content} lang={snippetFile.language} />
+              </pre>
+            )}
+
+            {/* Preview view: iframe */}
+            {snippetView === 'preview' && (
+              <CodePreview files={post.files} className="h-72" />
+            )}
+          </div>
+        )}
+
+        {/* Non-snippet file preview */}
+        {!snippetFile && post.files.length > 0 && (
           <CodePreview files={post.files} className="h-72 mb-5" />
         )}
 
