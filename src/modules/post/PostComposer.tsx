@@ -1,17 +1,66 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Code2, Image, Link2, X } from 'lucide-react'
+import { Code2, Image, Link2, Maximize2, X } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
 import Textarea from '@components/ui/Textarea'
+import SnippetCodeEditor, { type SnippetLang } from './SnippetCodeEditor'
 import { useAuthStore } from '@store/authStore'
 import { usePostStore } from '@store/postStore'
 import { useEditorStore } from '@store/editorStore'
 import { POST_TYPES } from '@utils/constants'
 import toast from 'react-hot-toast'
 import type { PostType } from '@/types'
+
+const DRAFT_KEY = 'kodeshare:composer-draft'
+const DEFAULT_LANG: SnippetLang = 'javascript'
+
+const EXT_MAP: Record<SnippetLang, string> = {
+  javascript: 'js',
+  css:        'css',
+  html:       'html',
+}
+
+// Etiketlere göre dil tahmini — kullanıcı diyalogdan manuel seçmediyse tetiklenir.
+const TAG_TO_LANG: Record<string, SnippetLang> = {
+  js: 'javascript', javascript: 'javascript', node: 'javascript',
+  jsx: 'javascript', ts: 'javascript', typescript: 'javascript',
+  react: 'javascript', vue: 'javascript',
+  css: 'css', sass: 'css', scss: 'css', tailwind: 'css',
+  html: 'html',
+}
+
+interface Draft {
+  postType: PostType
+  title: string
+  description: string
+  tags: string
+  code: string
+  language: SnippetLang
+}
+
+function loadDraft(): Partial<Draft> | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function saveDraft(d: Draft) {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)) } catch { /* kota dolu olabilir */ }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
+}
+
+function detectLangFromTags(tags: string): SnippetLang | null {
+  const parts = tags.toLowerCase().split(',').map((t) => t.trim()).filter(Boolean)
+  for (const p of parts) if (TAG_TO_LANG[p]) return TAG_TO_LANG[p]
+  return null
+}
 
 export default function PostComposer() {
   const navigate = useNavigate()
@@ -30,6 +79,55 @@ export default function PostComposer() {
   const [showDemoInput, setShowDemoInput] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  // Snippet kod alanı durumu
+  const [code, setCode]           = useState('')
+  const [language, setLanguage]   = useState<SnippetLang>(DEFAULT_LANG)
+  const [langManual, setLangManual] = useState(false)
+  const [expanded, setExpanded]   = useState(false)
+
+  // Taslak geri yükle (modal ilk açıldığında)
+  const hydratedRef = useRef(false)
+  useEffect(() => {
+    if (!open || hydratedRef.current) return
+    hydratedRef.current = true
+    const d = loadDraft()
+    if (!d) return
+    if (d.postType) setPostType(d.postType)
+    if (d.title)       setTitle(d.title)
+    if (d.description) setDescription(d.description)
+    if (d.tags)        setTags(d.tags)
+    if (d.code)        setCode(d.code)
+    if (d.language)  { setLanguage(d.language); setLangManual(true) }
+  }, [open])
+
+  // Taslağı otomatik kaydet — snippet sekmesinde anlamlı alan varsa
+  useEffect(() => {
+    if (!open) return
+    const hasContent = title || description || tags || code
+    if (!hasContent) return
+    saveDraft({ postType, title, description, tags, code, language })
+  }, [open, postType, title, description, tags, code, language])
+
+  // Etiketlerden dil algıla (kullanıcı manuel seçmediyse)
+  useEffect(() => {
+    if (langManual) return
+    const detected = detectLangFromTags(tags)
+    if (detected && detected !== language) setLanguage(detected)
+  }, [tags, langManual, language])
+
+  // ESC expanded modunda önce onu kapatsın
+  useEffect(() => {
+    if (!expanded) return
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setExpanded(false) } }
+    document.addEventListener('keydown', h, true)
+    return () => document.removeEventListener('keydown', h, true)
+  }, [expanded])
+
+  const handleLanguageChange = (lang: SnippetLang) => {
+    setLanguage(lang)
+    setLangManual(true)
+  }
+
   const reset = () => {
     setTitle('')
     setDescription('')
@@ -39,17 +137,31 @@ export default function PostComposer() {
     setShowImageInput(false)
     setShowDemoInput(false)
     setPostType('snippet')
+    setCode('')
+    setLanguage(DEFAULT_LANG)
+    setLangManual(false)
+    setExpanded(false)
+    hydratedRef.current = false
   }
 
   const handleClose = () => {
     setOpen(false)
-    reset()
+    // Taslağı sakla (modal kapandıktan sonra geri döndüğünde geri yüklenebilsin)
+    // reset formu — state temizle ama localStorage korunsun
+    setExpanded(false)
+    hydratedRef.current = false
   }
 
   const handleOpenInEditor = () => {
+    // Snippet sekmesinde butonu inline genişletme toggle'ı yap
+    if (postType === 'snippet') {
+      setExpanded((v) => !v)
+      return
+    }
     setProjectTitle(title.trim() || 'Yeni Proje')
     setOpen(false)
     reset()
+    clearDraft()
     navigate('/editor')
   }
 
@@ -57,17 +169,29 @@ export default function PostComposer() {
     if (!title.trim()) return
     setLoading(true)
     try {
+      const files =
+        postType === 'snippet' && code.trim()
+          ? [{
+              name:     `snippet.${EXT_MAP[language]}`,
+              language,
+              content:  code,
+              order:    0,
+            }]
+          : []
+
       await createPost({
         type: postType,
         title: title.trim(),
         description: description.trim() || undefined,
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-        files: [],
+        files,
         previewImageUrl: previewImageUrl.trim() || undefined,
         liveDemoUrl: liveDemoUrl.trim() || undefined,
       })
       toast.success('Gönderi paylaşıldı!')
-      handleClose()
+      clearDraft()
+      reset()
+      setOpen(false)
     } catch (err) {
       toast.error((err as Error).message || 'Bir hata oluştu')
     } finally {
@@ -125,6 +249,24 @@ export default function PostComposer() {
             rows={postType === 'article' ? 6 : 3}
           />
 
+          {/* Snippet kod editörü */}
+          {postType === 'snippet' && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-gray-400">Kod</label>
+              <SnippetCodeEditor
+                value={code}
+                onChange={setCode}
+                language={language}
+                onLanguageChange={handleLanguageChange}
+                expanded={expanded}
+                onToggleExpand={() => setExpanded((v) => !v)}
+              />
+              <p className="text-[11px] text-gray-600">
+                Tab ile girinti, Ctrl/Cmd+Z ile geri al. Taslağın otomatik kaydedilir.
+              </p>
+            </div>
+          )}
+
           <Input
             label="Etiketler"
             value={tags}
@@ -174,11 +316,13 @@ export default function PostComposer() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-500"
+              className={postType === 'snippet' && expanded ? 'text-brand-400' : 'text-gray-500'}
               onClick={handleOpenInEditor}
             >
-              <Code2 className="w-4 h-4" />
-              Editörde Aç
+              {postType === 'snippet' ? <Maximize2 className="w-4 h-4" /> : <Code2 className="w-4 h-4" />}
+              {postType === 'snippet'
+                ? (expanded ? 'Küçült' : 'Editörde Aç')
+                : 'Editörde Aç'}
             </Button>
             <Button
               variant="ghost"
