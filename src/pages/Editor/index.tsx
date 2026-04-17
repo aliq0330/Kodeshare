@@ -317,17 +317,34 @@ function ProjectsSidebar({
 
 // ─── FileTabs ──────────────────────────────────────────────────────────────
 
-function FileTabs({ files, activeFileId, onSelect, onClose }: {
+function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, onToggleMobilePreview }: {
   files: ReturnType<typeof useEditor>['files']
   activeFileId: string | null
   onSelect: (id: string) => void
   onClose: (id: string) => void
+  mobileShowPreview?: boolean
+  onToggleMobilePreview?: () => void
 }) {
   return (
     <div
       className="flex items-center gap-0.5 px-2 overflow-x-auto scrollbar-none shrink-0"
       style={{ height: 34, background: '#0d1117', borderBottom: '1px solid #1e2535' }}
     >
+      {/* Mobil Önizleme toggle — en solda */}
+      {onToggleMobilePreview !== undefined && (
+        <button
+          onClick={onToggleMobilePreview}
+          className={cn(
+            'sm:hidden flex items-center gap-1 px-2 h-[26px] rounded text-[12px] font-medium whitespace-nowrap transition-all shrink-0 border mr-1',
+            mobileShowPreview
+              ? 'bg-[#1e2a3a] text-[#8aa8ff] border-[#2a3a56]'
+              : 'text-[#6b7a99] hover:bg-[#161e2d] hover:text-[#c0cce0] border-transparent',
+          )}
+        >
+          <Eye className="w-3 h-3" />
+          <span>Önizleme</span>
+        </button>
+      )}
       {files.map((file) => {
         const color    = LANGUAGE_COLORS[file.language] ?? '#8b9ab5'
         const ext      = file.name.split('.').pop() ?? ''
@@ -397,7 +414,7 @@ function PreviewPanel({ files }: { files: ReturnType<typeof useEditor>['files'] 
       style={{ background: '#0d1117', borderLeft: '1px solid #1e2535' }}
     >
       <div
-        className="flex items-center gap-1 px-3 shrink-0"
+        className="hidden sm:flex items-center gap-1 px-3 shrink-0"
         style={{ height: 34, borderBottom: '1px solid #1e2535' }}
       >
         <div className="flex items-center gap-0.5 bg-[#161e2d] rounded-md p-0.5">
@@ -463,10 +480,11 @@ export default function EditorPage() {
     fetch: fetchProjects, setActiveId, addProject, patch: patchProject, remove: removeProject,
   } = useProjectStore()
 
-  const [showProjects, setShowProjects] = useState(true)
-  const [showPreview,  setShowPreview]  = useState(true)
-  const [isSaving,     setIsSaving]     = useState(false)
-  const [mobilePanel,  setMobilePanel]  = useState<'projects' | 'editor'>('editor')
+  const [showProjects,      setShowProjects]      = useState(true)
+  const [showPreview,       setShowPreview]        = useState(true)
+  const [isSaving,          setIsSaving]           = useState(false)
+  const [mobilePanel,       setMobilePanel]        = useState<'projects' | 'editor'>('editor')
+  const [mobileShowPreview, setMobileShowPreview]  = useState(true)
 
   // Mobil dikey bölme: editör yüzdesi (20–80)
   const [mobileEditorPct, setMobileEditorPct] = useState(50)
@@ -840,16 +858,18 @@ export default function EditorPage() {
         )}
         {mobilePanel === 'editor' && (
           <div ref={mobileContentRef} className="flex flex-col h-full overflow-hidden">
-            {/* Editör — sürüklenebilir yükseklik */}
+            {/* Editör — önizleme açıksa sürüklenebilir, kapalıysa tüm ekran */}
             <div
               className="flex flex-col overflow-hidden shrink-0"
-              style={{ height: `${mobileEditorPct}%` }}
+              style={{ height: mobileShowPreview ? `${mobileEditorPct}%` : '100%' }}
             >
               <FileTabs
                 files={files}
                 activeFileId={activeFileId}
                 onSelect={setActiveFile}
                 onClose={removeFile}
+                mobileShowPreview={mobileShowPreview}
+                onToggleMobilePreview={() => setMobileShowPreview((p) => !p)}
               />
               <div className="flex-1 overflow-hidden">
                 <EditorPane
@@ -861,22 +881,24 @@ export default function EditorPage() {
               </div>
             </div>
 
-            {/* Sürükleme tutacağı */}
-            <div
-              className="h-3 shrink-0 flex items-center justify-center touch-none select-none cursor-row-resize transition-colors"
-              style={{ background: '#1e2535' }}
-              onPointerDown={handleMobileDragStart}
-              onPointerMove={handleMobileDragMove}
-              onPointerUp={handleMobileDragEnd}
-              onPointerCancel={handleMobileDragEnd}
-            >
-              <GripHorizontal className="w-6 h-3 text-gray-600" />
-            </div>
-
-            {/* Canlı önizleme — kalan alan */}
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <PreviewPanel files={files} />
-            </div>
+            {/* Sürükleme tutacağı + önizleme — sadece Önizleme açıkken */}
+            {mobileShowPreview && (
+              <>
+                <div
+                  className="h-3 shrink-0 flex items-center justify-center touch-none select-none cursor-row-resize transition-colors"
+                  style={{ background: '#1e2535' }}
+                  onPointerDown={handleMobileDragStart}
+                  onPointerMove={handleMobileDragMove}
+                  onPointerUp={handleMobileDragEnd}
+                  onPointerCancel={handleMobileDragEnd}
+                >
+                  <GripHorizontal className="w-6 h-3 text-gray-600" />
+                </div>
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <PreviewPanel files={files} />
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
