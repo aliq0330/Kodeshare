@@ -5,10 +5,12 @@ import TagFilter from '@components/shared/TagFilter'
 import ProjectGrid from './components/ProjectGrid'
 import SuggestedUsers from './components/SuggestedUsers'
 import { EXPLORE_CATEGORIES } from '@utils/constants'
+import { useDebounce } from '@hooks/useDebounce'
 
 export default function ExplorePage() {
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
+  const debouncedQuery = useDebounce(query, 400)
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,7 +38,7 @@ export default function ExplorePage() {
       <SuggestedUsers />
 
       {/* Project grid */}
-      <ProjectGrid query={query} category={activeCategory} />
+      <ProjectGrid query={debouncedQuery} category={activeCategory} />
     </div>
   )
 }

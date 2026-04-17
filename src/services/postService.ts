@@ -85,7 +85,7 @@ export const postService = {
     if (error) throw new Error(error.message)
     const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
     if (post && (post as { author_id: string }).author_id !== user!.id) {
-      supabase.from('notifications').insert({ user_id: (post as { author_id: string }).author_id, actor_id: user!.id, type: 'like', post_id: postId }).then()
+      supabase.from('notifications').insert({ user_id: (post as { author_id: string }).author_id, actor_id: user!.id, type: 'like', post_id: postId, message: 'Gönderini beğendi' }).then()
     }
   },
 

@@ -343,6 +343,11 @@ create policy "Giriş yapanlar yorum yapabilir" on public.comments for insert wi
 create policy "Yazar yorumunu düzenleyebilir"  on public.comments for update using (auth.uid() = author_id);
 create policy "Yazar yorumunu silebilir"       on public.comments for delete using (auth.uid() = author_id);
 
+-- Comment likes
+create policy "Herkes yorum beğenilerini görebilir"          on public.comment_likes for select using (true);
+create policy "Giriş yapanlar yorum beğenebilir"             on public.comment_likes for insert with check (auth.uid() = user_id);
+create policy "Kullanıcı yorum beğenisini kaldırabilir"      on public.comment_likes for delete using (auth.uid() = user_id);
+
 -- Follows
 create policy "Herkes takipleri görebilir"     on public.follows for select using (true);
 create policy "Giriş yapanlar takip edebilir"  on public.follows for insert with check (auth.uid() = follower_id);

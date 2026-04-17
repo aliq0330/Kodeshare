@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { postService } from '@services/postService'
 import type { PostPreview, CreatePostPayload } from '@/types'
+import toast from 'react-hot-toast'
 
 interface FetchParams {
   tab?: string
@@ -29,7 +30,7 @@ export const usePostStore = create<PostState>((set, get) => ({
   currentPage: 1,
 
   fetchPosts: async ({ tab, tag, query, page = 1 }) => {
-    if (get().isLoading) return
+    if (page > 1 && get().isLoading) return
     set({ isLoading: true })
     try {
       const res = await postService.getFeed({ tab, tag, query, page })
@@ -53,25 +54,45 @@ export const usePostStore = create<PostState>((set, get) => ({
   likePost: async (id) => {
     const post = get().posts.find((p) => p.id === id)
     if (!post) return
+    const wasLiked = post.isLiked
     set((s) => ({
       posts: s.posts.map((p) =>
         p.id === id
-          ? { ...p, isLiked: !p.isLiked, likesCount: p.likesCount + (p.isLiked ? -1 : 1) }
+          ? { ...p, isLiked: !wasLiked, likesCount: p.likesCount + (wasLiked ? -1 : 1) }
           : p,
       ),
     }))
-    await (post.isLiked ? postService.unlike(id) : postService.like(id))
+    try {
+      await (wasLiked ? postService.unlike(id) : postService.like(id))
+    } catch {
+      set((s) => ({
+        posts: s.posts.map((p) =>
+          p.id === id ? { ...p, isLiked: wasLiked, likesCount: p.likesCount + (wasLiked ? 1 : -1) } : p,
+        ),
+      }))
+      toast.error('Bir hata oluştu')
+    }
   },
 
   savePost: async (id) => {
     const post = get().posts.find((p) => p.id === id)
     if (!post) return
+    const wasSaved = post.isSaved
     set((s) => ({
       posts: s.posts.map((p) =>
-        p.id === id ? { ...p, isSaved: !p.isSaved } : p,
+        p.id === id ? { ...p, isSaved: !wasSaved } : p,
       ),
     }))
-    await (post.isSaved ? postService.unsave(id) : postService.save(id))
+    try {
+      await (wasSaved ? postService.unsave(id) : postService.save(id))
+    } catch {
+      set((s) => ({
+        posts: s.posts.map((p) =>
+          p.id === id ? { ...p, isSaved: wasSaved } : p,
+        ),
+      }))
+      toast.error('Bir hata oluştu')
+    }
   },
 
   repostPost: async (id) => {

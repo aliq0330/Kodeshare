@@ -50,6 +50,7 @@ export const commentService = {
           actor_id: user.id,
           type: 'comment',
           post_id: postId,
+          message: 'Gönderini yorumladı',
         }).then()
       }
     }
