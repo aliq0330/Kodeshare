@@ -12,7 +12,10 @@ function Root() {
   const isLoading = useAuthStore((s) => s.isLoading)
 
   React.useEffect(() => {
-    init()
+    const timeout = setTimeout(() => {
+      useAuthStore.setState({ isLoading: false })
+    }, 5000)
+    init().finally(() => clearTimeout(timeout))
   }, []) // eslint-disable-line
 
   useSupabaseRealtime()
