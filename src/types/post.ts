@@ -35,7 +35,11 @@ export interface Post {
   updatedAt: string
 }
 
-export type PostPreview = Omit<Post, 'files'> & { filesCount: number }
+export type PostPreview = Omit<Post, 'files'> & {
+  filesCount: number
+  snippetPreview?: string | null
+  snippetLanguage?: string | null
+}
 
 export interface CreatePostPayload {
   type: PostType

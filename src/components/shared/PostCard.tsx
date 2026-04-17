@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus, Check, Copy } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
@@ -19,7 +19,18 @@ interface PostCardProps {
 export default function PostCard({ post, onLike, onSave, onShare }: PostCardProps) {
   const { isAuthenticated } = useAuth()
   const [collectModalOpen, setCollectModalOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
   const mainTag = post.tags[0]
+
+  const handleCopySnippet = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!post.snippetPreview) return
+    try {
+      await navigator.clipboard.writeText(post.snippetPreview)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* clipboard API yoksa sessiz geç */ }
+  }
 
   return (
     <article className="card p-4 hover:border-surface-raised transition-colors group">
@@ -58,8 +69,39 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
         )}
       </Link>
 
-      {/* Preview image */}
-      {post.previewImageUrl && (
+      {/* Snippet code preview */}
+      {post.type === 'snippet' && post.snippetPreview && (
+        <div className="mb-3 rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
+            <span
+              className="text-[11px] font-bold uppercase tracking-widest"
+              style={{ color: LANGUAGE_COLORS[post.snippetLanguage ?? ''] ?? '#8b9ab5' }}
+            >
+              {post.snippetLanguage ?? 'code'}
+            </span>
+            <button
+              onClick={handleCopySnippet}
+              className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-colors ${
+                copied
+                  ? 'text-emerald-400 bg-emerald-900/20'
+                  : 'text-gray-400 hover:bg-surface-raised hover:text-white'
+              }`}
+            >
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Kopyalandı!' : 'Kopyala'}</span>
+            </button>
+          </div>
+          <Link to={`/post/${post.id}`} className="block relative">
+            <pre className="px-4 py-3 text-[12px] leading-[1.65] font-mono text-gray-300 overflow-hidden max-h-[7.5rem] whitespace-pre select-none">
+              {post.snippetPreview}
+            </pre>
+            <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
+          </Link>
+        </div>
+      )}
+
+      {/* Preview image (only for non-snippet posts) */}
+      {post.type !== 'snippet' && post.previewImageUrl && (
         <Link to={`/post/${post.id}`} className="block mb-3 rounded-lg overflow-hidden border border-surface-border">
           <div className="relative bg-surface-raised aspect-video group/preview">
             <img src={post.previewImageUrl} alt={post.title} className="w-full h-full object-cover" />

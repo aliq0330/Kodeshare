@@ -19,7 +19,7 @@ export const postService = {
   async getFeed({ tab = 'trending', tag, query, page = 1 }: FeedParams): Promise<PaginatedResponse<PostPreview>> {
     let q = supabase
       .from('posts')
-      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id)`, { count: 'exact' })
+      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`, { count: 'exact' })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (tag && tag !== 'all') q = q.contains('tags', [tag])
@@ -137,7 +137,7 @@ export const postService = {
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
     const { data, error } = await supabase
       .from('posts')
-      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id)`)
+      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`)
       .gte('created_at', since)
       .order('likes_count', { ascending: false })
       .limit(limit)
@@ -152,7 +152,7 @@ export const postService = {
     const page = params?.page ?? 1
     const { data, error, count } = await supabase
       .from('posts')
-      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id)`, { count: 'exact' })
+      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`, { count: 'exact' })
       .eq('author_id', (profile as { id: string }).id)
       .order('created_at', { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
@@ -168,7 +168,7 @@ export const postService = {
     if (!userId) return []
     const { data, error } = await supabase
       .from('post_saves')
-      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))`)
+      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id))`)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
@@ -183,7 +183,7 @@ export const postService = {
     if (!profile) return []
     const { data, error } = await supabase
       .from('post_likes')
-      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language), post_likes(user_id), post_saves(user_id))`)
+      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id))`)
       .eq('user_id', (profile as { id: string }).id)
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
@@ -198,7 +198,9 @@ export const postService = {
 function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPreview {
   const likes = (p.post_likes as { user_id: string }[]) ?? []
   const saves = (p.post_saves as { user_id: string }[]) ?? []
-  const files = (p.post_files as unknown[]) ?? []
+  const files = (p.post_files as { id: string; name: string; language: string; content?: string }[]) ?? []
+  const firstFile = files[0]
+  const isSnippet = p.type === 'snippet'
   return {
     id:              p.id as string,
     type:            p.type as PostPreview['type'],
@@ -206,6 +208,8 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     description:     p.description as string | null,
     tags:            (p.tags as string[]) ?? [],
     filesCount:      files.length,
+    snippetPreview:  isSnippet ? (firstFile?.content?.slice(0, 500) ?? null) : null,
+    snippetLanguage: isSnippet ? (firstFile?.language ?? null) : null,
     previewImageUrl: p.preview_image_url as string | null,
     liveDemoUrl:     p.live_demo_url as string | null,
     likesCount:      (p.post_likes as unknown[] | null)?.length ?? (p.likes_count as number ?? 0),
