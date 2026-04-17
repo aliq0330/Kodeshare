@@ -15,7 +15,7 @@ interface TabsProps {
 
 export default function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
   return (
-    <div className={cn('overflow-x-auto scrollbar-none border-b border-surface-border', className)}>
+    <div className={cn('overflow-x-auto overflow-y-hidden scrollbar-none border-b border-surface-border', className)}>
       <div className="flex items-center gap-1 min-w-max">
         {tabs.map((tab) => (
           <button
