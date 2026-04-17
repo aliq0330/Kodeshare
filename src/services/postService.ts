@@ -23,7 +23,10 @@ export const postService = {
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (tag && tag !== 'all') q = q.contains('tags', [tag])
-    if (query) q = q.ilike('title', `%${query}%`)
+    if (query) {
+      const t = query.toLowerCase().trim()
+      q = q.or(`title.ilike.%${query}%,tags.cs.{${t}}`)
+    }
     q = tab === 'trending'
       ? q.order('likes_count', { ascending: false })
       : q.order('created_at', { ascending: false })
@@ -167,7 +170,7 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     filesCount:      files.length,
     previewImageUrl: p.preview_image_url as string | null,
     liveDemoUrl:     p.live_demo_url as string | null,
-    likesCount:      p.likes_count as number,
+    likesCount:      (p.post_likes as unknown[] | null)?.length ?? (p.likes_count as number ?? 0),
     commentsCount:   p.comments_count as number,
     sharesCount:     p.shares_count as number,
     savesCount:      p.saves_count as number,

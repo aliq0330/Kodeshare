@@ -7,19 +7,41 @@ import { userService } from '@services/userService'
 import { useAuthStore } from '@store/authStore'
 import type { User } from '@/types'
 
-export default function SuggestedUsers() {
+interface SuggestedUsersProps {
+  query?: string
+}
+
+export default function SuggestedUsers({ query }: SuggestedUsersProps) {
   const { user: me, isAuthenticated } = useAuthStore()
   const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    userService.getSuggested().then(setUsers).catch(() => {})
-  }, [])
+    setLoading(true)
+    const fetch = query?.trim()
+      ? userService.search(query.trim())
+      : userService.getSuggested()
+    fetch.then(setUsers).catch(() => setUsers([])).finally(() => setLoading(false))
+  }, [query])
 
-  if (users.length === 0) return null
+  if (loading) return null
+  if (users.length === 0) {
+    if (query?.trim()) {
+      return (
+        <div>
+          <h2 className="text-base font-semibold text-white mb-3">Kullanıcılar</h2>
+          <p className="text-sm text-gray-500">Kullanıcı bulunamadı.</p>
+        </div>
+      )
+    }
+    return null
+  }
 
   return (
     <div>
-      <h2 className="text-base font-semibold text-white mb-3">Öne Çıkan Geliştiriciler</h2>
+      <h2 className="text-base font-semibold text-white mb-3">
+        {query?.trim() ? 'Kullanıcılar' : 'Öne Çıkan Geliştiriciler'}
+      </h2>
       <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
         {users.map((user) => (
           <div key={user.id} className="card p-4 flex flex-col items-center gap-2 min-w-[140px] shrink-0">

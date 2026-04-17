@@ -63,11 +63,41 @@ export const messageService = {
 
   async startConversation(userId: string): Promise<Conversation> {
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Giriş yapmalısın')
+
+    // Check if a 1-on-1 conversation already exists
+    const { data: myConvs } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', user.id)
+
+    const myConvIds = (myConvs ?? []).map((c: Record<string, unknown>) => c.conversation_id as string)
+
+    if (myConvIds.length > 0) {
+      const { data: existing } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', userId)
+        .in('conversation_id', myConvIds)
+        .limit(1)
+        .maybeSingle()
+
+      if (existing) {
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
+        return {
+          id:           (existing as Record<string, unknown>).conversation_id as string,
+          participants: [mapProfile(profile as Record<string, unknown>)],
+          lastMessage:  null,
+          unreadCount:  0,
+          updatedAt:    new Date().toISOString(),
+        }
+      }
+    }
 
     const { data: conv } = await supabase.from('conversations').insert({}).select().single()
     const convId = (conv as { id: string }).id
     await supabase.from('conversation_participants').insert([
-      { conversation_id: convId, user_id: user!.id },
+      { conversation_id: convId, user_id: user.id },
       { conversation_id: convId, user_id: userId },
     ])
 

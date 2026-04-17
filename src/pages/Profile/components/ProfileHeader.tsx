@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MapPin, Link as LinkIcon, Github, Twitter, BadgeCheck } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
@@ -6,6 +7,7 @@ import Spinner from '@components/ui/Spinner'
 import { compactNumber } from '@utils/formatters'
 import { useAuthStore } from '@store/authStore'
 import { userService } from '@services/userService'
+import { messageService } from '@services/messageService'
 import toast from 'react-hot-toast'
 import type { User } from '@/types'
 
@@ -14,12 +16,14 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ username }: ProfileHeaderProps) {
+  const navigate = useNavigate()
   const { user: currentUser, isAuthenticated } = useAuthStore()
   const isOwn = currentUser?.username === username
   const [profile, setProfile] = useState<User | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [followLoading, setFollowLoading] = useState(false)
+  const [messageLoading, setMessageLoading] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -34,6 +38,19 @@ export default function ProfileHeader({ username }: ProfileHeaderProps) {
       .catch(() => setProfile(null))
       .finally(() => setLoading(false))
   }, [username, isAuthenticated, isOwn])
+
+  const handleMessage = async () => {
+    if (!profile || !isAuthenticated) { toast.error('Önce giriş yapmalısın'); return }
+    setMessageLoading(true)
+    try {
+      const conv = await messageService.startConversation(profile.id)
+      navigate(`/messages/${conv.id}`)
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setMessageLoading(false)
+    }
+  }
 
   const handleFollow = async () => {
     if (!profile || !isAuthenticated) return
@@ -88,7 +105,7 @@ export default function ProfileHeader({ username }: ProfileHeaderProps) {
             <Button variant="outline" size="sm">Profili Düzenle</Button>
           ) : (
             <div className="flex gap-2">
-              <Button variant="secondary" size="sm">Mesaj</Button>
+              <Button variant="secondary" size="sm" onClick={handleMessage} loading={messageLoading}>Mesaj</Button>
               <Button
                 variant={isFollowing ? 'outline' : 'primary'}
                 size="sm"
