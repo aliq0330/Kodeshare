@@ -52,10 +52,17 @@ export const useAuthStore = create<AuthState>()(
 
         if (!authListenerRegistered) {
           authListenerRegistered = true
-          supabase.auth.onAuthStateChange(async (_event, session) => {
+          // ÖNEMLİ: onAuthStateChange callback'inin İÇİNDE `await supabase.from(...)`
+          // yapmak client'ı kilitler (deadlock) ve sekme değişimi sonrası tüm
+          // isteklerin asılı kalmasına yol açar. Bu yüzden async işi callback'in
+          // dışına, mikrotask kuyruğuna ertelemek zorundayız.
+          supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.user) {
-              const profile = await fetchProfile(session.user.id)
-              set({ user: profile, isAuthenticated: !!profile })
+              const userId = session.user.id
+              setTimeout(async () => {
+                const profile = await fetchProfile(userId)
+                set({ user: profile, isAuthenticated: !!profile })
+              }, 0)
             } else {
               set({ user: null, isAuthenticated: false })
             }
