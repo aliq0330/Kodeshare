@@ -4,8 +4,11 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
 import { useAuthStore } from '@store/authStore'
+import { usePostStore } from '@store/postStore'
 import { useSupabaseRealtime } from '@realtime/useSupabaseRealtime'
 import './styles/globals.css'
+
+const STALE_MS = 60_000 // 60 saniye uzakta kalınırsa veri sıfırlanır
 
 function Root() {
   const init = useAuthStore((s) => s.init)
@@ -13,6 +16,46 @@ function Root() {
   React.useEffect(() => {
     init()
   }, []) // eslint-disable-line
+
+  // Sekme/uygulama geçişlerinde donmuş loading state'i temizle
+  React.useEffect(() => {
+    let hiddenAt = 0
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        hiddenAt = Date.now()
+        return
+      }
+
+      // Tab'e dönerken
+      const postState = usePostStore.getState()
+
+      // Takılı kalmış isLoading'i her zaman temizle
+      if (postState.isLoading) {
+        usePostStore.setState({ isLoading: false })
+      }
+
+      // 60 saniyeden uzun süre uzakta kalındıysa veriyi de sıfırla
+      if (hiddenAt > 0 && Date.now() - hiddenAt > STALE_MS) {
+        postState.reset()
+      }
+
+      hiddenAt = 0
+    }
+
+    // bfcache'den geri dönüşte (iOS Safari vb.) sayfayı yenile
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload()
+    }
+
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pageshow', onPageShow)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pageshow', onPageShow)
+    }
+  }, [])
 
   useSupabaseRealtime()
 

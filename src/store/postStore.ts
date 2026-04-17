@@ -121,5 +121,5 @@ export const usePostStore = create<PostState>((set, get) => ({
       ),
     })),
 
-  reset: () => set({ posts: [], currentPage: 1, hasNextPage: true }),
+  reset: () => set({ posts: [], currentPage: 1, hasNextPage: true, isLoading: false }),
 }))
