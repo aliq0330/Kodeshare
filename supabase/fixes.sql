@@ -51,3 +51,47 @@ DROP TRIGGER IF EXISTS comment_likes_count ON public.comment_likes;
 CREATE TRIGGER comment_likes_count
   AFTER INSERT OR DELETE ON public.comment_likes
   FOR EACH ROW EXECUTE PROCEDURE public.update_comment_likes_count();
+
+-- 6. Mesaj RLS recursive dongu duzeltmesi
+-- conversation_participants SELECT politikasi kendi tablosunu
+-- sorgulayarak recursive donguye giriyordu. SECURITY DEFINER
+-- fonksiyon ile bu sorun giderildi.
+
+CREATE OR REPLACE FUNCTION public.is_conversation_member(conv_id uuid)
+RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.conversation_participants
+    WHERE conversation_id = conv_id AND user_id = auth.uid()
+  );
+$$;
+
+-- conversation_participants SELECT politikasini duzelт
+DROP POLICY IF EXISTS "Katılımcılar üyeleri görebilir" ON public.conversation_participants;
+DROP POLICY IF EXISTS "Katilimcilar uyeleri gorebilir" ON public.conversation_participants;
+CREATE POLICY "Katilimcilar uyeleri gorebilir"
+  ON public.conversation_participants
+  FOR SELECT USING (is_conversation_member(conversation_id));
+
+-- messages SELECT politikasini duzelt
+DROP POLICY IF EXISTS "Konuşma üyesi mesaj görebilir" ON public.messages;
+DROP POLICY IF EXISTS "Konusma uyesi mesaj gorebilir" ON public.messages;
+CREATE POLICY "Konusma uyesi mesaj gorebilir"
+  ON public.messages
+  FOR SELECT USING (is_conversation_member(conversation_id));
+
+-- messages INSERT politikasini duzelt
+DROP POLICY IF EXISTS "Konuşma üyesi mesaj gönderebilir" ON public.messages;
+DROP POLICY IF EXISTS "Konusma uyesi mesaj gonderebilir" ON public.messages;
+CREATE POLICY "Konusma uyesi mesaj gonderebilir"
+  ON public.messages
+  FOR INSERT WITH CHECK (
+    auth.uid() = sender_id
+    AND is_conversation_member(conversation_id)
+  );
+
+-- conversations SELECT politikasini duzelt
+DROP POLICY IF EXISTS "Katılımcılar konuşmayı görebilir" ON public.conversations;
+DROP POLICY IF EXISTS "Katilimcilar konusmayi gorebilir" ON public.conversations;
+CREATE POLICY "Katilimcilar konusmayi gorebilir"
+  ON public.conversations
+  FOR SELECT USING (is_conversation_member(id));
