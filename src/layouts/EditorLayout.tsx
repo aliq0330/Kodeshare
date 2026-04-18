@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import EditorNavbar from '@components/layout/EditorNavbar'
+import PostComposer from '@modules/post/PostComposer'
 
 interface EditorLayoutProps {
   children: ReactNode
@@ -12,6 +13,7 @@ export default function EditorLayout({ children }: EditorLayoutProps) {
       <div className="flex-1 overflow-hidden">
         {children}
       </div>
+      <PostComposer hideCard />
     </div>
   )
 }

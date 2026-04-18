@@ -39,6 +39,7 @@ export type PostPreview = Omit<Post, 'files'> & {
   filesCount: number
   snippetPreview?: string | null
   snippetLanguage?: string | null
+  projectFiles?: Array<{ id: string; name: string; language: string; content: string }>
 }
 
 export interface CreatePostPayload {

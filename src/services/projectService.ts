@@ -119,4 +119,22 @@ export const projectService = {
   async remove(id: string): Promise<void> {
     await supabase.from('posts').delete().eq('id', id)
   },
+
+  async forkProject(title: string, files: { name: string; language: string; content: string }[]): Promise<string> {
+    const userId = await currentUserId()
+    if (!userId) throw new Error('Giriş gerekli')
+    const { data: post, error } = await supabase
+      .from('posts')
+      .insert({ author_id: userId, type: 'project', title: title + ' (kopya)', tags: [] })
+      .select()
+      .single()
+    if (error) throw error
+    const postId = (post as Record<string, unknown>).id as string
+    if (files.length) {
+      await supabase.from('post_files').insert(
+        files.map((f, i) => ({ post_id: postId, name: f.name, language: f.language as EditorLanguage, content: f.content, order: i }))
+      )
+    }
+    return postId
+  },
 }

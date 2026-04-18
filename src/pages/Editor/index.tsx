@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useParams } from 'react-router-dom'
 import {
   Files, Code2, Eye, WrapText, Sun, Moon, Plus, Trash2, X,
   RefreshCw, ExternalLink, Monitor, Tablet, Smartphone,
@@ -470,6 +471,7 @@ function PreviewPanel({ files }: { files: ReturnType<typeof useEditor>['files'] 
 // ─── Main Editor Page ──────────────────────────────────────────────────────
 
 export default function EditorPage() {
+  const { projectId: urlProjectId } = useParams<{ projectId?: string }>()
   const { isAuthenticated } = useAuthStore()
   const {
     files, activeFile, activeFileId, theme, wordWrap,
@@ -496,6 +498,17 @@ export default function EditorPage() {
   useEffect(() => {
     if (isAuthenticated) fetchProjects()
   }, [isAuthenticated]) // eslint-disable-line
+
+  // Auto-open project from URL param
+  useEffect(() => {
+    if (!urlProjectId || !projects.length) return
+    const found = projects.find((p) => p.id === urlProjectId)
+    if (found) {
+      loadProject(found.title, found.files)
+      setActiveId(found.id)
+      setActiveFile(found.files[0]?.id ?? null)
+    }
+  }, [urlProjectId, projects.length]) // eslint-disable-line
 
   // Ctrl+S
   useEffect(() => {

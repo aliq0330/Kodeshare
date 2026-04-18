@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, GitFork, Copy, Check, FolderPlus } from 'lucide-react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Heart, Bookmark, Share2, GitFork, Copy, Check, FolderPlus, FolderOpen, FileCode } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -12,12 +12,14 @@ import CommentThread from '@modules/social/CommentThread'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { postService } from '@services/postService'
+import { projectService } from '@services/projectService'
 import { useAuthStore } from '@store/authStore'
 import toast from 'react-hot-toast'
 import type { Post } from '@/types'
 
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
+  const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
@@ -76,6 +78,19 @@ export default function PostDetailPage() {
     } catch { /* clipboard API yoksa sessiz geç */ }
   }
 
+  const handleForkToEditor = async () => {
+    if (!post || !isAuthenticated) { toast.error('Önce giriş yapmalısın'); return }
+    try {
+      const toastId = toast.loading('Proje kopyalanıyor...')
+      const newId = await projectService.forkProject(post.title, post.files)
+      toast.dismiss(toastId)
+      toast.success('Proje editörde açıldı!')
+      navigate(`/editor/${newId}`)
+    } catch (err) {
+      toast.error((err as Error).message)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -110,10 +125,18 @@ export default function PostDetailPage() {
               {post.tags.map((tag) => <span key={tag} className="tag">#{tag}</span>)}
             </div>
           </div>
-          <Button variant="primary" size="sm" onClick={handleFork}>
-            <GitFork className="w-4 h-4" />
-            Fork
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="primary" size="sm" onClick={handleFork}>
+              <GitFork className="w-4 h-4" />
+              Fork
+            </Button>
+            {post.type === 'project' && isAuthenticated && (
+              <Button variant="secondary" size="sm" onClick={handleForkToEditor}>
+                <FolderOpen className="w-4 h-4" />
+                Editörde Aç
+              </Button>
+            )}
+          </div>
         </div>
 
         {post.description && <p className="text-sm text-gray-400 mb-4">{post.description}</p>}
@@ -160,8 +183,33 @@ export default function PostDetailPage() {
           </div>
         )}
 
-        {/* Non-snippet file preview */}
-        {!snippetFile && post.files.length > 0 && (
+        {/* Project: files list + preview */}
+        {post.type === 'project' && post.files.length > 0 && (
+          <div className="rounded-xl border border-surface-border overflow-hidden mb-5">
+            {/* Header */}
+            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-surface-border bg-surface-card/60">
+              <FolderOpen className="w-5 h-5 text-brand-400 shrink-0" />
+              <span className="font-medium text-white">{post.title}</span>
+            </div>
+            {/* Files list */}
+            <div className="border-b border-surface-border">
+              {post.files.map((f) => (
+                <div key={f.id} className="flex items-center gap-2.5 px-3 py-2 border-b border-surface-border/40 last:border-0">
+                  <span className="text-[10px] font-bold font-mono w-8 shrink-0" style={{ color: LANGUAGE_COLORS[f.language] ?? '#8b9ab5' }}>
+                    {f.name.split('.').pop()?.toUpperCase()}
+                  </span>
+                  <FileCode className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                  <span className="text-sm text-gray-300 font-mono">{f.name}</span>
+                </div>
+              ))}
+            </div>
+            {/* Preview */}
+            <CodePreview files={post.files} className="h-72" />
+          </div>
+        )}
+
+        {/* Non-snippet, non-project file preview */}
+        {!snippetFile && post.type !== 'project' && post.files.length > 0 && (
           <CodePreview files={post.files} className="h-72 mb-5" />
         )}
 

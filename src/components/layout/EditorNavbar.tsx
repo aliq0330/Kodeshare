@@ -4,10 +4,23 @@ import Button from '@components/ui/Button'
 import Avatar from '@components/ui/Avatar'
 import { useAuthStore } from '@store/authStore'
 import { useEditorStore } from '@store/editorStore'
+import { useProjectStore } from '@store/projectStore'
+import { useComposerStore } from '@store/composerStore'
 
 export default function EditorNavbar() {
   const { user } = useAuthStore()
   const { projectTitle, isSaving, save, setProjectTitle } = useEditorStore()
+  const { projects, activeProjectId } = useProjectStore()
+  const { openWithProject, openComposer } = useComposerStore()
+
+  const handlePublish = () => {
+    const activeProject = projects.find((p) => p.id === activeProjectId)
+    if (activeProject) {
+      openWithProject({ ...activeProject, title: projectTitle })
+    } else {
+      openComposer()
+    }
+  }
 
   return (
     <header className="h-12 border-b border-[#2a3347] bg-[#0d1117] flex items-center gap-2 px-3 shrink-0 min-w-0 overflow-hidden">
@@ -46,7 +59,7 @@ export default function EditorNavbar() {
           <Play className="w-4 h-4" />
           <span className="hidden md:inline ml-1">Çalıştır</span>
         </Button>
-        <Button variant="primary" size="sm">
+        <Button variant="primary" size="sm" onClick={handlePublish}>
           <Share2 className="w-4 h-4" />
           <span className="hidden md:inline ml-1">Paylaş</span>
         </Button>

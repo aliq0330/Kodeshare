@@ -210,6 +210,9 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     filesCount:      files.length,
     snippetPreview:  isSnippet ? (firstFile?.content?.slice(0, 500) ?? null) : null,
     snippetLanguage: isSnippet ? (firstFile?.language ?? null) : null,
+    projectFiles: p.type === 'project'
+      ? files.map((f) => ({ id: f.id, name: f.name, language: f.language, content: f.content ?? '' }))
+      : undefined,
     previewImageUrl: p.preview_image_url as string | null,
     liveDemoUrl:     p.live_demo_url as string | null,
     likesCount:      (p.post_likes as unknown[] | null)?.length ?? (p.likes_count as number ?? 0),

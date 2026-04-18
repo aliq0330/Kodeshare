@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus, Check, Copy } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus, Check, Copy, FolderOpen } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
@@ -10,6 +10,13 @@ import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
 import type { PostPreview } from '@/types'
+
+function buildProjectSrcdoc(files: { language: string; content: string }[]): string {
+  const html = files.find((f) => f.language === 'html')?.content ?? ''
+  const css  = files.filter((f) => f.language === 'css').map((f) => f.content).join('\n')
+  const js   = files.filter((f) => f.language === 'javascript' || f.language === 'typescript').map((f) => f.content).join('\n')
+  return `<!doctype html><html><head><meta charset="utf-8"/><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`
+}
 
 interface PostCardProps {
   post: PostPreview
@@ -105,6 +112,24 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
             />
             <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
           </Link>
+        </div>
+      )}
+
+      {/* Project preview */}
+      {post.type === 'project' && post.projectFiles && post.projectFiles.length > 0 && (
+        <div className="mb-3 rounded-xl border border-surface-border overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
+            <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
+            <span className="text-sm font-medium text-white truncate">{post.title}</span>
+          </div>
+          <div className="h-36 bg-white">
+            <iframe
+              srcDoc={buildProjectSrcdoc(post.projectFiles)}
+              sandbox="allow-scripts allow-same-origin"
+              className="w-full h-full border-0"
+              title="Proje önizleme"
+            />
+          </div>
         </div>
       )}
 
