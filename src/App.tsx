@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import MainLayout from '@layouts/MainLayout'
 import EditorLayout from '@layouts/EditorLayout'
 import AuthLayout from '@layouts/AuthLayout'
@@ -15,6 +16,7 @@ import RegisterPage from '@pages/Auth/Register'
 import PostDetailPage from '@pages/PostDetail'
 import CollectionDetailPage from '@pages/CollectionDetail'
 import { useAuthStore } from '@store/authStore'
+import { useComposerStore } from '@store/composerStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -29,6 +31,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { pathname } = useLocation()
+  const closeComposer = useComposerStore((s) => s.closeComposer)
+  useEffect(() => { closeComposer() }, [pathname, closeComposer])
+
   return (
     <Routes>
       {/* Auth */}
