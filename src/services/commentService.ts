@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
+import { notify, notifyMentions } from './notificationHelpers'
 import type { Comment } from '@/types'
 
 async function currentUserId(): Promise<string | undefined> {
@@ -45,18 +46,51 @@ export const commentService = {
       .single()
     if (error) throw new Error(error.message)
 
-    if (!parentId) {
+    const newCommentId = (data as { id: string }).id
+    const excludeUserIds: string[] = []
+
+    if (parentId) {
+      const { data: parent } = await supabase
+        .from('comments')
+        .select('author_id')
+        .eq('id', parentId)
+        .single()
+      if (parent) {
+        const parentAuthorId = (parent as { author_id: string }).author_id
+        excludeUserIds.push(parentAuthorId)
+        void notify({
+          userId:    parentAuthorId,
+          actorId:   userId,
+          type:      'reply',
+          postId,
+          commentId: newCommentId,
+          message:   'Yorumuna yanıt verdi',
+        })
+      }
+    } else {
       const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
-      if (post && (post as { author_id: string }).author_id !== userId) {
-        supabase.from('notifications').insert({
-          user_id: (post as { author_id: string }).author_id,
-          actor_id: userId,
-          type: 'comment',
-          post_id: postId,
-          message: 'Gönderini yorumladı',
-        }).then()
+      if (post) {
+        const postAuthorId = (post as { author_id: string }).author_id
+        excludeUserIds.push(postAuthorId)
+        void notify({
+          userId:    postAuthorId,
+          actorId:   userId,
+          type:      'comment',
+          postId,
+          commentId: newCommentId,
+          message:   'Gönderini yorumladı',
+        })
       }
     }
+
+    void notifyMentions({
+      text:      content,
+      actorId:   userId,
+      postId,
+      commentId: newCommentId,
+      message:   'Seni bir yorumda etiketledi',
+      excludeUserIds,
+    })
 
     return { ...mapComment(data as Record<string, unknown>, userId), replies: [] }
   },

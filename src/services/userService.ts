@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
+import { notify } from './notificationHelpers'
 import type { User } from '@/types'
 
 async function currentUserId(): Promise<string | undefined> {
@@ -39,7 +40,9 @@ export const userService = {
     const myId = await currentUserId()
     const { error } = await supabase.from('follows').insert({ follower_id: myId!, following_id: userId })
     if (error) throw new Error(error.message)
-    supabase.from('notifications').insert({ user_id: userId, actor_id: myId!, type: 'follow', message: 'Seni takip etmeye başladı' }).then()
+    if (myId) {
+      void notify({ userId, actorId: myId, type: 'follow', message: 'Seni takip etmeye başladı' })
+    }
   },
 
   async unfollow(userId: string): Promise<void> {

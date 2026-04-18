@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
+import { notify } from './notificationHelpers'
 import type { Conversation, Message, PaginatedResponse } from '@/types'
 
 export const messageService = {
@@ -69,6 +70,21 @@ export const messageService = {
       .select('*, sender:profiles!messages_sender_id_fkey(*)')
       .single()
     if (error) throw new Error(error.message)
+
+    const { data: others } = await supabase
+      .from('conversation_participants')
+      .select('user_id')
+      .eq('conversation_id', conversationId)
+      .neq('user_id', user.id)
+    for (const p of (others ?? []) as { user_id: string }[]) {
+      void notify({
+        userId:  p.user_id,
+        actorId: user.id,
+        type:    'message',
+        message: 'Sana bir mesaj gönderdi',
+      })
+    }
+
     return mapMessage(data as Record<string, unknown>, (data as Record<string, unknown>).sender as Record<string, unknown>)
   },
 

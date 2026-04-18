@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
+import { notify, notifyMentions } from './notificationHelpers'
 import type { Post, PostPreview, CreatePostPayload, PaginatedResponse } from '@/types'
 
 const PAGE_SIZE = 20
@@ -104,7 +105,34 @@ export const postService = {
         payload.files.map((f, i) => ({ post_id: (post as { id: string }).id, name: f.name, language: f.language, content: f.content, order: i }))
       )
     }
-    return this.getPost((post as { id: string }).id)
+
+    const newPostId = (post as { id: string }).id
+
+    if (payload.repostedFrom) {
+      const { data: src } = await supabase
+        .from('posts')
+        .select('author_id')
+        .eq('id', payload.repostedFrom)
+        .single()
+      if (src) {
+        void notify({
+          userId:  (src as { author_id: string }).author_id,
+          actorId: userId,
+          type:    'repost',
+          postId:  newPostId,
+          message: payload.type === 'gonderi' ? 'Gönderini alıntıladı' : 'Gönderini yeniden paylaştı',
+        })
+      }
+    }
+
+    void notifyMentions({
+      text:    `${payload.title ?? ''} ${payload.description ?? ''}`,
+      actorId: userId,
+      postId:  newPostId,
+      message: 'Seni bir gönderide etiketledi',
+    })
+
+    return this.getPost(newPostId)
   },
 
   async update(postId: string, payload: Partial<CreatePostPayload>): Promise<void> {
@@ -129,8 +157,14 @@ export const postService = {
     const { error } = await supabase.from('post_likes').insert({ user_id: userId!, post_id: postId })
     if (error) throw new Error(error.message)
     const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
-    if (post && (post as { author_id: string }).author_id !== userId) {
-      supabase.from('notifications').insert({ user_id: (post as { author_id: string }).author_id, actor_id: userId!, type: 'like', post_id: postId, message: 'Gönderini beğendi' }).then()
+    if (post && userId) {
+      void notify({
+        userId: (post as { author_id: string }).author_id,
+        actorId: userId,
+        type: 'like',
+        postId,
+        message: 'Gönderini beğendi',
+      })
     }
   },
 
@@ -163,6 +197,13 @@ export const postService = {
       tags: original.tags, reposted_from: postId, is_published: true,
     })
     if (error) throw new Error(error.message)
+    void notify({
+      userId:  original.author.id,
+      actorId: userId,
+      type:    'repost',
+      postId,
+      message: 'Gönderini yeniden paylaştı',
+    })
   },
 
   async undoRepost(postId: string): Promise<void> {

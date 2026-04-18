@@ -1,5 +1,21 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
 
+export interface NotificationPrefs {
+  likes:    boolean
+  comments: boolean
+  replies:  boolean
+  follows:  boolean
+  mentions: boolean
+  messages: boolean
+  reposts:  boolean
+  email:    boolean
+}
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  likes: true, comments: true, replies: true, follows: true,
+  mentions: true, messages: true, reposts: true, email: false,
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -21,9 +37,10 @@ export interface Database {
           followers_count: number
           following_count: number
           posts_count: number
+          notification_prefs: NotificationPrefs
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at' | 'is_verified' | 'is_online' | 'followers_count' | 'following_count' | 'posts_count'>
+        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at' | 'is_verified' | 'is_online' | 'followers_count' | 'following_count' | 'posts_count' | 'notification_prefs'> & { notification_prefs?: NotificationPrefs }
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
       }
       posts: {
