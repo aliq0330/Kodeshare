@@ -5,6 +5,8 @@ import type { EditorFile, EditorTheme } from '@/types'
 let nextId = 1
 const uid = () => String(nextId++)
 
+export type AppTheme = 'dark' | 'light' | 'system'
+
 interface EditorStoreState {
   files: EditorFile[]
   activeFileId: string | null
@@ -16,12 +18,14 @@ interface EditorStoreState {
   isFullscreen: boolean
   projectTitle: string
   isSaving: boolean
+  appTheme: AppTheme
   setActiveFile:    (id: string) => void
   addFile:          (file: Omit<EditorFile, 'id'>) => void
   removeFile:       (id: string) => void
   updateFile:       (id: string, patch: Partial<EditorFile>) => void
   setTheme:         (theme: EditorTheme) => void
   setFontSize:      (size: number) => void
+  setAppTheme:      (theme: AppTheme) => void
   toggleWordWrap:   () => void
   toggleMinimap:    () => void
   toggleAutoSave:   () => void
@@ -51,6 +55,7 @@ export const useEditorStore = create<EditorStoreState>()(
       isFullscreen: false,
       projectTitle: 'Yeni Proje',
       isSaving: false,
+      appTheme: 'dark',
 
       setActiveFile: (id) => set({ activeFileId: id }),
 
@@ -71,8 +76,9 @@ export const useEditorStore = create<EditorStoreState>()(
       updateFile: (id, patch) =>
         set((s) => ({ files: s.files.map((f) => (f.id === id ? { ...f, ...patch } : f)) })),
 
-      setTheme:         (theme)   => set({ theme }),
+      setTheme:         (theme)    => set({ theme }),
       setFontSize:      (fontSize) => set({ fontSize }),
+      setAppTheme:      (appTheme) => set({ appTheme }),
       toggleWordWrap:   ()        => set((s) => ({ wordWrap: !s.wordWrap })),
       toggleMinimap:    ()        => set((s) => ({ minimap: !s.minimap })),
       toggleAutoSave:   ()        => set((s) => ({ autoSave: !s.autoSave })),
@@ -95,7 +101,7 @@ export const useEditorStore = create<EditorStoreState>()(
     }),
     {
       name: 'editor',
-      partialize: (s) => ({ files: s.files, activeFileId: s.activeFileId, theme: s.theme, fontSize: s.fontSize, wordWrap: s.wordWrap, minimap: s.minimap, autoSave: s.autoSave, projectTitle: s.projectTitle }),
+      partialize: (s) => ({ files: s.files, activeFileId: s.activeFileId, theme: s.theme, fontSize: s.fontSize, wordWrap: s.wordWrap, minimap: s.minimap, autoSave: s.autoSave, projectTitle: s.projectTitle, appTheme: s.appTheme }),
     },
   ),
 )
