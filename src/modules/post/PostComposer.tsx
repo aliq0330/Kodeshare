@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Code2, Image, Link2, Maximize2, X, FolderOpen, Plus, ChevronDown } from 'lucide-react'
+import { Code2, Image, Link2, Maximize2, X, FolderOpen, Plus, ChevronDown, Trash2 } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
@@ -27,21 +27,46 @@ const EXT_MAP: Record<SnippetLang, string> = {
   html:       'html',
 }
 
-const TAG_TO_LANG: Record<string, SnippetLang> = {
-  js: 'javascript', javascript: 'javascript', node: 'javascript',
-  jsx: 'javascript', ts: 'javascript', typescript: 'javascript',
-  react: 'javascript', vue: 'javascript',
-  css: 'css', sass: 'css', scss: 'css', tailwind: 'css',
-  html: 'html',
+function newBlockId(): string {
+  return Math.random().toString(36).slice(2, 10)
+}
+
+function detectLangFromContent(code: string): SnippetLang | null {
+  const c = code.trim()
+  if (!c) return null
+  // HTML: doctype, comment, or common HTML tags
+  if (/^<!(doctype|--)|^<\s*(html|head|body|main|section|article|nav|header|footer|div|span|p|a|ul|ol|li|h[1-6]|form|input|button|script|style|link|meta|img|table|tr|td|thead|tbody|label|textarea|select|option|br|hr|iframe|svg|canvas)\b/i.test(c)) return 'html'
+  // CSS at-rules
+  if (/^\s*@(import|media|keyframes|charset|font-face|supports|page)\b/m.test(c)) return 'css'
+  // CSS rule: selector { property: value; }
+  if (/(^|\n)\s*[.#:\w][^{}\n]{0,200}\{\s*[-\w]+\s*:\s*[^;{}]+/.test(c)) return 'css'
+  // JS patterns
+  if (/\b(function|const|let|var|import|export|class|return|console\.|=>|typeof|new\s+\w|document\.|window\.)\b/.test(c)) return 'javascript'
+  return null
+}
+
+interface SnippetBlock {
+  id: string
+  code: string
+  language: SnippetLang
+  manual: boolean
+}
+
+interface TypeFields {
+  title: string
+  description: string
+  tags: string
 }
 
 interface Draft {
   postType: PostType
-  title: string
-  description: string
-  tags: string
-  code: string
-  language: SnippetLang
+  snippet: TypeFields & { blocks: SnippetBlock[] }
+  project: TypeFields
+  article: TypeFields
+}
+
+function initialSnippetBlock(lang: SnippetLang = DEFAULT_LANG): SnippetBlock {
+  return { id: newBlockId(), code: '', language: lang, manual: false }
 }
 
 function loadDraft(): Partial<Draft> | null {
@@ -52,11 +77,6 @@ function saveDraft(d: Draft) {
 }
 function clearDraft() {
   try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
-}
-function detectLangFromTags(tags: string): SnippetLang | null {
-  const parts = tags.toLowerCase().split(',').map((t) => t.trim()).filter(Boolean)
-  for (const p of parts) if (TAG_TO_LANG[p]) return TAG_TO_LANG[p]
-  return null
 }
 
 function buildProjectSrcdoc(files: { language: string; content: string }[]): string {
@@ -77,21 +97,22 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { setProjectTitle } = useEditorStore()
   const { open, prefilledProject, openComposer, closeComposer } = useComposerStore()
 
-  const [postType, setPostType]   = useState<PostType>('snippet')
-  const [title, setTitle]         = useState('')
-  const [description, setDescription] = useState('')
-  const [tags, setTags]           = useState('')
+  const [postType, setPostType] = useState<PostType>('snippet')
+
+  // Per-type field state (kept separate so switching tabs doesn't leak)
+  const [snippetFields, setSnippetFields] = useState<TypeFields>({ title: '', description: '', tags: '' })
+  const [snippetBlocks, setSnippetBlocks] = useState<SnippetBlock[]>([initialSnippetBlock()])
+
+  const [projectFields, setProjectFields] = useState<TypeFields>({ title: '', description: '', tags: '' })
+  const [articleFields, setArticleFields] = useState<TypeFields>({ title: '', description: '', tags: '' })
+
   const [previewImageUrl, setPreviewImageUrl] = useState('')
   const [liveDemoUrl, setLiveDemoUrl]         = useState('')
   const [showImageInput, setShowImageInput]   = useState(false)
   const [showDemoInput, setShowDemoInput]     = useState(false)
-  const [loading, setLoading]     = useState(false)
+  const [loading, setLoading]                 = useState(false)
 
-  // Snippet
-  const [code, setCode]               = useState('')
-  const [language, setLanguage]       = useState<SnippetLang>(DEFAULT_LANG)
-  const [langManual, setLangManual]   = useState(false)
-  const [expanded, setExpanded]       = useState(false)
+  const [expandedBlockId, setExpandedBlockId] = useState<string | null>(null)
 
   // Project picker
   const [selectedProject, setSelectedProject]   = useState<SavedProject | null>(null)
@@ -102,57 +123,74 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
   const hydratedRef = useRef(false)
 
+  const currentFields: TypeFields =
+    postType === 'snippet' ? snippetFields
+    : postType === 'project' ? projectFields
+    : articleFields
+
+  const setCurrentField = (patch: Partial<TypeFields>) => {
+    if (postType === 'snippet') setSnippetFields((s) => ({ ...s, ...patch }))
+    else if (postType === 'project') setProjectFields((s) => ({ ...s, ...patch }))
+    else setArticleFields((s) => ({ ...s, ...patch }))
+  }
+
   // Restore draft
   useEffect(() => {
     if (!open || hydratedRef.current) return
     hydratedRef.current = true
-    // If prefilled project, prioritize it over draft
     if (prefilledProject) {
       setPostType('project')
-      setTitle(prefilledProject.title)
+      setProjectFields({ title: prefilledProject.title, description: '', tags: '' })
       setSelectedProject(prefilledProject)
       return
     }
     const d = loadDraft()
     if (!d) return
     if (d.postType) setPostType(d.postType)
-    if (d.title)       setTitle(d.title)
-    if (d.description) setDescription(d.description)
-    if (d.tags)        setTags(d.tags)
-    if (d.code)        setCode(d.code)
-    if (d.language)  { setLanguage(d.language); setLangManual(true) }
+    if (d.snippet) {
+      setSnippetFields({
+        title: d.snippet.title ?? '',
+        description: d.snippet.description ?? '',
+        tags: d.snippet.tags ?? '',
+      })
+      if (d.snippet.blocks?.length) setSnippetBlocks(d.snippet.blocks)
+    }
+    if (d.project) setProjectFields({ title: d.project.title ?? '', description: d.project.description ?? '', tags: d.project.tags ?? '' })
+    if (d.article) setArticleFields({ title: d.article.title ?? '', description: d.article.description ?? '', tags: d.article.tags ?? '' })
   }, [open, prefilledProject])
 
   // Re-apply prefilled project when it changes while open
   useEffect(() => {
     if (!open || !prefilledProject) return
     setPostType('project')
-    setTitle(prefilledProject.title)
+    setProjectFields({ title: prefilledProject.title, description: '', tags: '' })
     setSelectedProject(prefilledProject)
   }, [prefilledProject, open])
 
   // Auto-save draft
   useEffect(() => {
     if (!open) return
-    const hasContent = title || description || tags || code
+    const hasContent =
+      snippetFields.title || snippetFields.description || snippetFields.tags ||
+      snippetBlocks.some((b) => b.code) ||
+      projectFields.title || projectFields.description || projectFields.tags ||
+      articleFields.title || articleFields.description || articleFields.tags
     if (!hasContent) return
-    saveDraft({ postType, title, description, tags, code, language })
-  }, [open, postType, title, description, tags, code, language])
-
-  // Auto-detect language from tags
-  useEffect(() => {
-    if (langManual) return
-    const detected = detectLangFromTags(tags)
-    if (detected && detected !== language) setLanguage(detected)
-  }, [tags, langManual, language])
+    saveDraft({
+      postType,
+      snippet: { ...snippetFields, blocks: snippetBlocks },
+      project: projectFields,
+      article: articleFields,
+    })
+  }, [open, postType, snippetFields, snippetBlocks, projectFields, articleFields])
 
   // ESC closes expanded snippet editor first
   useEffect(() => {
-    if (!expanded) return
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setExpanded(false) } }
+    if (!expandedBlockId) return
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setExpandedBlockId(null) } }
     document.addEventListener('keydown', h, true)
     return () => document.removeEventListener('keydown', h, true)
-  }, [expanded])
+  }, [expandedBlockId])
 
   // Close picker on outside click
   useEffect(() => {
@@ -176,44 +214,92 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     }
   }, [])
 
-  const handleLanguageChange = (lang: SnippetLang) => { setLanguage(lang); setLangManual(true) }
+  // Snippet block helpers
+  const updateBlock = (id: string, patch: Partial<SnippetBlock>) => {
+    setSnippetBlocks((blocks) => blocks.map((b) => (b.id === id ? { ...b, ...patch } : b)))
+  }
+
+  const handleBlockCodeChange = (id: string, value: string) => {
+    setSnippetBlocks((blocks) =>
+      blocks.map((b) => {
+        if (b.id !== id) return b
+        const next = { ...b, code: value }
+        if (!b.manual) {
+          const detected = detectLangFromContent(value)
+          if (detected) next.language = detected
+        }
+        return next
+      }),
+    )
+  }
+
+  const handleBlockLanguageChange = (id: string, lang: SnippetLang) => {
+    updateBlock(id, { language: lang, manual: true })
+  }
+
+  const addSnippetBlock = () => {
+    const used = new Set(snippetBlocks.map((b) => b.language))
+    const nextLang: SnippetLang = !used.has('html') ? 'html' : !used.has('css') ? 'css' : 'javascript'
+    setSnippetBlocks((blocks) => [...blocks, initialSnippetBlock(nextLang)])
+  }
+
+  const removeSnippetBlock = (id: string) => {
+    setSnippetBlocks((blocks) => {
+      if (blocks.length <= 1) return [initialSnippetBlock()]
+      return blocks.filter((b) => b.id !== id)
+    })
+    if (expandedBlockId === id) setExpandedBlockId(null)
+  }
 
   const reset = () => {
-    setTitle(''); setDescription(''); setTags('')
+    setSnippetFields({ title: '', description: '', tags: '' })
+    setSnippetBlocks([initialSnippetBlock()])
+    setProjectFields({ title: '', description: '', tags: '' })
+    setArticleFields({ title: '', description: '', tags: '' })
     setPreviewImageUrl(''); setLiveDemoUrl('')
     setShowImageInput(false); setShowDemoInput(false)
-    setPostType('snippet'); setCode('')
-    setLanguage(DEFAULT_LANG); setLangManual(false)
-    setExpanded(false); setSelectedProject(null)
+    setPostType('snippet')
+    setExpandedBlockId(null); setSelectedProject(null)
     setPickerOpen(false)
     hydratedRef.current = false
   }
 
-  const handleClose = () => { closeComposer(); setExpanded(false); hydratedRef.current = false }
+  const handleClose = () => { closeComposer(); setExpandedBlockId(null); hydratedRef.current = false }
 
   const handleOpenInEditor = () => {
-    if (postType === 'snippet') { setExpanded((v) => !v); return }
-    setProjectTitle(title.trim() || 'Yeni Proje')
+    if (postType === 'snippet') {
+      const first = snippetBlocks[0]
+      setExpandedBlockId((id) => (id === first.id ? null : first.id))
+      return
+    }
+    setProjectTitle(currentFields.title.trim() || 'Yeni Proje')
     closeComposer(); reset(); clearDraft()
     navigate('/editor')
   }
 
   const handleSubmit = async () => {
-    if (!title.trim()) return
+    const title = currentFields.title.trim()
+    if (!title) return
     if (postType === 'project' && !selectedProject) { toast.error('Bir proje seçmelisin'); return }
     setLoading(true)
     try {
       let files: import('@/types').CreatePostPayload['files'] = []
-      if (postType === 'snippet' && code.trim()) {
-        files = [{ name: `snippet.${EXT_MAP[language]}`, language, content: code, order: 0 }]
+      if (postType === 'snippet') {
+        const valid = snippetBlocks.filter((b) => b.code.trim())
+        files = valid.map((b, i) => ({
+          name: `snippet-${i + 1}.${EXT_MAP[b.language]}`,
+          language: b.language,
+          content: b.code,
+          order: i,
+        }))
       } else if (postType === 'project' && selectedProject) {
         files = selectedProject.files.map((f, i) => ({ name: f.name, language: f.language, content: f.content, order: i }))
       }
       await createPost({
         type: postType,
-        title: title.trim(),
-        description: description.trim() || undefined,
-        tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+        title,
+        description: currentFields.description.trim() || undefined,
+        tags: currentFields.tags.split(',').map((t) => t.trim()).filter(Boolean),
         files,
         previewImageUrl: previewImageUrl.trim() || undefined,
         liveDemoUrl: liveDemoUrl.trim() || undefined,
@@ -268,32 +354,58 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
           <Input
             label="Başlık"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={currentFields.title}
+            onChange={(e) => setCurrentField({ title: e.target.value })}
             placeholder="Projenin adı..."
           />
 
           <Textarea
             label={postType === 'article' ? 'İçerik' : 'Açıklama'}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={currentFields.description}
+            onChange={(e) => setCurrentField({ description: e.target.value })}
             placeholder={postType === 'article' ? 'Makale içeriğini yaz...' : 'Ne yaptığını anlat...'}
             rows={postType === 'article' ? 6 : 3}
           />
 
           {/* Snippet editor */}
           {postType === 'snippet' && (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-3">
               <label className="text-xs font-medium text-gray-400">Kod</label>
-              <SnippetCodeEditor
-                value={code}
-                onChange={setCode}
-                language={language}
-                onLanguageChange={handleLanguageChange}
-                expanded={expanded}
-                onToggleExpand={() => setExpanded((v) => !v)}
-              />
-              <p className="text-[11px] text-gray-600">Tab ile girinti, Ctrl/Cmd+Z ile geri al. Taslağın otomatik kaydedilir.</p>
+              {snippetBlocks.map((block, idx) => (
+                <div key={block.id} className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-gray-500">Snippet {idx + 1}</span>
+                    {snippetBlocks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSnippetBlock(block.id)}
+                        className="flex items-center gap-1 px-2 py-1 text-[11px] text-gray-500 hover:text-red-400 rounded-md hover:bg-surface-raised transition-colors"
+                        title="Bu snippet'i kaldır"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Kaldır
+                      </button>
+                    )}
+                  </div>
+                  <SnippetCodeEditor
+                    value={block.code}
+                    onChange={(v) => handleBlockCodeChange(block.id, v)}
+                    language={block.language}
+                    onLanguageChange={(l) => handleBlockLanguageChange(block.id, l)}
+                    expanded={expandedBlockId === block.id}
+                    onToggleExpand={() => setExpandedBlockId((cur) => (cur === block.id ? null : block.id))}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSnippetBlock}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Snippet Ekle
+              </button>
+              <p className="text-[11px] text-gray-600">Dil, yazdığın içerikten otomatik seçilir. Dropdown'dan manuel de değiştirebilirsin. Taslağın otomatik kaydedilir.</p>
             </div>
           )}
 
@@ -379,8 +491,8 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
           <Input
             label="Etiketler"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
+            value={currentFields.tags}
+            onChange={(e) => setCurrentField({ tags: e.target.value })}
             placeholder="react, css, animation (virgülle ayır)"
           />
 
@@ -400,11 +512,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           <div className="flex gap-2 pt-1">
             <Button
               variant="ghost" size="sm"
-              className={postType === 'snippet' && expanded ? 'text-brand-400' : 'text-gray-500'}
+              className={postType === 'snippet' && expandedBlockId ? 'text-brand-400' : 'text-gray-500'}
               onClick={handleOpenInEditor}
             >
               {postType === 'snippet' ? <Maximize2 className="w-4 h-4" /> : <Code2 className="w-4 h-4" />}
-              {postType === 'snippet' ? (expanded ? 'Küçült' : 'Editörde Aç') : 'Editörde Aç'}
+              {postType === 'snippet' ? (expandedBlockId ? 'Küçült' : 'Editörde Aç') : 'Editörde Aç'}
             </Button>
             <Button variant="ghost" size="sm" className={showImageInput ? 'text-brand-400' : 'text-gray-500'} onClick={() => setShowImageInput((v) => !v)}>
               <Image className="w-4 h-4" />Görsel
@@ -416,7 +528,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
           <div className="flex justify-end gap-2 pt-2 border-t border-surface-border">
             <Button variant="ghost" onClick={handleClose}>İptal</Button>
-            <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!title.trim()}>Paylaş</Button>
+            <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!currentFields.title.trim()}>Paylaş</Button>
           </div>
         </div>
       </Modal>
