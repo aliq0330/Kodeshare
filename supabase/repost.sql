@@ -6,6 +6,36 @@
 -- ============================================================
 
 -- ------------------------------------------------------------
+-- 0. posts.reposted_from self-reference FK'sini açık isimle ekle
+--    PostgREST (supabase-js nested select) bu FK'yi isimle arar:
+--    `posts!posts_reposted_from_fkey`. Eski kurulumlarda otomatik
+--    isim farklı olabilir, bu yüzden garanti altına alıyoruz.
+-- ------------------------------------------------------------
+DO $$
+DECLARE
+  existing_name text;
+BEGIN
+  SELECT conname INTO existing_name
+  FROM pg_constraint
+  WHERE conrelid = 'public.posts'::regclass
+    AND contype  = 'f'
+    AND conkey   = ARRAY[
+      (SELECT attnum FROM pg_attribute
+       WHERE attrelid = 'public.posts'::regclass AND attname = 'reposted_from')
+    ]
+  LIMIT 1;
+
+  IF existing_name IS NULL THEN
+    ALTER TABLE public.posts
+      ADD CONSTRAINT posts_reposted_from_fkey
+      FOREIGN KEY (reposted_from) REFERENCES public.posts(id)
+      ON DELETE SET NULL;
+  ELSIF existing_name <> 'posts_reposted_from_fkey' THEN
+    EXECUTE format('ALTER TABLE public.posts RENAME CONSTRAINT %I TO posts_reposted_from_fkey', existing_name);
+  END IF;
+END $$;
+
+-- ------------------------------------------------------------
 -- 1. posts.type kısıtlamasını güncelle: 'gonderi' ekle
 -- ------------------------------------------------------------
 ALTER TABLE public.posts DROP CONSTRAINT IF EXISTS posts_type_check;
@@ -124,3 +154,9 @@ DROP TRIGGER IF EXISTS posts_repost_notification ON public.posts;
 CREATE TRIGGER posts_repost_notification
   AFTER INSERT ON public.posts
   FOR EACH ROW EXECUTE PROCEDURE public.handle_repost_notification();
+
+-- ------------------------------------------------------------
+-- 6. PostgREST schema cache'i yenile — yeni FK/kolonlar
+--    anında "schema cache"te görünür.
+-- ------------------------------------------------------------
+NOTIFY pgrst, 'reload schema';
