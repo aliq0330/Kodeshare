@@ -10,6 +10,7 @@ interface NotificationState {
   markRead: (id: string) => Promise<void>
   markAllRead: () => Promise<void>
   pushNotification: (n: Notification) => void
+  removeNotification: (id: string) => void
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -51,5 +52,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       notifications: [notification, ...s.notifications],
       unreadCount: s.unreadCount + 1,
     }))
+  },
+
+  removeNotification: (id) => {
+    set((s) => {
+      const n = s.notifications.find((n) => n.id === id)
+      return {
+        notifications: s.notifications.filter((n) => n.id !== id),
+        unreadCount: n && !n.isRead ? Math.max(0, s.unreadCount - 1) : s.unreadCount,
+      }
+    })
   },
 }))

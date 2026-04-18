@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { MapPin, Link as LinkIcon, Github, Twitter, BadgeCheck } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
+import FollowButton from '@modules/social/FollowButton'
 import Spinner from '@components/ui/Spinner'
 import { compactNumber } from '@utils/formatters'
 import { useAuthStore } from '@store/authStore'
@@ -23,8 +24,8 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
   const isOwn = currentUser?.username === username
   const [profile, setProfile] = useState<User | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
+  const [isPendingRequest, setIsPendingRequest] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [followLoading, setFollowLoading] = useState(false)
   const [messageLoading, setMessageLoading] = useState(false)
 
   useEffect(() => {
@@ -34,8 +35,12 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
         setProfile(p)
         onProfileLoad?.(p)
         if (isAuthenticated && !isOwn) {
-          const following = await userService.isFollowing(p.id)
+          const [following, pending] = await Promise.all([
+            userService.isFollowing(p.id),
+            userService.hasPendingRequest(p.id),
+          ])
           setIsFollowing(following)
+          setIsPendingRequest(pending)
           onFollowStateLoad?.(following)
         }
       })
@@ -53,26 +58,6 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
       toast.error((err as Error).message)
     } finally {
       setMessageLoading(false)
-    }
-  }
-
-  const handleFollow = async () => {
-    if (!profile || !isAuthenticated) return
-    setFollowLoading(true)
-    try {
-      if (isFollowing) {
-        await userService.unfollow(profile.id)
-        setIsFollowing(false)
-        setProfile((p) => p ? { ...p, followersCount: p.followersCount - 1 } : p)
-      } else {
-        await userService.follow(profile.id)
-        setIsFollowing(true)
-        setProfile((p) => p ? { ...p, followersCount: p.followersCount + 1 } : p)
-      }
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setFollowLoading(false)
     }
   }
 
@@ -110,14 +95,12 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
           ) : (
             <div className="flex gap-2">
               <Button variant="secondary" size="sm" onClick={handleMessage} loading={messageLoading}>Mesaj</Button>
-              <Button
-                variant={isFollowing ? 'outline' : 'primary'}
+              <FollowButton
+                userId={profile.id}
+                isFollowing={isFollowing}
+                isPendingRequest={isPendingRequest}
                 size="sm"
-                onClick={handleFollow}
-                loading={followLoading}
-              >
-                {isFollowing ? 'Takipten Çık' : 'Takip Et'}
-              </Button>
+              />
             </div>
           )}
         </div>

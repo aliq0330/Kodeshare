@@ -36,18 +36,74 @@ export const userService = {
     return mapProfile(data as Record<string, unknown>)
   },
 
-  async follow(userId: string): Promise<void> {
+  async follow(userId: string): Promise<'followed' | 'requested'> {
     const myId = await currentUserId()
-    const { error } = await supabase.from('follows').insert({ follower_id: myId!, following_id: userId })
-    if (error) throw new Error(error.message)
-    if (myId) {
-      void notify({ userId, actorId: myId, type: 'follow', message: 'Seni takip etmeye başladı' })
+    if (!myId) throw new Error('Giriş yapmalısın')
+
+    const { data: target } = await supabase.from('profiles').select('is_public').eq('id', userId).single()
+    const isPrivate = target && (target as Record<string, unknown>).is_public === false
+
+    if (isPrivate) {
+      const { error } = await supabase
+        .from('follow_requests')
+        .insert({ requester_id: myId, target_id: userId })
+      if (error && error.code !== '23505') throw new Error(error.message)
+      void notify({ userId, actorId: myId, type: 'follow_request', message: 'Seni takip etmek istiyor' })
+      return 'requested'
     }
+
+    const { error } = await supabase.from('follows').insert({ follower_id: myId, following_id: userId })
+    if (error) throw new Error(error.message)
+    void notify({ userId, actorId: myId, type: 'follow', message: 'Seni takip etmeye başladı' })
+    return 'followed'
   },
 
   async unfollow(userId: string): Promise<void> {
     const myId = await currentUserId()
+    if (!myId) return
+
+    // Bekleyen istek varsa onu sil + bildirimi de sil
+    const { data: req } = await supabase
+      .from('follow_requests')
+      .select('id')
+      .eq('requester_id', myId)
+      .eq('target_id', userId)
+      .maybeSingle()
+
+    if (req) {
+      await supabase.from('follow_requests').delete().eq('requester_id', myId).eq('target_id', userId)
+      await supabase.from('notifications').delete()
+        .eq('user_id', userId).eq('actor_id', myId).eq('type', 'follow_request')
+      return
+    }
+
     await supabase.from('follows').delete().eq('follower_id', myId!).eq('following_id', userId)
+  },
+
+  async hasPendingRequest(userId: string): Promise<boolean> {
+    const myId = await currentUserId()
+    if (!myId) return false
+    const { data } = await supabase
+      .from('follow_requests').select('id').eq('requester_id', myId).eq('target_id', userId).maybeSingle()
+    return !!data
+  },
+
+  async approveFollowRequest(requesterId: string): Promise<void> {
+    const myId = await currentUserId()
+    if (!myId) return
+    await supabase.from('follows').insert({ follower_id: requesterId, following_id: myId })
+    await supabase.from('follow_requests').delete().eq('requester_id', requesterId).eq('target_id', myId)
+    await supabase.from('notifications').delete()
+      .eq('user_id', myId).eq('actor_id', requesterId).eq('type', 'follow_request')
+    void notify({ userId: requesterId, actorId: myId, type: 'follow', message: 'Takip isteğini kabul etti' })
+  },
+
+  async rejectFollowRequest(requesterId: string): Promise<void> {
+    const myId = await currentUserId()
+    if (!myId) return
+    await supabase.from('follow_requests').delete().eq('requester_id', requesterId).eq('target_id', myId)
+    await supabase.from('notifications').delete()
+      .eq('user_id', myId).eq('actor_id', requesterId).eq('type', 'follow_request')
   },
 
   async isFollowing(userId: string): Promise<boolean> {

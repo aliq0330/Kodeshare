@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Bell, Check } from 'lucide-react'
+import { Bell, Check, UserPlus } from 'lucide-react'
 import Button from '@components/ui/Button'
 import Tabs from '@components/ui/Tabs'
 import NotificationItem from './components/NotificationItem'
+import FollowRequestItem from './components/FollowRequestItem'
 import { useNotificationStore } from '@store/notificationStore'
 
 const TABS = [
@@ -15,11 +16,14 @@ export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState('all')
   const { notifications, markAllRead } = useNotificationStore()
 
+  const followRequests = notifications.filter((n) => n.type === 'follow_request')
+  const regular = notifications.filter((n) => n.type !== 'follow_request')
+
   const filtered = activeTab === 'unread'
-    ? notifications.filter((n) => !n.isRead)
+    ? regular.filter((n) => !n.isRead)
     : activeTab === 'mentions'
-    ? notifications.filter((n) => n.type === 'mention')
-    : notifications
+    ? regular.filter((n) => n.type === 'mention')
+    : regular
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-4">
@@ -33,6 +37,21 @@ export default function NotificationsPage() {
           Tümünü Okundu İşaretle
         </Button>
       </div>
+
+      {followRequests.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-surface-border bg-surface-raised">
+            <UserPlus className="w-4 h-4 text-yellow-400" />
+            <h2 className="text-sm font-semibold text-white">Takip İstekleri</h2>
+            <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-medium">
+              {followRequests.length}
+            </span>
+          </div>
+          {followRequests.map((n) => (
+            <FollowRequestItem key={n.id} notification={n} />
+          ))}
+        </div>
+      )}
 
       <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
 

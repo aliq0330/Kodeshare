@@ -15,6 +15,7 @@ const icons: Record<NotificationType, { icon: typeof Heart; color: string }> = {
   comment:         { icon: MessageCircle,  color: 'text-blue-400' },
   reply:           { icon: Reply,          color: 'text-cyan-400' },
   follow:          { icon: UserPlus,       color: 'text-green-400' },
+  follow_request:  { icon: UserPlus,       color: 'text-yellow-400' },
   mention:         { icon: AtSign,         color: 'text-yellow-400' },
   repost:          { icon: GitFork,        color: 'text-purple-400' },
   message:         { icon: Mail,           color: 'text-brand-400' },

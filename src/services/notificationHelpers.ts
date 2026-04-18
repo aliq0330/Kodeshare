@@ -1,13 +1,14 @@
 import { supabase } from '@/lib/supabase'
 import { notificationPrefsService } from './notificationPrefsService'
 
-type NotificationType = 'like' | 'comment' | 'reply' | 'follow' | 'mention' | 'repost' | 'message' | 'collection_save'
+type NotificationType = 'like' | 'comment' | 'reply' | 'follow' | 'follow_request' | 'mention' | 'repost' | 'message' | 'collection_save'
 
 const TYPE_TO_PREF: Record<NotificationType, Parameters<typeof notificationPrefsService.shouldNotify>[1]> = {
   like:            'likes',
   comment:         'comments',
   reply:           'replies',
   follow:          'follows',
+  follow_request:  'follows',
   mention:         'mentions',
   repost:          'reposts',
   message:         'messages',

@@ -8,9 +8,10 @@ import type { Notification, Message } from '@/types'
 
 export function useSupabaseRealtime() {
   const { user, isAuthenticated } = useAuthStore()
-  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications)
-  const pushNotification   = useNotificationStore((s) => s.pushNotification)
-  const pushMessage        = useMessageStore((s) => s.pushMessage)
+  const fetchNotifications  = useNotificationStore((s) => s.fetchNotifications)
+  const pushNotification    = useNotificationStore((s) => s.pushNotification)
+  const removeNotification  = useNotificationStore((s) => s.removeNotification)
+  const pushMessage         = useMessageStore((s) => s.pushMessage)
 
   const notifRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const msgRef   = useRef<ReturnType<typeof supabase.channel> | null>(null)
@@ -32,6 +33,14 @@ export function useSupabaseRealtime() {
     try {
       notifRef.current = supabase
         .channel(`notifs-${uid}-${rand}`)
+        .on(
+          'postgres_changes',
+          { event: 'DELETE', schema: 'public', table: 'notifications', filter: `user_id=eq.${uid}` },
+          (payload) => {
+            const old = payload.old as { id?: string }
+            if (old?.id) removeNotification(old.id)
+          },
+        )
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${uid}` },
