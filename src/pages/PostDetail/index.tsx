@@ -217,6 +217,30 @@ export default function PostDetailPage() {
           <CodePreview files={post.files} className="h-72 mb-5" />
         )}
 
+        {/* Quote post embed — show the original post that was quoted */}
+        {post.type === 'gonderi' && post.repostedFrom && (
+          <Link
+            to={`/post/${post.repostedFrom.id}`}
+            className="block mb-5 rounded-xl border border-surface-border bg-surface-raised/30 p-3 hover:border-surface-raised transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Avatar
+                src={post.repostedFrom.author.avatarUrl}
+                alt={post.repostedFrom.author.displayName}
+                size="xs"
+              />
+              <div className="text-xs text-gray-400">
+                <span className="font-medium text-gray-200">{post.repostedFrom.author.displayName}</span>
+                <span className="ml-1">@{post.repostedFrom.author.username}</span>
+              </div>
+            </div>
+            <p className="text-sm font-semibold text-white line-clamp-2">{post.repostedFrom.title}</p>
+            {post.repostedFrom.description && (
+              <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
+            )}
+          </Link>
+        )}
+
         <div className="flex items-center gap-4 pt-4 border-t border-surface-border">
           <button
             onClick={handleLike}
