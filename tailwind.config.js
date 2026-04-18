@@ -19,10 +19,10 @@ export default {
           950: '#111457',
         },
         surface: {
-          DEFAULT: '#0f1117',
-          card:    '#161b27',
-          raised:  '#1e2535',
-          border:  '#2a3347',
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          card:    'rgb(var(--surface-card) / <alpha-value>)',
+          raised:  'rgb(var(--surface-raised) / <alpha-value>)',
+          border:  'rgb(var(--surface-border) / <alpha-value>)',
         },
       },
       fontFamily: {

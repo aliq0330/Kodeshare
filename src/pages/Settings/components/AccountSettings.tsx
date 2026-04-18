@@ -35,8 +35,11 @@ export default function AccountSettings() {
     setUploading(true)
     try {
       const url = await uploadService.uploadAvatar(file)
-      setForm((f) => ({ ...f, avatarUrl: url }))
-      toast.success('Fotoğraf yüklendi')
+      const newForm = { ...form, avatarUrl: url }
+      setForm(newForm)
+      const updated = await userService.updateProfile(newForm)
+      setUser(updated)
+      toast.success('Fotoğraf güncellendi')
     } catch (err: any) {
       toast.error(err?.message ?? 'Yükleme başarısız')
     } finally {
