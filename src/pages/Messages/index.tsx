@@ -9,7 +9,7 @@ export default function MessagesPage() {
   const [activeId, setActiveId] = useState(conversationId ?? null)
 
   return (
-    <div className="card overflow-hidden flex h-[calc(100vh-8rem)] -mx-4 lg:mx-0">
+    <div className="card overflow-hidden flex h-[calc(100dvh-12rem)] lg:h-[calc(100vh-8rem)] -mx-4 lg:mx-0">
       {/* Chat list */}
       <div
         className={cn(
