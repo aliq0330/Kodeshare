@@ -36,5 +36,8 @@ alter table public.notifications
 -- DELETE olaylarında tüm alanların gelmesi için replica identity full
 alter table public.notifications replica identity full;
 
+-- follow_requests DELETE olayında requester_id ve target_id gelsin diye
+alter table public.follow_requests replica identity full;
+
 -- Realtime
 alter publication supabase_realtime add table public.follow_requests;

@@ -11,10 +11,12 @@ export function useSupabaseRealtime() {
   const fetchNotifications  = useNotificationStore((s) => s.fetchNotifications)
   const pushNotification    = useNotificationStore((s) => s.pushNotification)
   const removeNotification  = useNotificationStore((s) => s.removeNotification)
+  const removeFollowRequest = useNotificationStore((s) => s.removeFollowRequest)
   const pushMessage         = useMessageStore((s) => s.pushMessage)
 
-  const notifRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
-  const msgRef   = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const notifRef   = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const msgRef     = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const followsRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated || !user) return
@@ -23,8 +25,9 @@ export function useSupabaseRealtime() {
     fetchNotifications()
 
     // Önceki kanalları temizle
-    if (notifRef.current) { supabase.removeChannel(notifRef.current).catch(() => {}); notifRef.current = null }
-    if (msgRef.current)   { supabase.removeChannel(msgRef.current).catch(() => {});   msgRef.current   = null }
+    if (notifRef.current)   { supabase.removeChannel(notifRef.current).catch(() => {});   notifRef.current   = null }
+    if (msgRef.current)     { supabase.removeChannel(msgRef.current).catch(() => {});     msgRef.current     = null }
+    if (followsRef.current) { supabase.removeChannel(followsRef.current).catch(() => {}); followsRef.current = null }
 
     // Eşsiz kanal adı — StrictMode çift çalışmasında çakışmayı önler
     const uid = user.id
@@ -95,9 +98,27 @@ export function useSupabaseRealtime() {
         .subscribe()
     } catch { /* realtime hatası uygulamayı çökertmesin */ }
 
+    // follow_requests DELETE — X takip isteğini geri çekince Y'nin store'undan kaldır
+    // Bunun çalışması için Supabase'de şu SQL çalışmış olmalı:
+    //   alter table public.follow_requests replica identity full;
+    try {
+      followsRef.current = supabase
+        .channel(`follow-reqs-${uid}-${rand}`)
+        .on(
+          'postgres_changes',
+          { event: 'DELETE', schema: 'public', table: 'follow_requests', filter: `target_id=eq.${uid}` },
+          (payload) => {
+            const old = payload.old as { requester_id?: string }
+            if (old?.requester_id) removeFollowRequest(old.requester_id)
+          },
+        )
+        .subscribe()
+    } catch { /* realtime hatası */ }
+
     return () => {
-      if (notifRef.current) { supabase.removeChannel(notifRef.current).catch(() => {}); notifRef.current = null }
-      if (msgRef.current)   { supabase.removeChannel(msgRef.current).catch(() => {});   msgRef.current   = null }
+      if (notifRef.current)   { supabase.removeChannel(notifRef.current).catch(() => {});   notifRef.current   = null }
+      if (msgRef.current)     { supabase.removeChannel(msgRef.current).catch(() => {});     msgRef.current     = null }
+      if (followsRef.current) { supabase.removeChannel(followsRef.current).catch(() => {}); followsRef.current = null }
     }
   }, [isAuthenticated, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 }
