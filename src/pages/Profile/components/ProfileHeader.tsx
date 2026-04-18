@@ -14,9 +14,10 @@ import type { User } from '@/types'
 interface ProfileHeaderProps {
   username: string
   onProfileLoad?: (profile: User) => void
+  onFollowStateLoad?: (isFollowing: boolean) => void
 }
 
-export default function ProfileHeader({ username, onProfileLoad }: ProfileHeaderProps) {
+export default function ProfileHeader({ username, onProfileLoad, onFollowStateLoad }: ProfileHeaderProps) {
   const navigate = useNavigate()
   const { user: currentUser, isAuthenticated } = useAuthStore()
   const isOwn = currentUser?.username === username
@@ -35,6 +36,7 @@ export default function ProfileHeader({ username, onProfileLoad }: ProfileHeader
         if (isAuthenticated && !isOwn) {
           const following = await userService.isFollowing(p.id)
           setIsFollowing(following)
+          onFollowStateLoad?.(following)
         }
       })
       .catch(() => setProfile(null))

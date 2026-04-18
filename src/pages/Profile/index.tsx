@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Lock } from 'lucide-react'
 import Tabs from '@components/ui/Tabs'
 import ProfileHeader from './components/ProfileHeader'
 import PostsTab from './components/PostsTab'
@@ -15,10 +16,12 @@ export default function ProfilePage() {
   const { user } = useAuthStore()
   const [activeTab, setActiveTab] = useState('posts')
   const [profileUser, setProfileUser] = useState<User | null>(null)
+  const [isFollowing, setIsFollowing] = useState(false)
 
   if (!username) return null
 
   const isOwn = user?.username === username
+  const isPrivate = !isOwn && profileUser !== null && profileUser.isPublic === false && !isFollowing
   const showLikesTab = isOwn || (profileUser?.showLikes !== false)
 
   const tabs = [
@@ -32,21 +35,36 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-3xl mx-auto">
-      <ProfileHeader username={username} onProfileLoad={setProfileUser} />
-
-      <Tabs
-        tabs={tabs}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        className="sticky top-16 z-10 bg-surface"
+      <ProfileHeader
+        username={username}
+        onProfileLoad={setProfileUser}
+        onFollowStateLoad={setIsFollowing}
       />
 
-      {activeTab === 'posts'       && <PostsTab username={username} />}
-      {activeTab === 'collections' && <CollectionsTab username={username} isOwn={isOwn} />}
-      {activeTab === 'likes'       && <LikesTab username={username} />}
-      {activeTab === 'saved'       && isOwn && <SavedTab />}
-      {activeTab === 'followers'   && <FollowersTab username={username} type="followers" />}
-      {activeTab === 'following'   && <FollowersTab username={username} type="following" />}
+      {isPrivate ? (
+        <div className="card p-10 flex flex-col items-center gap-3 text-center">
+          <div className="w-14 h-14 rounded-full bg-surface-raised flex items-center justify-center">
+            <Lock className="w-6 h-6 text-gray-400" />
+          </div>
+          <p className="font-semibold text-white">Bu hesap gizlidir</p>
+          <p className="text-sm text-gray-500">İçerikleri görmek için takip etmelisin.</p>
+        </div>
+      ) : (
+        <>
+          <Tabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            className="sticky top-16 z-10 bg-surface"
+          />
+          {activeTab === 'posts'       && <PostsTab username={username} />}
+          {activeTab === 'collections' && <CollectionsTab username={username} isOwn={isOwn} />}
+          {activeTab === 'likes'       && <LikesTab username={username} />}
+          {activeTab === 'saved'       && isOwn && <SavedTab />}
+          {activeTab === 'followers'   && <FollowersTab username={username} type="followers" />}
+          {activeTab === 'following'   && <FollowersTab username={username} type="following" />}
+        </>
+      )}
     </div>
   )
 }
