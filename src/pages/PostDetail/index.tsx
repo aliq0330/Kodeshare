@@ -16,6 +16,7 @@ import { LANGUAGE_COLORS } from '@utils/constants'
 import { postService } from '@services/postService'
 import { projectService } from '@services/projectService'
 import { useAuthStore } from '@store/authStore'
+import { useCommentStore } from '@store/commentStore'
 import toast from 'react-hot-toast'
 import type { Post, PostPreview } from '@/types'
 
@@ -39,6 +40,12 @@ export default function PostDetailPage() {
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const loadedComments = useCommentStore((s) => (post ? s.commentsByPost[post.id] : undefined))
+  const liveCommentCount = loadedComments
+    ? loadedComments.reduce((sum, c) => sum + 1 + (c.replies?.length ?? 0), 0)
+    : null
+  const displayCommentCount = liveCommentCount ?? post?.commentsCount ?? 0
 
   const isOwner = !!user && !!post && user.id === post.author.id
 
@@ -421,7 +428,7 @@ export default function PostDetailPage() {
       )}
 
       <div id="comments">
-        <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({post.commentsCount})</h2>
+        <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({displayCommentCount})</h2>
         <CommentThread
           postId={post.id}
           onCommentAdded={() => setPost((p) => p ? { ...p, commentsCount: p.commentsCount + 1 } : p)}

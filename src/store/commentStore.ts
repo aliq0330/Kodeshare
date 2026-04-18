@@ -47,6 +47,7 @@ export const useCommentStore = create<CommentState>((set, get) => ({
         ),
       },
     }))
+    usePostStore.getState().incrementCommentCount(postId)
   },
 
   toggleLike: async (postId, commentId) => {
