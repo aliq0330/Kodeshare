@@ -19,6 +19,13 @@ import { useAuthStore } from '@store/authStore'
 import toast from 'react-hot-toast'
 import type { Post, PostPreview } from '@/types'
 
+function buildProjectSrcdoc(files: { language: string; content: string }[]): string {
+  const html = files.find((f) => f.language === 'html')?.content ?? ''
+  const css  = files.filter((f) => f.language === 'css').map((f) => f.content).join('\n')
+  const js   = files.filter((f) => f.language === 'javascript' || f.language === 'typescript').map((f) => f.content).join('\n')
+  return `<!doctype html><html><head><meta charset="utf-8"/><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`
+}
+
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
@@ -222,11 +229,8 @@ export default function PostDetailPage() {
 
         {/* Quote post embed — show the original post that was quoted */}
         {post.type === 'gonderi' && post.repostedFrom && (
-          <Link
-            to={`/post/${post.repostedFrom.id}`}
-            className="block mb-5 rounded-xl border border-surface-border bg-surface-raised/30 p-3 hover:border-surface-raised transition-colors"
-          >
-            <div className="flex items-center gap-2 mb-2">
+          <div className="mb-5 rounded-xl border border-surface-border bg-surface-raised/30 p-3 hover:border-surface-raised transition-colors">
+            <Link to={`/profile/${post.repostedFrom.author.username}`} className="flex items-center gap-2 mb-2">
               <Avatar
                 src={post.repostedFrom.author.avatarUrl}
                 alt={post.repostedFrom.author.displayName}
@@ -236,12 +240,61 @@ export default function PostDetailPage() {
                 <span className="font-medium text-gray-200">{post.repostedFrom.author.displayName}</span>
                 <span className="ml-1">@{post.repostedFrom.author.username}</span>
               </div>
-            </div>
-            <p className="text-sm font-semibold text-white line-clamp-2">{post.repostedFrom.title}</p>
-            {post.repostedFrom.description && (
-              <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
+            </Link>
+            <Link to={`/post/${post.repostedFrom.id}`} className="block">
+              <p className="text-sm font-semibold text-white line-clamp-2">{post.repostedFrom.title}</p>
+              {post.repostedFrom.description && (
+                <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
+              )}
+            </Link>
+
+            {/* Original snippet code */}
+            {post.repostedFrom.snippetPreview && (
+              <div className="mt-3 rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
+                <div className="flex items-center px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: LANGUAGE_COLORS[post.repostedFrom.snippetLanguage ?? ''] ?? '#8b9ab5' }}
+                  >
+                    {post.repostedFrom.snippetLanguage ?? 'code'}
+                  </span>
+                </div>
+                <Link to={`/post/${post.repostedFrom.id}`} className="block relative select-none">
+                  <CMHighlight
+                    code={post.repostedFrom.snippetPreview}
+                    lang={post.repostedFrom.snippetLanguage ?? 'javascript'}
+                    className="max-h-40 overflow-hidden"
+                  />
+                  <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
+                </Link>
+              </div>
             )}
-          </Link>
+
+            {/* Original project preview */}
+            {post.repostedFrom.type === 'project' && post.repostedFrom.projectFiles && post.repostedFrom.projectFiles.length > 0 && (
+              <div className="mt-3 rounded-lg border border-surface-border overflow-hidden">
+                <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
+                  <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
+                  <span className="text-sm font-medium text-white truncate">{post.repostedFrom.title}</span>
+                </div>
+                <div className="h-36 bg-white">
+                  <iframe
+                    srcDoc={buildProjectSrcdoc(post.repostedFrom.projectFiles)}
+                    sandbox="allow-scripts allow-same-origin"
+                    className="w-full h-full border-0"
+                    title="Alıntı proje önizleme"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Original preview image (only if no snippet/project) */}
+            {!post.repostedFrom.snippetPreview && post.repostedFrom.type !== 'project' && post.repostedFrom.previewImageUrl && (
+              <Link to={`/post/${post.repostedFrom.id}`} className="block mt-3 rounded-lg overflow-hidden border border-surface-border">
+                <img src={post.repostedFrom.previewImageUrl} alt={post.repostedFrom.title} className="w-full aspect-video object-cover" />
+              </Link>
+            )}
+          </div>
         )}
 
         <div className="flex items-center gap-4 pt-4 border-t border-surface-border">

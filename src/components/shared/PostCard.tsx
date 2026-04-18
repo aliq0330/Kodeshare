@@ -201,6 +201,53 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
             )}
           </Link>
+
+          {/* Original snippet code */}
+          {post.repostedFrom.snippetPreview && (
+            <div className="mt-2 rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
+              <div className="flex items-center px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: LANGUAGE_COLORS[post.repostedFrom.snippetLanguage ?? ''] ?? '#8b9ab5' }}
+                >
+                  {post.repostedFrom.snippetLanguage ?? 'code'}
+                </span>
+              </div>
+              <Link to={`/post/${post.repostedFrom.id}`} className="block relative select-none">
+                <CMHighlight
+                  code={post.repostedFrom.snippetPreview}
+                  lang={post.repostedFrom.snippetLanguage ?? 'javascript'}
+                  className="max-h-24 overflow-hidden"
+                />
+                <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
+              </Link>
+            </div>
+          )}
+
+          {/* Original project preview */}
+          {post.repostedFrom.type === 'project' && post.repostedFrom.projectFiles && post.repostedFrom.projectFiles.length > 0 && (
+            <div className="mt-2 rounded-lg border border-surface-border overflow-hidden">
+              <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
+                <FolderOpen className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                <span className="text-xs font-medium text-white truncate">{post.repostedFrom.title}</span>
+              </div>
+              <div className="h-28 bg-white">
+                <iframe
+                  srcDoc={buildProjectSrcdoc(post.repostedFrom.projectFiles)}
+                  sandbox="allow-scripts allow-same-origin"
+                  className="w-full h-full border-0"
+                  title="Alıntı proje önizleme"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Original preview image (only if no snippet/project) */}
+          {!post.repostedFrom.snippetPreview && post.repostedFrom.type !== 'project' && post.repostedFrom.previewImageUrl && (
+            <Link to={`/post/${post.repostedFrom.id}`} className="block mt-2 rounded-lg overflow-hidden border border-surface-border">
+              <img src={post.repostedFrom.previewImageUrl} alt={post.repostedFrom.title} className="w-full aspect-video object-cover" />
+            </Link>
+          )}
         </div>
       )}
 
