@@ -88,6 +88,21 @@ export const userService = {
     return !!data
   },
 
+  async getPendingFollowRequests(): Promise<{ id: string; requester: User; createdAt: string }[]> {
+    const myId = await currentUserId()
+    if (!myId) return []
+    const { data } = await supabase
+      .from('follow_requests')
+      .select('id, created_at, requester:profiles!follow_requests_requester_id_fkey(*)')
+      .eq('target_id', myId)
+      .order('created_at', { ascending: false })
+    return (data ?? []).map((r: Record<string, unknown>) => ({
+      id:        r.id as string,
+      requester: mapProfile(r.requester as Record<string, unknown>),
+      createdAt: r.created_at as string,
+    }))
+  },
+
   async approveFollowRequest(requesterId: string): Promise<void> {
     const myId = await currentUserId()
     if (!myId) return

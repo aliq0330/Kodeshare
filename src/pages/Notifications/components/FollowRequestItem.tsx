@@ -6,22 +6,25 @@ import { timeAgo } from '@utils/formatters'
 import { useNotificationStore } from '@store/notificationStore'
 import { userService } from '@services/userService'
 import toast from 'react-hot-toast'
-import type { Notification } from '@/types'
+import type { User } from '@/types'
 
 interface FollowRequestItemProps {
-  notification: Notification
+  requester: User
+  createdAt: string
+  onHandled: (requesterId: string) => void
 }
 
-export default function FollowRequestItem({ notification }: FollowRequestItemProps) {
-  const removeNotification = useNotificationStore((s) => s.removeNotification)
+export default function FollowRequestItem({ requester, createdAt, onHandled }: FollowRequestItemProps) {
+  const removeFollowRequest = useNotificationStore((s) => s.removeFollowRequest)
   const [loading, setLoading] = useState<'approve' | 'reject' | null>(null)
 
   const handleApprove = async () => {
     setLoading('approve')
     try {
-      await userService.approveFollowRequest(notification.actor.id)
-      removeNotification(notification.id)
-      toast.success(`${notification.actor.displayName} artık seni takip ediyor`)
+      await userService.approveFollowRequest(requester.id)
+      removeFollowRequest(requester.id)
+      onHandled(requester.id)
+      toast.success(`${requester.displayName} artık seni takip ediyor`)
     } catch {
       toast.error('Bir hata oluştu')
     } finally {
@@ -32,8 +35,9 @@ export default function FollowRequestItem({ notification }: FollowRequestItemPro
   const handleReject = async () => {
     setLoading('reject')
     try {
-      await userService.rejectFollowRequest(notification.actor.id)
-      removeNotification(notification.id)
+      await userService.rejectFollowRequest(requester.id)
+      removeFollowRequest(requester.id)
+      onHandled(requester.id)
     } catch {
       toast.error('Bir hata oluştu')
     } finally {
@@ -43,20 +47,20 @@ export default function FollowRequestItem({ notification }: FollowRequestItemPro
 
   return (
     <div className="flex items-center gap-3 p-4 border-b border-surface-border last:border-0">
-      <Link to={`/profile/${notification.actor.username}`} className="shrink-0">
-        <Avatar src={notification.actor.avatarUrl} alt={notification.actor.displayName} size="sm" />
+      <Link to={`/profile/${requester.username}`} className="shrink-0">
+        <Avatar src={requester.avatarUrl} alt={requester.displayName} size="sm" />
       </Link>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-300">
           <Link
-            to={`/profile/${notification.actor.username}`}
+            to={`/profile/${requester.username}`}
             className="font-medium text-white hover:text-brand-300"
           >
-            {notification.actor.displayName}
+            {requester.displayName}
           </Link>
           {' '}seni takip etmek istiyor
         </p>
-        <p className="text-xs text-gray-600 mt-0.5">{timeAgo(notification.createdAt)}</p>
+        <p className="text-xs text-gray-600 mt-0.5">{timeAgo(createdAt)}</p>
       </div>
       <div className="flex gap-2 shrink-0">
         <button
