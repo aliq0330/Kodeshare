@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, GitFork } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, Repeat2, MoreHorizontal, Trash2 } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -29,7 +29,7 @@ function buildProjectSrcdoc(files: { language: string; content: string }[]): str
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -37,6 +37,32 @@ export default function PostDetailPage() {
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  const isOwner = !!user && !!post && user.id === post.author.id
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const h = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [menuOpen])
+
+  const handleDelete = async () => {
+    if (!post) return
+    setMenuOpen(false)
+    if (!window.confirm('Bu gönderiyi silmek istediğine emin misin?')) return
+    try {
+      await postService.delete(post.id)
+      toast.success('Gönderi silindi')
+      navigate('/')
+    } catch {
+      toast.error('Gönderi silinemedi')
+    }
+  }
 
   useEffect(() => {
     if (!postId) return
@@ -149,6 +175,48 @@ export default function PostDetailPage() {
                 <FolderOpen className="w-4 h-4" />
                 Editörde Aç
               </Button>
+            )}
+            {isAuthenticated && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                  title="Daha fazla"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-20 w-44 card shadow-2xl py-1">
+                    <button
+                      type="button"
+                      onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                    >
+                      <Share2 className="w-4 h-4 text-sky-400" />
+                      <span className="text-white">Paylaş</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                    >
+                      <FolderPlus className="w-4 h-4 text-brand-400" />
+                      <span className="text-white">Koleksiyona ekle</span>
+                    </button>
+                    {isOwner && (
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                        <span className="text-white">Sil</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -315,36 +383,19 @@ export default function PostDetailPage() {
             />
           ) : (
             <span className="flex items-center gap-1.5 text-sm text-gray-500">
-              <GitFork className="w-4 h-4" />
+              <Repeat2 className="w-4 h-4" />
               {compactNumber(post.repostCount)}
             </span>
           )}
           <button
-            onClick={() => setShareModalOpen(true)}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-sky-400 transition-colors"
+            onClick={handleSave}
+            className={`ml-auto flex items-center gap-1.5 text-sm transition-colors ${
+              post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
+            }`}
           >
-            <Share2 className="w-4 h-4" />
+            <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
+            {post.isSaved ? 'Kaydedildi' : 'Kaydet'}
           </button>
-          <div className="ml-auto flex items-center gap-2">
-            {isAuthenticated && (
-              <button
-                onClick={() => setCollectModalOpen(true)}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-400 transition-colors"
-                title="Koleksiyona ekle"
-              >
-                <FolderPlus className="w-4 h-4" />
-              </button>
-            )}
-            <button
-              onClick={handleSave}
-              className={`flex items-center gap-1.5 text-sm transition-colors ${
-                post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
-              }`}
-            >
-              <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
-              {post.isSaved ? 'Kaydedildi' : 'Kaydet'}
-            </button>
-          </div>
         </div>
       </div>
 
