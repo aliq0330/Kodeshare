@@ -45,8 +45,9 @@ export const usePostStore = create<PostState>((set, get) => ({
         hasNextPage: res.hasNextPage,
         currentPage: page,
       }))
-    } catch {
-      // ignore — still need isLoading cleared
+    } catch (err) {
+      console.error('[postStore] fetchPosts failed:', err)
+      if (seq === fetchSeq) toast.error('Gönderiler yüklenemedi')
     } finally {
       if (seq === fetchSeq) set({ isLoading: false })
     }

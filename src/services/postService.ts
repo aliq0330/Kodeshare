@@ -15,17 +15,14 @@ async function currentUserId(): Promise<string | undefined> {
   return (await supabase.auth.getSession()).data.session?.user?.id
 }
 
-const REPOSTED_SELECT = `reposted_from_post:posts!reposted_from(
-  *,
-  author:profiles!posts_author_id_fkey(*),
-  post_files(id,name,language,content)
-)`
+const POST_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`
+const POST_SELECT_FULL = `*, author:profiles!posts_author_id_fkey(*), post_files(*), post_likes(user_id), post_saves(user_id)`
 
 export const postService = {
   async getFeed({ tab = 'trending', tag, query, page = 1 }: FeedParams): Promise<PaginatedResponse<PostPreview>> {
     let q = supabase
       .from('posts')
-      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id), ${REPOSTED_SELECT}`, { count: 'exact' })
+      .select(POST_SELECT, { count: 'exact' })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (tag && tag !== 'all') {
@@ -47,6 +44,7 @@ export const postService = {
 
     const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
+    await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
@@ -54,12 +52,17 @@ export const postService = {
   async getPost(id: string): Promise<Post> {
     const { data, error } = await supabase
       .from('posts')
-      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(*), post_likes(user_id), post_saves(user_id), ${REPOSTED_SELECT}`)
+      .select(POST_SELECT_FULL)
       .eq('id', id)
       .single()
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
     const post = mapPost(data as Record<string, unknown>, userId)
+    const repostedFromId = (data as { reposted_from?: string | null }).reposted_from ?? null
+    if (repostedFromId) {
+      const originals = await fetchOriginals([repostedFromId])
+      post.repostedFrom = originals.get(repostedFromId) ?? null
+    }
     if (userId) {
       const { count } = await supabase
         .from('posts')
@@ -97,16 +100,7 @@ export const postService = {
         payload.files.map((f, i) => ({ post_id: (post as { id: string }).id, name: f.name, language: f.language, content: f.content, order: i }))
       )
     }
-    try {
-      return await this.getPost((post as { id: string }).id)
-    } catch {
-      const { data: fallback } = await supabase
-        .from('posts')
-        .select('*, author:profiles!posts_author_id_fkey(*), post_files(*), post_likes(user_id), post_saves(user_id)')
-        .eq('id', (post as { id: string }).id)
-        .single()
-      return mapPost((fallback ?? post) as Record<string, unknown>)
-    }
+    return this.getPost((post as { id: string }).id)
   },
 
   async update(postId: string, payload: Partial<CreatePostPayload>): Promise<void> {
@@ -198,24 +192,26 @@ export const postService = {
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
     const { data, error } = await supabase
       .from('posts')
-      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id), ${REPOSTED_SELECT}`)
+      .select(POST_SELECT)
       .gte('created_at', since)
       .order('likes_count', { ascending: false })
       .limit(limit)
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
     const posts = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
+    await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return posts
   },
 
-  async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
+  async getUserPosts(username: string, params?: FeedParams): Promise<PaginatedResponse<PostPreview>> {
+    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
     if (!profile) return { data: [], total: 0, page: 1, limit: PAGE_SIZE, hasNextPage: false }
 
     const page = params?.page ?? 1
     const { data, error, count } = await supabase
       .from('posts')
-      .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id), ${REPOSTED_SELECT}`, { count: 'exact' })
+      .select(POST_SELECT, { count: 'exact' })
       .eq('author_id', (profile as { id: string }).id)
       .order('created_at', { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
@@ -223,6 +219,7 @@ export const postService = {
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
+    await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
@@ -232,7 +229,7 @@ export const postService = {
     if (!userId) return []
     const { data, error } = await supabase
       .from('post_saves')
-      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id), ${REPOSTED_SELECT})`)
+      .select(`post:posts(${POST_SELECT})`)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
@@ -240,6 +237,7 @@ export const postService = {
       .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
       .filter(Boolean)
       .map((p) => mapPostPreview(p, userId))
+    await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return posts
   },
@@ -249,7 +247,7 @@ export const postService = {
     if (!profile) return []
     const { data, error } = await supabase
       .from('post_likes')
-      .select(`post:posts(*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id), ${REPOSTED_SELECT})`)
+      .select(`post:posts(${POST_SELECT})`)
       .eq('user_id', (profile as { id: string }).id)
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
@@ -258,6 +256,7 @@ export const postService = {
       .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
       .filter(Boolean)
       .map((p) => mapPostPreview(p, userId))
+    await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return posts
   },
@@ -285,46 +284,31 @@ async function hydrateReposted(posts: PostPreview[], userId?: string): Promise<v
   for (const p of posts) if (set.has(p.id)) p.isReposted = true
 }
 
-function mapEmbeddedOriginal(raw: Record<string, unknown> | null | undefined): Post | null {
-  if (!raw) return null
-  const files = (raw.post_files as { id: string; name: string; language: string; content?: string; order?: number }[]) ?? []
-  const firstFile = files[0]
-  const isSnippet = raw.type === 'snippet'
-  return {
-    id:              raw.id as string,
-    type:            raw.type as Post['type'],
-    title:           raw.title as string,
-    description:     (raw.description as string | null) ?? null,
-    tags:            (raw.tags as string[]) ?? [],
-    files: files.map((f, i) => ({
-      id: f.id,
-      name: f.name,
-      language: f.language as Post['files'][number]['language'],
-      content: f.content ?? '',
-      order: f.order ?? i,
-    })),
-    filesCount: files.length,
-    snippetPreview:  isSnippet ? (firstFile?.content?.slice(0, 500) ?? null) : null,
-    snippetLanguage: isSnippet ? (firstFile?.language ?? null) : null,
-    projectFiles: raw.type === 'project'
-      ? files.map((f) => ({ id: f.id, name: f.name, language: f.language, content: f.content ?? '' }))
-      : undefined,
-    previewImageUrl: (raw.preview_image_url as string | null) ?? null,
-    liveDemoUrl:     (raw.live_demo_url as string | null) ?? null,
-    likesCount:      (raw.likes_count as number) ?? 0,
-    commentsCount:   (raw.comments_count as number) ?? 0,
-    sharesCount:     (raw.shares_count as number) ?? 0,
-    savesCount:      (raw.saves_count as number) ?? 0,
-    viewsCount:      (raw.views_count as number) ?? 0,
-    repostCount:     (raw.repost_count as number) ?? 0,
-    isLiked: false,
-    isSaved: false,
-    isReposted: false,
-    author: mapProfile(raw.author as Record<string, unknown>),
-    repostedFrom: null,
-    createdAt: raw.created_at as string,
-    updatedAt: raw.updated_at as string,
-  } as unknown as Post
+async function fetchOriginals(ids: string[]): Promise<Map<string, Post>> {
+  const map = new Map<string, Post>()
+  if (ids.length === 0) return map
+  const { data } = await supabase
+    .from('posts')
+    .select(POST_SELECT_FULL)
+    .in('id', ids)
+  for (const row of (data ?? []) as Record<string, unknown>[]) {
+    map.set(row.id as string, mapPost(row))
+  }
+  return map
+}
+
+async function hydrateRepostedFrom(previews: PostPreview[]): Promise<void> {
+  const pairs = previews
+    .map((p, i) => ({ i, id: (p as unknown as { _repostedFromId?: string })._repostedFromId }))
+    .filter((x) => !!x.id) as { i: number; id: string }[]
+  if (pairs.length === 0) return
+  const originals = await fetchOriginals(Array.from(new Set(pairs.map((p) => p.id))))
+  for (const { i, id } of pairs) {
+    previews[i].repostedFrom = originals.get(id) ?? null
+  }
+  for (const p of previews) {
+    delete (p as unknown as { _repostedFromId?: string })._repostedFromId
+  }
 }
 
 function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPreview {
@@ -333,8 +317,7 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
   const files = (p.post_files as { id: string; name: string; language: string; content?: string }[]) ?? []
   const firstFile = files[0]
   const isSnippet = p.type === 'snippet'
-  const repostedRaw = (p.reposted_from_post as Record<string, unknown> | null) ?? null
-  return {
+  const preview: PostPreview = {
     id:              p.id as string,
     type:            p.type as PostPreview['type'],
     title:           p.title as string,
@@ -358,10 +341,15 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     isSaved:         userId ? saves.some((s) => s.user_id === userId) : false,
     isReposted:      false,
     author:          mapProfile(p.author as Record<string, unknown>),
-    repostedFrom:    mapEmbeddedOriginal(repostedRaw),
+    repostedFrom:    null,
     createdAt:       p.created_at as string,
     updatedAt:       p.updated_at as string,
   }
+  const repostedFromId = (p.reposted_from as string | null) ?? null
+  if (repostedFromId) {
+    (preview as unknown as { _repostedFromId: string })._repostedFromId = repostedFromId
+  }
+  return preview
 }
 
 function mapPost(p: Record<string, unknown>, userId?: string): Post {
