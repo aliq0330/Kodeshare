@@ -16,13 +16,23 @@ interface FollowersTabProps {
 export default function FollowersTab({ username, type }: FollowersTabProps) {
   const { user: me, isAuthenticated } = useAuthStore()
   const [users, setUsers] = useState<User[]>([])
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     setIsLoading(true)
     const fn = type === 'followers' ? userService.getFollowers : userService.getFollowing
-    fn(username).then(setUsers).catch(() => {}).finally(() => setIsLoading(false))
-  }, [username, type])
+    Promise.all([
+      fn(username),
+      isAuthenticated ? userService.getFollowingIds() : Promise.resolve(new Set<string>()),
+    ])
+      .then(([fetchedUsers, ids]) => {
+        setUsers(fetchedUsers)
+        setFollowingIds(ids)
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false))
+  }, [username, type, isAuthenticated])
 
   if (isLoading) return <div className="flex justify-center py-10"><Spinner /></div>
 
@@ -49,7 +59,7 @@ export default function FollowersTab({ username, type }: FollowersTabProps) {
             </div>
           </Link>
           {isAuthenticated && me?.id !== user.id && (
-            <FollowButton userId={user.id} isFollowing={false} size="xs" />
+            <FollowButton userId={user.id} isFollowing={followingIds.has(user.id)} size="xs" />
           )}
         </div>
       ))}
