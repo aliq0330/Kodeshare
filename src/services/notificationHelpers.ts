@@ -25,16 +25,21 @@ interface NotifyPayload {
 
 export async function notify({ userId, actorId, type, message, postId, commentId }: NotifyPayload): Promise<void> {
   if (userId === actorId) return
-  const ok = await notificationPrefsService.shouldNotify(userId, TYPE_TO_PREF[type])
-  if (!ok) return
-  await supabase.from('notifications').insert({
-    user_id:    userId,
-    actor_id:   actorId,
-    type,
-    post_id:    postId    ?? null,
-    comment_id: commentId ?? null,
-    message,
-  })
+  try {
+    const ok = await notificationPrefsService.shouldNotify(userId, TYPE_TO_PREF[type])
+    if (!ok) return
+    const { error } = await supabase.from('notifications').insert({
+      user_id:    userId,
+      actor_id:   actorId,
+      type,
+      post_id:    postId    ?? null,
+      comment_id: commentId ?? null,
+      message,
+    })
+    if (error) console.error('[notify] insert failed', type, error)
+  } catch (err) {
+    console.error('[notify] threw', type, err)
+  }
 }
 
 const MENTION_RE = /@([a-zA-Z0-9_]{2,30})/g
@@ -56,10 +61,15 @@ export async function notifyMentions(params: {
 }): Promise<void> {
   const usernames = extractMentions(params.text)
   if (usernames.length === 0) return
-  const { data } = await supabase
+  const orExpr = usernames.map((u) => `username.ilike.${u}`).join(',')
+  const { data, error } = await supabase
     .from('profiles')
     .select('id, username')
-    .in('username', usernames)
+    .or(orExpr)
+  if (error) {
+    console.error('[notifyMentions] profile lookup failed', error)
+    return
+  }
   const exclude = new Set(params.excludeUserIds ?? [])
   exclude.add(params.actorId)
   for (const row of (data ?? []) as { id: string; username: string }[]) {
