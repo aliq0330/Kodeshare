@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import Input from '@components/ui/Input'
@@ -13,6 +13,10 @@ export default function ExplorePage() {
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState(searchParams.get('tag') ?? 'all')
   const debouncedQuery = useDebounce(query, 400)
+
+  useEffect(() => {
+    setActiveCategory(searchParams.get('tag') ?? 'all')
+  }, [searchParams])
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,7 +35,12 @@ export default function ExplorePage() {
 
       {/* Category filter */}
       <TagFilter
-        tags={EXPLORE_CATEGORIES.map((c) => ({ id: c.id, label: c.label }))}
+        tags={[
+          ...EXPLORE_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
+          ...(activeCategory !== 'all' && !EXPLORE_CATEGORIES.some((c) => c.id === activeCategory)
+            ? [{ id: activeCategory, label: `#${activeCategory}` }]
+            : []),
+        ]}
         activeTag={activeCategory}
         onChange={setActiveCategory}
       />

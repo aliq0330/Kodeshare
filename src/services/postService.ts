@@ -25,7 +25,7 @@ export const postService = {
     if (tag && tag !== 'all') q = q.contains('tags', [tag])
     if (query) {
       const t = query.toLowerCase().trim()
-      q = q.or(`title.ilike.%${query}%,tags.cs.{${t}}`)
+      q = q.or(`title.ilike.*${t}*,tags.cs.{${t}}`)
     }
     q = tab === 'trending'
       ? q.order('likes_count', { ascending: false })
