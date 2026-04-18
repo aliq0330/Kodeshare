@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Search } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import Input from '@components/ui/Input'
 import TagFilter from '@components/shared/TagFilter'
 import ProjectGrid from './components/ProjectGrid'
@@ -8,8 +9,9 @@ import { EXPLORE_CATEGORIES } from '@utils/constants'
 import { useDebounce } from '@hooks/useDebounce'
 
 export default function ExplorePage() {
+  const [searchParams] = useSearchParams()
   const [query, setQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeCategory, setActiveCategory] = useState(searchParams.get('tag') ?? 'all')
   const debouncedQuery = useDebounce(query, 400)
 
   return (

@@ -9,6 +9,19 @@ import { useAuthStore } from '@store/authStore'
 import type { Comment } from '@/types'
 import toast from 'react-hot-toast'
 
+function renderContent(content: string) {
+  const parts = content.split(/(@\w+|#\w+)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('@')) {
+      return <Link key={i} to={`/profile/${part.slice(1)}`} className="text-brand-400 hover:underline">{part}</Link>
+    }
+    if (part.startsWith('#')) {
+      return <Link key={i} to={`/explore?tag=${part.slice(1)}`} className="text-brand-400 hover:underline">{part}</Link>
+    }
+    return part
+  })
+}
+
 interface CommentItemProps {
   comment: Comment
   postId: string
@@ -58,7 +71,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
             </Link>
             <span className="text-xs text-gray-600">{timeAgo(comment.createdAt)}</span>
           </div>
-          <p className="text-sm text-gray-300 leading-relaxed">{comment.content}</p>
+          <p className="text-sm text-gray-300 leading-relaxed">{renderContent(comment.content)}</p>
         </div>
 
         <div className="flex items-center gap-3 mt-1 px-1">

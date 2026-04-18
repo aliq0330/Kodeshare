@@ -149,13 +149,15 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
       {post.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {post.tags.map((tag) => (
-            <span
+            <Link
               key={tag}
+              to={`/explore?tag=${tag}`}
+              onClick={(e) => e.stopPropagation()}
               className="tag"
               style={{ color: LANGUAGE_COLORS[tag] ?? undefined }}
             >
               #{tag}
-            </span>
+            </Link>
           ))}
         </div>
       )}

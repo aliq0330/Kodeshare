@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, GitFork, Copy, Check, FolderPlus, FolderOpen, FileCode } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -59,16 +59,6 @@ export default function PostDetailPage() {
     }
   }
 
-  const handleFork = async () => {
-    if (!post || !isAuthenticated) { toast.error('Önce giriş yapmalısın'); return }
-    try {
-      await postService.repost(post.id)
-      toast.success('Gönderi paylaşıldı!')
-    } catch (err) {
-      toast.error((err as Error).message)
-    }
-  }
-
   const handleCopy = async () => {
     if (!post?.files[0]?.content) return
     try {
@@ -122,14 +112,12 @@ export default function PostDetailPage() {
           <div>
             <h1 className="text-xl font-bold text-white mb-2">{post.title}</h1>
             <div className="flex flex-wrap gap-1.5">
-              {post.tags.map((tag) => <span key={tag} className="tag">#{tag}</span>)}
+              {post.tags.map((tag) => (
+                <Link key={tag} to={`/explore?tag=${tag}`} className="tag">#{tag}</Link>
+              ))}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="primary" size="sm" onClick={handleFork}>
-              <GitFork className="w-4 h-4" />
-              Fork
-            </Button>
             {post.type === 'project' && isAuthenticated && (
               <Button variant="secondary" size="sm" onClick={handleForkToEditor}>
                 <FolderOpen className="w-4 h-4" />
