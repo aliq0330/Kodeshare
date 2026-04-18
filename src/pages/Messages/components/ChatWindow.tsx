@@ -15,7 +15,7 @@ interface ChatWindowProps {
 
 export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
   const { user } = useAuthStore()
-  const { messages, conversations, fetchMessages, sendMessage } = useMessageStore()
+  const { messages, conversations, fetchMessages, sendMessage, markConversationRead } = useMessageStore()
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -26,10 +26,14 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
 
   useEffect(() => {
     fetchMessages(conversationId)
-  }, [conversationId, fetchMessages])
+    markConversationRead(conversationId)
+  }, [conversationId, fetchMessages, markConversationRead])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (conv?.unreadCount && conv.unreadCount > 0) {
+      markConversationRead(conversationId)
+    }
   }, [msgs])
 
   const handleSend = async () => {
