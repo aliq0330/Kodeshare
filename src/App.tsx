@@ -17,6 +17,7 @@ import PostDetailPage from '@pages/PostDetail'
 import CollectionDetailPage from '@pages/CollectionDetail'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
+import { useEditorStore } from '@store/editorStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -33,7 +34,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   const { pathname } = useLocation()
   const closeComposer = useComposerStore((s) => s.closeComposer)
+  const appTheme = useEditorStore((s) => s.appTheme)
+
   useEffect(() => { closeComposer() }, [pathname, closeComposer])
+
+  useEffect(() => {
+    const html = document.documentElement
+    const apply = (dark: boolean) => {
+      html.classList.toggle('dark', dark)
+      html.classList.toggle('light', !dark)
+    }
+    if (appTheme === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      apply(mq.matches)
+      const handler = (e: MediaQueryListEvent) => apply(e.matches)
+      mq.addEventListener('change', handler)
+      return () => mq.removeEventListener('change', handler)
+    }
+    apply(appTheme === 'dark')
+  }, [appTheme])
 
   return (
     <Routes>

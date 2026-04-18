@@ -76,7 +76,6 @@ export default function AccountSettings() {
         </div>
         <div>
           <p className="text-sm font-medium text-white mb-1">Profil Fotoğrafı</p>
-          <p className="text-xs text-gray-500">JPG, PNG veya GIF · Maks. 2 MB</p>
           <Button variant="secondary" size="xs" className="mt-2" loading={uploading} onClick={() => fileInputRef.current?.click()}>
             Fotoğraf Yükle
           </Button>
