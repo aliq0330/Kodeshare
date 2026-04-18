@@ -15,7 +15,7 @@ async function currentUserId(): Promise<string | undefined> {
   return (await supabase.auth.getSession()).data.session?.user?.id
 }
 
-const REPOSTED_SELECT = `reposted_from_post:posts!posts_reposted_from_fkey(
+const REPOSTED_SELECT = `reposted_from_post:posts!reposted_from(
   *,
   author:profiles!posts_author_id_fkey(*),
   post_files(id,name,language,content)
@@ -97,7 +97,16 @@ export const postService = {
         payload.files.map((f, i) => ({ post_id: (post as { id: string }).id, name: f.name, language: f.language, content: f.content, order: i }))
       )
     }
-    return this.getPost((post as { id: string }).id)
+    try {
+      return await this.getPost((post as { id: string }).id)
+    } catch {
+      const { data: fallback } = await supabase
+        .from('posts')
+        .select('*, author:profiles!posts_author_id_fkey(*), post_files(*), post_likes(user_id), post_saves(user_id)')
+        .eq('id', (post as { id: string }).id)
+        .single()
+      return mapPost((fallback ?? post) as Record<string, unknown>)
+    }
   },
 
   async update(postId: string, payload: Partial<CreatePostPayload>): Promise<void> {

@@ -7,9 +7,9 @@
 
 -- ------------------------------------------------------------
 -- 0. posts.reposted_from self-reference FK'sini açık isimle ekle
---    PostgREST (supabase-js nested select) bu FK'yi isimle arar:
---    `posts!posts_reposted_from_fkey`. Eski kurulumlarda otomatik
---    isim farklı olabilir, bu yüzden garanti altına alıyoruz.
+--    Supabase client kolon-adı hint'i (`posts!reposted_from`)
+--    kullansa da, FK'nin tutarlı bir isimle var olması schema
+--    cache'in self-join'i çözmesi için gerekli.
 -- ------------------------------------------------------------
 DO $$
 DECLARE
