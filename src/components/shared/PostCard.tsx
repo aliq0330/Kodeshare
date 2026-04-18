@@ -4,7 +4,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus, Chec
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
-import SyntaxHighlight from '@components/shared/SyntaxHighlight'
+import CMHighlight from '@components/shared/CMHighlight'
 import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
@@ -94,11 +94,13 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
             </button>
           </div>
 
-          {/* Code view */}
-          <Link to={`/post/${post.id}`} className="block relative">
-            <pre className="px-4 py-3 text-[12px] leading-[1.65] font-mono overflow-hidden max-h-[7.5rem] whitespace-pre-wrap select-none">
-              <SyntaxHighlight code={post.snippetPreview} lang={post.snippetLanguage ?? 'javascript'} />
-            </pre>
+          {/* Code view — truncated with fade, click to open */}
+          <Link to={`/post/${post.id}`} className="block relative select-none">
+            <CMHighlight
+              code={post.snippetPreview}
+              lang={post.snippetLanguage ?? 'javascript'}
+              className="max-h-[7.5rem] overflow-hidden"
+            />
             <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
           </Link>
         </div>

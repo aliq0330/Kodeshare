@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, GitFork, Copy, Check } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, GitFork, Copy, Check, FolderPlus } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
 import CodePreview from '@components/shared/CodePreview'
-import SyntaxHighlight from '@components/shared/SyntaxHighlight'
+import CMHighlight from '@components/shared/CMHighlight'
+import AddToCollectionModal from '@collections/AddToCollectionModal'
 import CommentThread from '@modules/social/CommentThread'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
@@ -21,6 +22,7 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [collectModalOpen, setCollectModalOpen] = useState(false)
 
   useEffect(() => {
     if (!postId) return
@@ -146,10 +148,13 @@ export default function PostDetailPage() {
               </button>
             </div>
 
-            {/* Code view: syntax highlighted, scrollable, word wrap */}
-            <pre className="px-4 py-3 text-[13px] leading-[1.65] font-mono overflow-auto max-h-[60vh] whitespace-pre-wrap">
-              <SyntaxHighlight code={snippetFile.content} lang={snippetFile.language} />
-            </pre>
+            {/* Code view: CM6 highlighted, scrollable, word wrap */}
+            <CMHighlight
+              code={snippetFile.content}
+              lang={snippetFile.language}
+              scroll
+              className="max-h-[60vh]"
+            />
           </div>
         )}
 
@@ -172,17 +177,36 @@ export default function PostDetailPage() {
             <Share2 className="w-4 h-4" />
             {compactNumber(post.sharesCount)}
           </button>
-          <button
-            onClick={handleSave}
-            className={`ml-auto flex items-center gap-1.5 text-sm transition-colors ${
-              post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
-            }`}
-          >
-            <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
-            {post.isSaved ? 'Kaydedildi' : 'Kaydet'}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            {isAuthenticated && (
+              <button
+                onClick={() => setCollectModalOpen(true)}
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-400 transition-colors"
+                title="Koleksiyona ekle"
+              >
+                <FolderPlus className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={handleSave}
+              className={`flex items-center gap-1.5 text-sm transition-colors ${
+                post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
+              }`}
+            >
+              <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
+              {post.isSaved ? 'Kaydedildi' : 'Kaydet'}
+            </button>
+          </div>
         </div>
       </div>
+
+      {isAuthenticated && post && (
+        <AddToCollectionModal
+          postId={post.id}
+          open={collectModalOpen}
+          onClose={() => setCollectModalOpen(false)}
+        />
+      )}
 
       <div id="comments">
         <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({post.commentsCount})</h2>
