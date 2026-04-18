@@ -35,7 +35,9 @@ export function useSupabaseRealtime() {
         .channel(`notifs-${uid}-${rand}`)
         .on(
           'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: 'notifications', filter: `user_id=eq.${uid}` },
+          // Filter yok — DELETE olayında REPLICA IDENTITY FULL olmadan sadece PK gelir,
+          // user_id filtresi çalışmaz. ID store'da yoksa removeNotification no-op'tur.
+          { event: 'DELETE', schema: 'public', table: 'notifications' },
           (payload) => {
             const old = payload.old as { id?: string }
             if (old?.id) removeNotification(old.id)
