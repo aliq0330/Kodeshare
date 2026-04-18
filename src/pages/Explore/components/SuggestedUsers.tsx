@@ -14,6 +14,7 @@ interface SuggestedUsersProps {
 export default function SuggestedUsers({ query }: SuggestedUsersProps) {
   const { user: me, isAuthenticated } = useAuthStore()
   const [users, setUsers] = useState<User[]>([])
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -23,6 +24,12 @@ export default function SuggestedUsers({ query }: SuggestedUsersProps) {
       : userService.getSuggested()
     fetch.then(setUsers).catch(() => setUsers([])).finally(() => setLoading(false))
   }, [query])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      userService.getFollowingIds().then(setFollowingIds).catch(() => {})
+    }
+  }, [isAuthenticated])
 
   if (loading) return null
   if (users.length === 0) {
@@ -45,7 +52,9 @@ export default function SuggestedUsers({ query }: SuggestedUsersProps) {
       <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
         {users.map((user) => (
           <div key={user.id} className="card p-4 flex flex-col items-center gap-2 min-w-[140px] shrink-0">
-            <Avatar src={user.avatarUrl} alt={user.displayName} size="md" />
+            <Link to={`/profile/${user.username}`}>
+              <Avatar src={user.avatarUrl} alt={user.displayName} size="md" />
+            </Link>
             <div className="text-center">
               <Link
                 to={`/profile/${user.username}`}
@@ -57,7 +66,7 @@ export default function SuggestedUsers({ query }: SuggestedUsersProps) {
               <p className="text-xs text-gray-500">{(user.followersCount ?? 0).toLocaleString()} takipçi</p>
             </div>
             {isAuthenticated && me?.id !== user.id && (
-              <FollowButton userId={user.id} isFollowing={false} size="xs" className="w-full" />
+              <FollowButton userId={user.id} isFollowing={followingIds.has(user.id)} size="xs" className="w-full" />
             )}
           </div>
         ))}

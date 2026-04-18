@@ -58,6 +58,13 @@ export const userService = {
     return !!data
   },
 
+  async getFollowingIds(): Promise<Set<string>> {
+    const myId = await currentUserId()
+    if (!myId) return new Set()
+    const { data } = await supabase.from('follows').select('following_id').eq('follower_id', myId)
+    return new Set((data ?? []).map((r: Record<string, unknown>) => r.following_id as string))
+  },
+
   async getFollowers(username: string): Promise<User[]> {
     const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
     if (!profile) return []

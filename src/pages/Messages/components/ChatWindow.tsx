@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { ArrowLeft, Send, Smile } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
@@ -90,11 +91,13 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
         </button>
         {other && (
           <>
-            <Avatar src={other.avatarUrl} alt={other.displayName} size="sm" online={other.isOnline} />
-            <div>
+            <Link to={`/profile/${other.username}`}>
+              <Avatar src={other.avatarUrl} alt={other.displayName} size="sm" online={other.isOnline} />
+            </Link>
+            <Link to={`/profile/${other.username}`} className="hover:opacity-80 transition-opacity">
               <p className="font-medium text-white text-sm">{other.displayName}</p>
               <p className="text-xs text-gray-500">{other.isOnline ? 'Çevrimiçi' : 'Çevrimdışı'}</p>
-            </div>
+            </Link>
           </>
         )}
       </div>
