@@ -8,37 +8,31 @@ import LikesTab from './components/LikesTab'
 import SavedTab from './components/SavedTab'
 import FollowersTab from './components/FollowersTab'
 import { useAuthStore } from '@store/authStore'
-
-const PUBLIC_TABS = [
-  { id: 'posts',       label: 'Gönderiler' },
-  { id: 'collections', label: 'Koleksiyonlar' },
-  { id: 'likes',       label: 'Beğenilenler' },
-  { id: 'followers',   label: 'Takipçiler' },
-  { id: 'following',   label: 'Takip' },
-]
-
-const OWN_TABS = [
-  { id: 'posts',       label: 'Gönderiler' },
-  { id: 'collections', label: 'Koleksiyonlar' },
-  { id: 'likes',       label: 'Beğenilenler' },
-  { id: 'saved',       label: 'Kaydedilenler' },
-  { id: 'followers',   label: 'Takipçiler' },
-  { id: 'following',   label: 'Takip' },
-]
+import type { User } from '@/types'
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>()
   const { user } = useAuthStore()
   const [activeTab, setActiveTab] = useState('posts')
+  const [profileUser, setProfileUser] = useState<User | null>(null)
 
   if (!username) return null
 
   const isOwn = user?.username === username
-  const tabs = isOwn ? OWN_TABS : PUBLIC_TABS
+  const showLikesTab = isOwn || (profileUser?.showLikes !== false)
+
+  const tabs = [
+    { id: 'posts',       label: 'Gönderiler' },
+    { id: 'collections', label: 'Koleksiyonlar' },
+    ...(showLikesTab ? [{ id: 'likes', label: 'Beğenilenler' }] : []),
+    ...(isOwn ? [{ id: 'saved', label: 'Kaydedilenler' }] : []),
+    { id: 'followers',   label: 'Takipçiler' },
+    { id: 'following',   label: 'Takip' },
+  ]
 
   return (
     <div className="flex flex-col gap-4 max-w-3xl mx-auto">
-      <ProfileHeader username={username} />
+      <ProfileHeader username={username} onProfileLoad={setProfileUser} />
 
       <Tabs
         tabs={tabs}

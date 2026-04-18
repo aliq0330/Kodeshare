@@ -17,6 +17,10 @@ export interface User {
   isOnline: boolean
   lastSeenAt: string | null
   createdAt: string
+  isPublic: boolean
+  showLikes: boolean
+  showOnline: boolean
+  searchable: boolean
 }
 
 export interface FollowState {

@@ -13,9 +13,10 @@ import type { User } from '@/types'
 
 interface ProfileHeaderProps {
   username: string
+  onProfileLoad?: (profile: User) => void
 }
 
-export default function ProfileHeader({ username }: ProfileHeaderProps) {
+export default function ProfileHeader({ username, onProfileLoad }: ProfileHeaderProps) {
   const navigate = useNavigate()
   const { user: currentUser, isAuthenticated } = useAuthStore()
   const isOwn = currentUser?.username === username
@@ -30,6 +31,7 @@ export default function ProfileHeader({ username }: ProfileHeaderProps) {
     userService.getProfile(username)
       .then(async (p) => {
         setProfile(p)
+        onProfileLoad?.(p)
         if (isAuthenticated && !isOwn) {
           const following = await userService.isFollowing(p.id)
           setIsFollowing(following)
@@ -99,7 +101,7 @@ export default function ProfileHeader({ username }: ProfileHeaderProps) {
       <div className="px-5 pb-5">
         <div className="flex items-end justify-between -mt-10 mb-4">
           <div className="ring-4 ring-surface-card rounded-full">
-            <Avatar src={profile.avatarUrl} alt={profile.displayName} size="xl" online={profile.isOnline} />
+            <Avatar src={profile.avatarUrl} alt={profile.displayName} size="xl" online={isOwn ? profile.isOnline : (profile.showOnline ? profile.isOnline : false)} />
           </div>
           {isOwn ? (
             <Button variant="outline" size="sm">Profili Düzenle</Button>

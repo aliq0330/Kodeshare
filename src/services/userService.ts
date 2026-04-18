@@ -58,6 +58,25 @@ export const userService = {
     return !!data
   },
 
+  async updatePrivacySettings(settings: {
+    isPublic: boolean
+    showLikes: boolean
+    showOnline: boolean
+    searchable: boolean
+  }): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        is_public:   settings.isPublic,
+        show_likes:  settings.showLikes,
+        show_online: settings.showOnline,
+        searchable:  settings.searchable,
+      })
+      .eq('id', userId!)
+    if (error) throw new Error(error.message)
+  },
+
   async getFollowingIds(): Promise<Set<string>> {
     const myId = await currentUserId()
     if (!myId) return new Set()

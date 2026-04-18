@@ -128,5 +128,9 @@ export function mapProfile(p: Record<string, unknown>): User {
     isOnline:       p.is_online as boolean,
     lastSeenAt:     p.last_seen_at as string | null,
     createdAt:      p.created_at as string,
+    isPublic:       (p.is_public   as boolean) ?? true,
+    showLikes:      (p.show_likes  as boolean) ?? true,
+    showOnline:     (p.show_online as boolean) ?? true,
+    searchable:     (p.searchable  as boolean) ?? false,
   }
 }
