@@ -20,7 +20,6 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [snippetView, setSnippetView] = useState<'code' | 'preview'>('code')
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -123,7 +122,7 @@ export default function PostDetailPage() {
           </div>
         </Link>
 
-        {/* Snippet: Kod / Önizle panel */}
+        {/* Snippet: kod paneli */}
         {snippetFile && (
           <div className="rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden mb-5">
             {/* Header */}
@@ -134,52 +133,23 @@ export default function PostDetailPage() {
               >
                 {snippetFile.language}
               </span>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={handleCopy}
-                  className={`p-1.5 rounded-md transition-colors ${
-                    copied
-                      ? 'text-emerald-400 bg-emerald-900/20'
-                      : 'text-gray-400 hover:bg-surface-raised hover:text-white'
-                  }`}
-                  title={copied ? 'Kopyalandı!' : 'Kopyala'}
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
-                <button
-                  onClick={() => setSnippetView('code')}
-                  className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                    snippetView === 'code'
-                      ? 'bg-surface-raised text-white'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                >
-                  Kod
-                </button>
-                <button
-                  onClick={() => setSnippetView('preview')}
-                  className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                    snippetView === 'preview'
-                      ? 'bg-surface-raised text-white'
-                      : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                >
-                  Önizle
-                </button>
-              </div>
+              <button
+                onClick={handleCopy}
+                className={`p-1.5 rounded-md transition-colors ${
+                  copied
+                    ? 'text-emerald-400 bg-emerald-900/20'
+                    : 'text-gray-400 hover:bg-surface-raised hover:text-white'
+                }`}
+                title={copied ? 'Kopyalandı!' : 'Kopyala'}
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
             </div>
 
-            {/* Code view: syntax highlighted, no line numbers, scrollable */}
-            {snippetView === 'code' && (
-              <pre className="px-4 py-3 text-[13px] leading-[1.65] font-mono overflow-auto max-h-[60vh] whitespace-pre">
-                <SyntaxHighlight code={snippetFile.content} lang={snippetFile.language} />
-              </pre>
-            )}
-
-            {/* Preview view: iframe */}
-            {snippetView === 'preview' && (
-              <CodePreview files={post.files} className="h-72" />
-            )}
+            {/* Code view: syntax highlighted, scrollable, word wrap */}
+            <pre className="px-4 py-3 text-[13px] leading-[1.65] font-mono overflow-auto max-h-[60vh] whitespace-pre-wrap">
+              <SyntaxHighlight code={snippetFile.content} lang={snippetFile.language} />
+            </pre>
           </div>
         )}
 
