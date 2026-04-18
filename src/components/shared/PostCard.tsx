@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus, Check, Copy, FolderOpen, Repeat } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Play, Repeat2, FolderPlus, Check, Copy, FolderOpen, Repeat, MoreHorizontal, Trash2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
@@ -8,6 +9,7 @@ import ShareModal from '@modules/social/ShareModal'
 import CMHighlight from '@components/shared/CMHighlight'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
+import { postService } from '@services/postService'
 import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
@@ -28,12 +30,38 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onLike, onSave }: PostCardProps) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const repostPost = usePostStore((s) => s.repostPost)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [deleted, setDeleted] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  const isOwner = !!user && user.id === post.author.id
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const h = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [menuOpen])
+
+  const handleDelete = async () => {
+    setMenuOpen(false)
+    if (!window.confirm('Bu gönderiyi silmek istediğine emin misin?')) return
+    try {
+      await postService.delete(post.id)
+      toast.success('Gönderi silindi')
+      setDeleted(true)
+    } catch {
+      toast.error('Gönderi silinemedi')
+    }
+  }
 
   // For a plain repost, render the original post's content in the card body.
   const display: PostPreview = post.type === 'repost' && post.repostedFrom
@@ -75,6 +103,8 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       } as PostPreview
     : post
 
+  if (deleted) return null
+
   return (
     <article className="card p-4 hover:border-surface-raised transition-colors group">
       {/* Repost indicator — "KullanıcıAdı tarafından yeniden gönderildi" */}
@@ -97,9 +127,53 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             <p className="text-xs text-gray-500">@{display.author.username} · {timeAgo(display.createdAt)}</p>
           </div>
         </Link>
-        {mainTag && (
-          <Badge variant="brand" className="shrink-0">#{mainTag}</Badge>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {mainTag && (
+            <Badge variant="brand" className="shrink-0">#{mainTag}</Badge>
+          )}
+          {isAuthenticated && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                title="Daha fazla"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-1 z-20 w-44 card shadow-2xl py-1">
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <Share2 className="w-4 h-4 text-sky-400" />
+                    <span className="text-white">Paylaş</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <FolderPlus className="w-4 h-4 text-brand-400" />
+                    <span className="text-white">Koleksiyona ekle</span>
+                  </button>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-400" />
+                      <span className="text-white">Sil</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -296,38 +370,19 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           />
         ) : (
           <span className="flex items-center gap-1.5 text-sm text-gray-500">
-            <GitFork className="w-4 h-4" />
+            <Repeat2 className="w-4 h-4" />
             {compactNumber(repostTarget.repostCount)}
           </span>
         )}
 
         <button
-          onClick={() => setShareModalOpen(true)}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-sky-400 transition-colors"
-          title="Paylaş"
+          onClick={() => onSave?.(display.id)}
+          className={`ml-auto flex items-center gap-1.5 text-sm transition-colors ${
+            display.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
+          }`}
         >
-          <Share2 className="w-4 h-4" />
+          <Bookmark className={`w-4 h-4 ${display.isSaved ? 'fill-current' : ''}`} />
         </button>
-
-        <div className="ml-auto flex items-center gap-2">
-          {isAuthenticated && (
-            <button
-              onClick={() => setCollectModalOpen(true)}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-400 transition-colors"
-              title="Koleksiyona ekle"
-            >
-              <FolderPlus className="w-4 h-4" />
-            </button>
-          )}
-          <button
-            onClick={() => onSave?.(display.id)}
-            className={`flex items-center gap-1.5 text-sm transition-colors ${
-              display.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
-            }`}
-          >
-            <Bookmark className={`w-4 h-4 ${display.isSaved ? 'fill-current' : ''}`} />
-          </button>
-        </div>
       </div>
 
       {isAuthenticated && (

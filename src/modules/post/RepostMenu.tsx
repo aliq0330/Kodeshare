@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { GitFork, Repeat, Quote } from 'lucide-react'
+import { Repeat2, Repeat, Quote } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { compactNumber } from '@utils/formatters'
 import type { PostPreview } from '@/types'
@@ -36,7 +36,7 @@ export default function RepostMenu({ post, onRepost, onQuote, showCount = true, 
         )}
         title="Yeniden paylaş"
       >
-        <GitFork className={cn('w-4 h-4', post.isReposted && 'fill-current')} />
+        <Repeat2 className="w-4 h-4" />
         {showCount && compactNumber(post.repostCount)}
       </button>
 
@@ -58,7 +58,7 @@ export default function RepostMenu({ post, onRepost, onQuote, showCount = true, 
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
             <Quote className="w-4 h-4 text-brand-400" />
-            <span className="text-white">Alıntı ile Paylaş</span>
+            <span className="text-white">Alıntı yap</span>
           </button>
         </div>
       )}
