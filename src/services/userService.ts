@@ -91,7 +91,8 @@ export const userService = {
   async approveFollowRequest(requesterId: string): Promise<void> {
     const myId = await currentUserId()
     if (!myId) return
-    await supabase.from('follows').insert({ follower_id: requesterId, following_id: myId })
+    const { error } = await supabase.from('follows').insert({ follower_id: requesterId, following_id: myId })
+    if (error) throw new Error(error.message)
     await supabase.from('follow_requests').delete().eq('requester_id', requesterId).eq('target_id', myId)
     await supabase.from('notifications').delete()
       .eq('user_id', myId).eq('actor_id', requesterId).eq('type', 'follow_request')
