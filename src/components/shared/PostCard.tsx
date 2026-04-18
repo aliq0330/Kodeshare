@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Play, GitFork, FolderPlus, Chec
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
+import ShareModal from '@modules/social/ShareModal'
 import CMHighlight from '@components/shared/CMHighlight'
 import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
@@ -20,6 +21,7 @@ interface PostCardProps {
 export default function PostCard({ post, onLike, onSave, onShare }: PostCardProps) {
   const { isAuthenticated } = useAuth()
   const [collectModalOpen, setCollectModalOpen] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const mainTag = post.tags[0]
 
@@ -154,7 +156,7 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
         </Link>
 
         <button
-          onClick={() => onShare?.(post.id)}
+          onClick={() => setShareModalOpen(true)}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-400 transition-colors"
         >
           <Share2 className="w-4 h-4" />
@@ -189,6 +191,12 @@ export default function PostCard({ post, onLike, onSave, onShare }: PostCardProp
           onClose={() => setCollectModalOpen(false)}
         />
       )}
+      <ShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        postId={post.id}
+        postTitle={post.title}
+      />
     </article>
   )
 }

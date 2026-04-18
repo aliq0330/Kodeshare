@@ -7,6 +7,7 @@ import Spinner from '@components/ui/Spinner'
 import CodePreview from '@components/shared/CodePreview'
 import CMHighlight from '@components/shared/CMHighlight'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
+import ShareModal from '@modules/social/ShareModal'
 import CommentThread from '@modules/social/CommentThread'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
@@ -23,6 +24,7 @@ export default function PostDetailPage() {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
 
   useEffect(() => {
     if (!postId) return
@@ -173,7 +175,10 @@ export default function PostDetailPage() {
             <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
             {compactNumber(post.likesCount)}
           </button>
-          <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-400 transition-colors">
+          <button
+            onClick={() => setShareModalOpen(true)}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-400 transition-colors"
+          >
             <Share2 className="w-4 h-4" />
             {compactNumber(post.sharesCount)}
           </button>
@@ -207,6 +212,12 @@ export default function PostDetailPage() {
           onClose={() => setCollectModalOpen(false)}
         />
       )}
+      <ShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        postId={post.id}
+        postTitle={post.title}
+      />
 
       <div id="comments">
         <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({post.commentsCount})</h2>
