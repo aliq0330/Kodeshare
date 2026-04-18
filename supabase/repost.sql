@@ -23,6 +23,18 @@ ALTER TABLE public.posts
 -- Sadece bir gönderi, bir başka gönderiyi kaynak alabilir,
 -- ve bir kullanıcı aynı gönderiyi yalnız bir kez "düz" repostlayabilir.
 -- (Quote post'lar 'gonderi' tipindedir ve bu kısıtlamadan muaftır.)
+
+-- Önce mevcut veride aynı (author_id, reposted_from) çiftine sahip
+-- fazla plain repost kayıtlarını temizle. En eskisi korunur.
+DELETE FROM public.posts p
+USING public.posts q
+WHERE p.type = 'repost'
+  AND q.type = 'repost'
+  AND p.reposted_from IS NOT NULL
+  AND p.author_id     = q.author_id
+  AND p.reposted_from = q.reposted_from
+  AND p.created_at    > q.created_at;
+
 DROP INDEX IF EXISTS posts_unique_plain_repost_idx;
 CREATE UNIQUE INDEX posts_unique_plain_repost_idx
   ON public.posts (author_id, reposted_from)
