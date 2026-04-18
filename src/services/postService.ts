@@ -22,10 +22,15 @@ export const postService = {
       .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`, { count: 'exact' })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
-    if (tag && tag !== 'all') q = q.overlaps('tags', [tag])
+    if (tag && tag !== 'all') {
+      const variants = tagCaseVariants(tag)
+      q = q.or(variants.map((v) => `tags.cs.{"${v}"}`).join(','))
+    }
     if (query) {
-      const t = query.toLowerCase().trim()
-      q = q.or(`title.ilike.%${t}%,description.ilike.%${t}%`)
+      const t = query.trim()
+      const like = t.toLowerCase().replace(/[%_,()]/g, ' ')
+      const tagParts = tagCaseVariants(t).map((v) => `tags.cs.{"${v}"}`).join(',')
+      q = q.or(`title.ilike.%${like}%,description.ilike.%${like}%,${tagParts}`)
     }
     q = tab === 'trending'
       ? q.order('likes_count', { ascending: false })
@@ -193,6 +198,15 @@ export const postService = {
       .filter(Boolean)
       .map((p) => mapPostPreview(p, userId))
   },
+}
+
+function tagCaseVariants(tag: string): string[] {
+  const t = tag.trim()
+  if (!t) return []
+  const lower = t.toLowerCase()
+  const upper = t.toUpperCase()
+  const capitalized = lower.charAt(0).toUpperCase() + lower.slice(1)
+  return Array.from(new Set([t, lower, upper, capitalized]))
 }
 
 function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPreview {
