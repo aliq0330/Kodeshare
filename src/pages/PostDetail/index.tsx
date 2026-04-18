@@ -114,7 +114,10 @@ export default function PostDetailPage() {
     )
   }
 
-  const snippetFile = post.type === 'snippet' ? post.files[0] : null
+  const snippetFile =
+    (post.type === 'snippet' || (post.type === 'gonderi' && post.files[0]?.content))
+      ? post.files[0]
+      : null
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-6">

@@ -317,6 +317,7 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
   const files = (p.post_files as { id: string; name: string; language: string; content?: string }[]) ?? []
   const firstFile = files[0]
   const isSnippet = p.type === 'snippet'
+  const showSnippet = isSnippet || (p.type === 'gonderi' && !!firstFile?.content)
   const preview: PostPreview = {
     id:              p.id as string,
     type:            p.type as PostPreview['type'],
@@ -324,8 +325,8 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     description:     p.description as string | null,
     tags:            (p.tags as string[]) ?? [],
     filesCount:      files.length,
-    snippetPreview:  isSnippet ? (firstFile?.content?.slice(0, 500) ?? null) : null,
-    snippetLanguage: isSnippet ? (firstFile?.language ?? null) : null,
+    snippetPreview:  showSnippet ? (firstFile?.content?.slice(0, 500) ?? null) : null,
+    snippetLanguage: showSnippet ? (firstFile?.language ?? null) : null,
     projectFiles: p.type === 'project'
       ? files.map((f) => ({ id: f.id, name: f.name, language: f.language, content: f.content ?? '' }))
       : undefined,

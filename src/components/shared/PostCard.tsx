@@ -112,8 +112,8 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         )}
       </Link>
 
-      {/* Snippet code panel */}
-      {display.type === 'snippet' && display.snippetPreview && (
+      {/* Snippet code panel (snippet posts and gonderi/quote posts with code) */}
+      {(display.type === 'snippet' || display.type === 'gonderi') && display.snippetPreview && (
         <div className="mb-3 rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden">
           {/* Header bar */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
@@ -166,8 +166,8 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </div>
       )}
 
-      {/* Preview image (only for non-snippet posts) */}
-      {display.type !== 'snippet' && display.previewImageUrl && (
+      {/* Preview image (hidden when a snippet code panel is shown) */}
+      {!display.snippetPreview && display.type !== 'snippet' && display.previewImageUrl && (
         <Link to={`/post/${display.id}`} className="block mb-3 rounded-lg overflow-hidden border border-surface-border">
           <div className="relative bg-surface-raised aspect-video group/preview">
             <img src={display.previewImageUrl} alt={display.title} className="w-full h-full object-cover" />
