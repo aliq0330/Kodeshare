@@ -34,7 +34,7 @@ export default function CMHighlight({ code, lang, scroll = false, className }: P
         fontFamily: "'JetBrains Mono', 'Fira Code', ui-monospace, monospace",
         fontSize: '13px',
         lineHeight: '1.65',
-        overflow: scroll ? 'auto' : 'hidden',
+        overflow: 'hidden',
       },
       '.cm-content': { padding: '12px 16px', caretColor: 'transparent' },
       '.cm-line': { padding: '0 !important' },
@@ -60,5 +60,11 @@ export default function CMHighlight({ code, lang, scroll = false, className }: P
     return () => view.destroy()
   }, [code, lang, scroll])
 
-  return <div ref={containerRef} className={className} />
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{ overflowY: scroll ? 'auto' : 'hidden' }}
+    />
+  )
 }
