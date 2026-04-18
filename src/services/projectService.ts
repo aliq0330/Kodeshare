@@ -51,7 +51,7 @@ export const projectService = {
 
     const { data: post, error } = await supabase
       .from('posts')
-      .insert({ author_id: userId, type: 'project', title, tags: [] })
+      .insert({ author_id: userId, type: 'project', title, tags: [], is_published: false })
       .select()
       .single()
     if (error) throw error
@@ -125,7 +125,7 @@ export const projectService = {
     if (!userId) throw new Error('Giriş gerekli')
     const { data: post, error } = await supabase
       .from('posts')
-      .insert({ author_id: userId, type: 'project', title: title + ' (kopya)', tags: [] })
+      .insert({ author_id: userId, type: 'project', title: title + ' (kopya)', tags: [], is_published: false })
       .select()
       .single()
     if (error) throw error

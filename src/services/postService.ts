@@ -25,6 +25,7 @@ export const postService = {
     let q = supabase
       .from('posts')
       .select(POST_SELECT, { count: 'exact' })
+      .eq('is_published', true)
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (tag && tag !== 'all') {
@@ -92,6 +93,7 @@ export const postService = {
         preview_image_url: payload.previewImageUrl ?? null,
         live_demo_url: payload.liveDemoUrl ?? null,
         reposted_from: payload.repostedFrom ?? null,
+        is_published: true,
       })
       .select()
       .single()
@@ -158,7 +160,7 @@ export const postService = {
     const { error } = await supabase.from('posts').insert({
       author_id: userId, type: 'repost',
       title: original.title, description: original.description,
-      tags: original.tags, reposted_from: postId,
+      tags: original.tags, reposted_from: postId, is_published: true,
     })
     if (error) throw new Error(error.message)
   },
@@ -195,6 +197,7 @@ export const postService = {
     const { data, error } = await supabase
       .from('posts')
       .select(POST_SELECT)
+      .eq('is_published', true)
       .gte('created_at', since)
       .order('likes_count', { ascending: false })
       .limit(limit)
@@ -215,6 +218,7 @@ export const postService = {
       .from('posts')
       .select(POST_SELECT, { count: 'exact' })
       .eq('author_id', (profile as { id: string }).id)
+      .eq('is_published', true)
       .order('created_at', { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 

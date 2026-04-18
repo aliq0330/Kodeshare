@@ -43,10 +43,11 @@ export interface Database {
           saves_count: number
           views_count: number
           repost_count: number
+          is_published: boolean
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['posts']['Row'], 'id' | 'likes_count' | 'comments_count' | 'shares_count' | 'saves_count' | 'views_count' | 'repost_count' | 'created_at' | 'updated_at'>
+        Insert: Omit<Database['public']['Tables']['posts']['Row'], 'id' | 'likes_count' | 'comments_count' | 'shares_count' | 'saves_count' | 'views_count' | 'repost_count' | 'is_published' | 'created_at' | 'updated_at'> & { is_published?: boolean }
         Update: Partial<Database['public']['Tables']['posts']['Insert']>
       }
       post_files: {

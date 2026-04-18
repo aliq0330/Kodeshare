@@ -66,6 +66,7 @@ create table public.posts (
   shares_count    int default 0,
   saves_count     int default 0,
   views_count     int default 0,
+  is_published    boolean not null default false,
   created_at      timestamptz default now(),
   updated_at      timestamptz default now()
 );
