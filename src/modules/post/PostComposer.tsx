@@ -460,7 +460,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                   >
                     <Plus className="w-4 h-4" />
                     Proje Ekle
-                    <ChevronDown className="w-3.5 h-3.5 ml-auto mr-1" />
+                    <ChevronDown className="w-3.5 h-3.5" />
                   </button>
                   {pickerOpen && (
                     <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-52 overflow-y-auto">
