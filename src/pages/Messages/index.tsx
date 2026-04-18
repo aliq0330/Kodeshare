@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ChatList from './components/ChatList'
 import ChatWindow from './components/ChatWindow'
@@ -8,8 +8,22 @@ export default function MessagesPage() {
   const { conversationId } = useParams<{ conversationId?: string }>()
   const [activeId, setActiveId] = useState(conversationId ?? null)
 
+  useEffect(() => {
+    if (window.matchMedia('(min-width: 1024px)').matches) return
+    const html = document.documentElement
+    const body = document.body
+    const prevHtml = html.style.overflow
+    const prevBody = body.style.overflow
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = prevHtml
+      body.style.overflow = prevBody
+    }
+  }, [])
+
   return (
-    <div className="fixed inset-x-0 top-16 bottom-[4.25rem] bg-surface-card border-y border-surface-border overflow-hidden flex lg:static lg:inset-auto lg:h-[calc(100vh-8rem)] lg:border lg:rounded-xl">
+    <div className="fixed inset-x-0 top-16 bottom-16 bg-surface-card border-t border-surface-border overflow-hidden flex lg:static lg:inset-auto lg:h-[calc(100vh-8rem)] lg:border lg:rounded-xl">
       {/* Chat list */}
       <div
         className={cn(
