@@ -61,7 +61,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
   }
 
   return (
-    <div className={cn('flex gap-3', depth > 0 && 'ml-8 pl-3 border-l border-surface-border')}>
+    <div id={`comment-${comment.id}`} className={cn('flex gap-3', depth > 0 && 'ml-8 pl-3 border-l border-surface-border')}>
       <Avatar src={comment.author.avatarUrl} alt={comment.author.displayName} size="sm" className="mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="bg-surface-raised rounded-xl px-3 py-2.5">

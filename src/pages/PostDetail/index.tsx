@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, Repeat2, MoreHorizontal, Trash2 } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
@@ -40,6 +40,7 @@ export default function PostDetailPage() {
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const { hash } = useLocation()
 
   const loadedComments = useCommentStore((s) => (post ? s.commentsByPost[post.id] : undefined))
   const liveCommentCount = loadedComments
@@ -79,6 +80,19 @@ export default function PostDetailPage() {
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false))
   }, [postId])
+
+  useEffect(() => {
+    if (!hash || !loadedComments || loadedComments.length === 0) return
+    const id = hash.slice(1)
+    const el = document.getElementById(id)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.classList.add('ring-2', 'ring-brand-500', 'rounded-xl', 'transition')
+    const timer = window.setTimeout(() => {
+      el.classList.remove('ring-2', 'ring-brand-500', 'rounded-xl', 'transition')
+    }, 2000)
+    return () => window.clearTimeout(timer)
+  }, [hash, loadedComments])
 
   const handleLike = async () => {
     if (!post || !isAuthenticated) return

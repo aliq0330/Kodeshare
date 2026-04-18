@@ -191,17 +191,17 @@ export const postService = {
     const userId = await currentUserId()
     if (!userId) throw new Error('Giriş yapmalısın')
     const original = await this.getPost(postId)
-    const { error } = await supabase.from('posts').insert({
+    const { data: inserted, error } = await supabase.from('posts').insert({
       author_id: userId, type: 'repost',
       title: original.title, description: original.description,
       tags: original.tags, reposted_from: postId, is_published: true,
-    })
+    }).select('id').single()
     if (error) throw new Error(error.message)
     void notify({
       userId:  original.author.id,
       actorId: userId,
       type:    'repost',
-      postId,
+      postId:  (inserted as { id: string }).id,
       message: 'Gönderini yeniden paylaştı',
     })
   },

@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Heart, MessageCircle, UserPlus, AtSign, GitFork, Reply, Mail } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
+import { useNotificationStore } from '@store/notificationStore'
 import type { Notification, NotificationType } from '@/types'
 
 interface NotificationItemProps {
@@ -20,11 +21,35 @@ const icons: Record<NotificationType, { icon: typeof Heart; color: string }> = {
   collection_save: { icon: Heart,          color: 'text-orange-400' },
 }
 
+function notificationTarget(n: Notification): string {
+  if (n.type === 'follow') return `/profile/${n.actor.username}`
+  if (n.type === 'message') return '/messages'
+  if (n.type === 'comment' || n.type === 'reply' || n.type === 'mention') {
+    if (n.postId && n.commentId) return `/post/${n.postId}#comment-${n.commentId}`
+    if (n.postId) return `/post/${n.postId}`
+    return `/profile/${n.actor.username}`
+  }
+  return n.postId ? `/post/${n.postId}` : `/profile/${n.actor.username}`
+}
+
 export default function NotificationItem({ notification }: NotificationItemProps) {
+  const navigate = useNavigate()
+  const markRead = useNotificationStore((s) => s.markRead)
   const { icon: Icon, color } = icons[notification.type]
 
+  const handleOpen = () => {
+    if (!notification.isRead) void markRead(notification.id)
+    navigate(notificationTarget(notification))
+  }
+
   return (
-    <div className={cn('flex items-start gap-3 p-4 hover:bg-surface-raised transition-colors', !notification.isRead && 'bg-brand-900/10')}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleOpen}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen() } }}
+      className={cn('flex items-start gap-3 p-4 hover:bg-surface-raised transition-colors cursor-pointer outline-none focus-visible:bg-surface-raised', !notification.isRead && 'bg-brand-900/10')}
+    >
       {!notification.isRead && (
         <span className="w-2 h-2 rounded-full bg-brand-500 mt-2 shrink-0" />
       )}
@@ -36,7 +61,11 @@ export default function NotificationItem({ notification }: NotificationItemProps
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-300">
-          <Link to={`/profile/${notification.actor.username}`} className="font-medium text-white hover:text-brand-300">
+          <Link
+            to={`/profile/${notification.actor.username}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-white hover:text-brand-300"
+          >
             {notification.actor.displayName}
           </Link>
           {' '}{notification.message}
