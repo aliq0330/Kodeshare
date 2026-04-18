@@ -18,6 +18,8 @@ async function currentUserId(): Promise<string | undefined> {
 const POST_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`
 const POST_SELECT_FULL = `*, author:profiles!posts_author_id_fkey(*), post_files(*), post_likes(user_id), post_saves(user_id)`
 
+export const POSTS_PREVIEW_SELECT = POST_SELECT
+
 export const postService = {
   async getFeed({ tab = 'trending', tag, query, page = 1 }: FeedParams): Promise<PaginatedResponse<PostPreview>> {
     let q = supabase
@@ -269,6 +271,16 @@ function tagCaseVariants(tag: string): string[] {
   const upper = t.toUpperCase()
   const capitalized = lower.charAt(0).toUpperCase() + lower.slice(1)
   return Array.from(new Set([t, lower, upper, capitalized]))
+}
+
+export async function hydratePostPreviewRows(
+  rows: Record<string, unknown>[],
+  userId?: string,
+): Promise<PostPreview[]> {
+  const previews = rows.map((r) => mapPostPreview(r, userId))
+  await hydrateRepostedFrom(previews)
+  await hydrateReposted(previews, userId)
+  return previews
 }
 
 async function hydrateReposted(posts: PostPreview[], userId?: string): Promise<void> {
