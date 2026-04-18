@@ -5,7 +5,9 @@ import Spinner from '@components/ui/Spinner'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import { useMessageStore } from '@store/messageStore'
-import { useAuthStore } from '@store/authStore'
+import { useAuthStore, mapProfile } from '@store/authStore'
+import { supabase } from '@/lib/supabase'
+import type { Message } from '@/types'
 import toast from 'react-hot-toast'
 
 interface ChatWindowProps {
@@ -15,7 +17,7 @@ interface ChatWindowProps {
 
 export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
   const { user } = useAuthStore()
-  const { messages, conversations, fetchMessages, sendMessage, markConversationRead } = useMessageStore()
+  const { messages, conversations, fetchMessages, sendMessage, markConversationRead, pushMessage } = useMessageStore()
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -29,11 +31,39 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
     markConversationRead(conversationId)
   }, [conversationId, fetchMessages, markConversationRead])
 
+  // Conversation-specific realtime subscription — global subscription lacks a filter
+  // so Supabase can't apply the RLS join; a direct conversation_id filter fixes this.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`chat-${conversationId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
+        async (payload) => {
+          const m = payload.new as Record<string, unknown>
+          if (m.sender_id === user?.id) return
+          try {
+            const { data: sender } = await supabase.from('profiles').select('*').eq('id', m.sender_id).single()
+            if (!sender) return
+            const message: Message = {
+              id:             m.id as string,
+              conversationId: m.conversation_id as string,
+              content:        m.content as string,
+              sender:         mapProfile(sender as Record<string, unknown>),
+              status:         m.status as Message['status'],
+              createdAt:      m.created_at as string,
+            }
+            pushMessage(message)
+            markConversationRead(conversationId)
+          } catch { /* ignore */ }
+        },
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel).catch(() => {}) }
+  }, [conversationId, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    if (conv?.unreadCount && conv.unreadCount > 0) {
-      markConversationRead(conversationId)
-    }
   }, [msgs])
 
   const handleSend = async () => {

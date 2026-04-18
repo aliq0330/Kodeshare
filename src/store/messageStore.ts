@@ -41,17 +41,21 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   pushMessage: (message) => {
     const { conversationId } = message
-    set((s) => ({
-      messages: {
-        ...s.messages,
-        [conversationId]: [...(s.messages[conversationId] ?? []), message],
-      },
-      conversations: s.conversations.map((c) =>
-        c.id === conversationId
-          ? { ...c, lastMessage: message, unreadCount: c.unreadCount + 1, updatedAt: message.createdAt }
-          : c
-      ),
-    }))
+    set((s) => {
+      const existing = s.messages[conversationId] ?? []
+      if (existing.some((m) => m.id === message.id)) return s
+      return {
+        messages: {
+          ...s.messages,
+          [conversationId]: [...existing, message],
+        },
+        conversations: s.conversations.map((c) =>
+          c.id === conversationId
+            ? { ...c, lastMessage: message, unreadCount: c.unreadCount + 1, updatedAt: message.createdAt }
+            : c
+        ),
+      }
+    })
   },
 
   markConversationRead: async (conversationId) => {
