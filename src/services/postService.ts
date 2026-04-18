@@ -22,10 +22,10 @@ export const postService = {
       .select(`*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`, { count: 'exact' })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
-    if (tag && tag !== 'all') q = q.contains('tags', [tag])
+    if (tag && tag !== 'all') q = q.overlaps('tags', [tag])
     if (query) {
       const t = query.toLowerCase().trim()
-      q = q.or(`title.ilike.*${t}*,tags.cs.{${t}}`)
+      q = q.or(`title.ilike.%${t}%,description.ilike.%${t}%`)
     }
     q = tab === 'trending'
       ? q.order('likes_count', { ascending: false })
