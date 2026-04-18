@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, GitFork } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -9,13 +9,15 @@ import CMHighlight from '@components/shared/CMHighlight'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ShareModal from '@modules/social/ShareModal'
 import CommentThread from '@modules/social/CommentThread'
+import RepostMenu from '@modules/post/RepostMenu'
+import QuoteComposer from '@modules/post/QuoteComposer'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { postService } from '@services/postService'
 import { projectService } from '@services/projectService'
 import { useAuthStore } from '@store/authStore'
 import toast from 'react-hot-toast'
-import type { Post } from '@/types'
+import type { Post, PostPreview } from '@/types'
 
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
@@ -27,6 +29,7 @@ export default function PostDetailPage() {
   const [copied, setCopied] = useState(false)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [quoteOpen, setQuoteOpen] = useState(false)
 
   useEffect(() => {
     if (!postId) return
@@ -45,6 +48,19 @@ export default function PostDetailPage() {
       await (wasLiked ? postService.unlike(post.id) : postService.like(post.id))
     } catch {
       setPost((p) => p ? { ...p, isLiked: wasLiked, likesCount: Math.max(0, p.likesCount + (wasLiked ? 1 : -1)) } : p)
+    }
+  }
+
+  const handleRepost = async () => {
+    if (!post || !isAuthenticated) return
+    const wasReposted = post.isReposted
+    setPost((p) => p ? { ...p, isReposted: !p.isReposted, repostCount: Math.max(0, p.repostCount + (p.isReposted ? -1 : 1)) } : p)
+    try {
+      await (wasReposted ? postService.undoRepost(post.id) : postService.repost(post.id))
+      toast.success(wasReposted ? 'Repost kaldırıldı' : 'Yeniden paylaşıldı!')
+    } catch {
+      setPost((p) => p ? { ...p, isReposted: wasReposted, repostCount: Math.max(0, p.repostCount + (wasReposted ? 1 : -1)) } : p)
+      toast.error('Bir hata oluştu')
     }
   }
 
@@ -211,12 +227,23 @@ export default function PostDetailPage() {
             <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
             {compactNumber(post.likesCount)}
           </button>
+          {isAuthenticated ? (
+            <RepostMenu
+              post={post as unknown as PostPreview}
+              onRepost={handleRepost}
+              onQuote={() => setQuoteOpen(true)}
+            />
+          ) : (
+            <span className="flex items-center gap-1.5 text-sm text-gray-500">
+              <GitFork className="w-4 h-4" />
+              {compactNumber(post.repostCount)}
+            </span>
+          )}
           <button
             onClick={() => setShareModalOpen(true)}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-400 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-sky-400 transition-colors"
           >
             <Share2 className="w-4 h-4" />
-            {compactNumber(post.sharesCount)}
           </button>
           <div className="ml-auto flex items-center gap-2">
             {isAuthenticated && (
@@ -254,6 +281,13 @@ export default function PostDetailPage() {
         postId={post.id}
         postTitle={post.title}
       />
+      {isAuthenticated && (
+        <QuoteComposer
+          open={quoteOpen}
+          onClose={() => setQuoteOpen(false)}
+          post={post as unknown as PostPreview}
+        />
+      )}
 
       <div id="comments">
         <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({post.commentsCount})</h2>

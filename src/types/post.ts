@@ -1,6 +1,6 @@
 import type { UserPreview } from './user'
 
-export type PostType = 'snippet' | 'project' | 'article' | 'repost'
+export type PostType = 'snippet' | 'project' | 'article' | 'repost' | 'gonderi'
 
 export type PostLanguage = 'html' | 'css' | 'javascript' | 'typescript' | 'react' | 'vue' | 'other'
 
@@ -26,6 +26,7 @@ export interface Post {
   sharesCount: number
   savesCount: number
   viewsCount: number
+  repostCount: number
   isLiked: boolean
   isSaved: boolean
   isReposted: boolean
@@ -50,4 +51,5 @@ export interface CreatePostPayload {
   files: Omit<PostFile, 'id'>[]
   previewImageUrl?: string
   liveDemoUrl?: string
+  repostedFrom?: string
 }

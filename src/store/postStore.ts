@@ -104,14 +104,36 @@ export const usePostStore = create<PostState>((set, get) => ({
   },
 
   repostPost: async (id) => {
-    await postService.repost(id)
+    const post = get().posts.find((p) => p.id === id)
+    if (!post) return
+    const wasReposted = post.isReposted
     set((s) => ({
       posts: s.posts.map((p) =>
         p.id === id
-          ? { ...p, isReposted: true, sharesCount: p.sharesCount + 1 }
+          ? {
+              ...p,
+              isReposted: !wasReposted,
+              repostCount: Math.max(0, p.repostCount + (wasReposted ? -1 : 1)),
+            }
           : p,
       ),
     }))
+    try {
+      await (wasReposted ? postService.undoRepost(id) : postService.repost(id))
+    } catch {
+      set((s) => ({
+        posts: s.posts.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                isReposted: wasReposted,
+                repostCount: Math.max(0, p.repostCount + (wasReposted ? 1 : -1)),
+              }
+            : p,
+        ),
+      }))
+      toast.error('Repost işlemi başarısız')
+    }
   },
 
   incrementCommentCount: (postId) =>

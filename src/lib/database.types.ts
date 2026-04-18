@@ -30,7 +30,7 @@ export interface Database {
         Row: {
           id: string
           author_id: string
-          type: 'snippet' | 'project' | 'article' | 'repost'
+          type: 'snippet' | 'project' | 'article' | 'repost' | 'gonderi'
           title: string
           description: string | null
           tags: string[]
@@ -42,10 +42,11 @@ export interface Database {
           shares_count: number
           saves_count: number
           views_count: number
+          repost_count: number
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['posts']['Row'], 'id' | 'likes_count' | 'comments_count' | 'shares_count' | 'saves_count' | 'views_count' | 'created_at' | 'updated_at'>
+        Insert: Omit<Database['public']['Tables']['posts']['Row'], 'id' | 'likes_count' | 'comments_count' | 'shares_count' | 'saves_count' | 'views_count' | 'repost_count' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['posts']['Insert']>
       }
       post_files: {

@@ -101,6 +101,7 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     sharesCount:     p.shares_count as number,
     savesCount:      p.saves_count as number,
     viewsCount:      p.views_count as number,
+    repostCount:     (p.repost_count as number) ?? 0,
     isLiked:         userId ? likes.some((l) => l.user_id === userId) : false,
     isSaved:         userId ? saves.some((s) => s.user_id === userId) : false,
     isReposted:      false,
