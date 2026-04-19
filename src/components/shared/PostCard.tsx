@@ -457,19 +457,19 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         />
       )}
       {isOwner && isOwnerPost && (
-        <>
-          <EditPostModal
-            open={editOpen}
-            onClose={() => setEditOpen(false)}
-            post={localPost}
-            onSaved={handleEditSaved}
-          />
-          <PostEditHistoryModal
-            open={historyOpen}
-            onClose={() => setHistoryOpen(false)}
-            post={localPost}
-          />
-        </>
+        <EditPostModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          post={localPost}
+          onSaved={handleEditSaved}
+        />
+      )}
+      {isOwnerPost && (
+        <PostEditHistoryModal
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          post={localPost}
+        />
       )}
     </article>
   )

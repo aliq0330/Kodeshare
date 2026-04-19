@@ -29,6 +29,7 @@ interface Version {
   tags: string[]
   files: Array<{ name: string; language: string; content: string }> | null
   isCurrent: boolean
+  codeExpected: boolean
 }
 
 function buildVersions(edits: EditRecord[], post: Post | PostPreview): Version[] {
@@ -37,13 +38,14 @@ function buildVersions(edits: EditRecord[], post: Post | PostPreview): Version[]
   // Each post_edits record = state BEFORE that edit (ordered ascending)
   // edits[0] = original, edits[i>0] = state after i-th edit, current = latest
   const versions: Version[] = edits.map((e, i) => ({
-    label:       i === 0 ? 'Orijinal' : `${i}. Düzenleme`,
-    sublabel:    timeAgo(e.edited_at),
-    title:       e.original_title,
-    description: e.original_description,
-    tags:        e.original_tags ?? [],
-    files:       hasCode && e.original_files?.length ? e.original_files : null,
-    isCurrent:   false,
+    label:        i === 0 ? 'Orijinal' : `${i}. Düzenleme`,
+    sublabel:     timeAgo(e.edited_at),
+    title:        e.original_title,
+    description:  e.original_description,
+    tags:         e.original_tags ?? [],
+    files:        hasCode && e.original_files?.length ? e.original_files : null,
+    isCurrent:    false,
+    codeExpected: hasCode,
   }))
 
   const fullPost = post as Post
@@ -55,13 +57,14 @@ function buildVersions(edits: EditRecord[], post: Post | PostPreview): Version[]
         : null
 
   versions.push({
-    label:       'Şu anki hal',
-    sublabel:    null,
-    title:       post.title,
-    description: post.description,
-    tags:        post.tags,
-    files:       currentFiles,
-    isCurrent:   true,
+    label:        'Şu anki hal',
+    sublabel:     null,
+    title:        post.title,
+    description:  post.description,
+    tags:         post.tags,
+    files:        currentFiles,
+    isCurrent:    true,
+    codeExpected: hasCode,
   })
 
   return versions.reverse() // newest first
@@ -110,6 +113,11 @@ function VersionCard({ version, index, total }: { version: Version; index: numbe
               <span key={t} className="tag text-[11px]">#{t}</span>
             ))}
           </div>
+        )}
+
+        {/* No file content note for old records without original_files */}
+        {version.codeExpected && !version.files && !version.isCurrent && (
+          <p className="text-[11px] text-gray-600 italic mt-1">Kod içeriği bu sürüm için mevcut değil</p>
         )}
 
         {/* Code preview */}
