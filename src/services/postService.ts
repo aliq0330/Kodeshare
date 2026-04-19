@@ -308,7 +308,7 @@ export const postService = {
     return posts
   },
 
-  async editPost(postId: string, payload: { title: string; description?: string; tags?: string[] }): Promise<void> {
+  async editPost(postId: string, payload: { title: string; description?: string; tags?: string[]; files?: Array<{ name: string; language: string; content: string; order: number }> }): Promise<void> {
     const { data: existing } = await supabase
       .from('post_edits')
       .select('id')
@@ -338,6 +338,15 @@ export const postService = {
       .eq('id', postId)
 
     if (error) throw new Error(error.message)
+
+    if (payload.files) {
+      await supabase.from('post_files').delete().eq('post_id', postId)
+      if (payload.files.length) {
+        await supabase.from('post_files').insert(
+          payload.files.map((f, i) => ({ post_id: postId, name: f.name, language: f.language, content: f.content, order: i }))
+        )
+      }
+    }
   },
 
   async getPostEdit(postId: string) {
