@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
-import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
-import CodePreview from '@components/shared/CodePreview'
-import CMHighlight from '@components/shared/CMHighlight'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ShareModal from '@modules/social/ShareModal'
 import CommentThread from '@modules/social/CommentThread'
@@ -14,21 +11,14 @@ import QuoteComposer from '@modules/post/QuoteComposer'
 import PostStatsModal from '@modules/post/PostStatsModal'
 import EditPostModal from '@modules/post/EditPostModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
+import BlockView from '@modules/post/BlockView'
 import { timeAgo, compactNumber } from '@utils/formatters'
-import { LANGUAGE_COLORS } from '@utils/constants'
 import { postService } from '@services/postService'
 import { projectService } from '@services/projectService'
 import { useAuthStore } from '@store/authStore'
 import { useCommentStore } from '@store/commentStore'
 import toast from 'react-hot-toast'
-import type { Post, PostPreview } from '@/types'
-
-function buildProjectSrcdoc(files: { language: string; content: string }[]): string {
-  const html = files.find((f) => f.language === 'html')?.content ?? ''
-  const css  = files.filter((f) => f.language === 'css').map((f) => f.content).join('\n')
-  const js   = files.filter((f) => f.language === 'javascript' || f.language === 'typescript').map((f) => f.content).join('\n')
-  return `<!doctype html><html><head><meta charset="utf-8"/><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`
-}
+import type { Post, PostBlock } from '@/types'
 
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
@@ -37,7 +27,6 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [copied, setCopied] = useState(false)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
@@ -65,7 +54,7 @@ export default function PostDetailPage() {
     return () => document.removeEventListener('mousedown', h)
   }, [menuOpen])
 
-  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[] }) => {
+  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[]; blocks: PostBlock[] }) => {
     setPost((p) => p ? { ...p, ...updated, isEdited: true } : p)
   }
 
@@ -139,20 +128,11 @@ export default function PostDetailPage() {
     }
   }
 
-  const handleCopy = async () => {
-    if (!post?.files[0]?.content) return
-    try {
-      await navigator.clipboard.writeText(post.files[0].content)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch { /* clipboard API yoksa sessiz geç */ }
-  }
-
-  const handleForkToEditor = async () => {
+  const handleForkProject = async (files: Array<{ name: string; language: string; content: string }>) => {
     if (!post || !isAuthenticated) { toast.error('Önce giriş yapmalısın'); return }
     try {
       const toastId = toast.loading('Proje kopyalanıyor...')
-      const newId = await projectService.forkProject(post.title, post.files)
+      const newId = await projectService.forkProject(post.title, files)
       toast.dismiss(toastId)
       toast.success('Proje editörde açıldı!')
       navigate(`/editor/${newId}`)
@@ -178,10 +158,7 @@ export default function PostDetailPage() {
     )
   }
 
-  const snippetFile =
-    (post.type === 'snippet' || (post.type === 'gonderi' && post.files[0]?.content))
-      ? post.files[0]
-      : null
+  const isQuote = post.type === 'post' && !!post.repostedFrom
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-6">
@@ -200,74 +177,66 @@ export default function PostDetailPage() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {post.type === 'project' && isAuthenticated && (
-              <Button variant="secondary" size="sm" onClick={handleForkToEditor}>
-                <FolderOpen className="w-4 h-4" />
-                Editörde Aç
-              </Button>
-            )}
-            {isAuthenticated && (
-              <div className="relative" ref={menuRef}>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((v) => !v)}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
-                  title="Daha fazla"
-                >
-                  <MoreHorizontal className="w-4 h-4" />
-                </button>
-                {menuOpen && (
-                  <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+          {isAuthenticated && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                title="Daha fazla"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <BarChart2 className="w-4 h-4 text-purple-400" />
+                    <span className="text-white">İstatistikler</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <Share2 className="w-4 h-4 text-sky-400" />
+                    <span className="text-white">Paylaş</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <BarChart2 className="w-4 h-4 text-brand-400" />
+                    <span className="text-white">Koleksiyona ekle</span>
+                  </button>
+                  {isOwner && (
                     <button
                       type="button"
-                      onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
+                      onClick={() => { setMenuOpen(false); setEditOpen(true) }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                     >
-                      <BarChart2 className="w-4 h-4 text-purple-400" />
-                      <span className="text-white">İstatistikler</span>
+                      <Pencil className="w-4 h-4 text-amber-400" />
+                      <span className="text-white">Düzenle</span>
                     </button>
+                  )}
+                  {isOwner && (
                     <button
                       type="button"
-                      onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
+                      onClick={handleDelete}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                     >
-                      <Share2 className="w-4 h-4 text-sky-400" />
-                      <span className="text-white">Paylaş</span>
+                      <Trash2 className="w-4 h-4 text-red-400" />
+                      <span className="text-white">Sil</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                    >
-                      <FolderPlus className="w-4 h-4 text-brand-400" />
-                      <span className="text-white">Koleksiyona ekle</span>
-                    </button>
-                    {isOwner && (
-                      <button
-                        type="button"
-                        onClick={() => { setMenuOpen(false); setEditOpen(true) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <Pencil className="w-4 h-4 text-amber-400" />
-                        <span className="text-white">Düzenle</span>
-                      </button>
-                    )}
-                    {isOwner && (
-                      <button
-                        type="button"
-                        onClick={handleDelete}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-400" />
-                        <span className="text-white">Sil</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {post.description && <p className="text-sm text-gray-400 mb-4">{post.description}</p>}
@@ -293,72 +262,24 @@ export default function PostDetailPage() {
           </div>
         </Link>
 
-        {/* Snippet: kod paneli */}
-        {snippetFile && (
-          <div className="rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden mb-5">
-            {/* Header */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
-              <span
-                className="text-[11px] font-bold uppercase tracking-widest"
-                style={{ color: LANGUAGE_COLORS[snippetFile.language] ?? '#8b9ab5' }}
-              >
-                {snippetFile.language}
-              </span>
-              <button
-                onClick={handleCopy}
-                className={`p-1.5 rounded-md transition-colors ${
-                  copied
-                    ? 'text-emerald-400 bg-emerald-900/20'
-                    : 'text-gray-400 hover:bg-surface-raised hover:text-white'
-                }`}
-                title={copied ? 'Kopyalandı!' : 'Kopyala'}
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              </button>
-            </div>
+        {/* Blocks */}
+        {post.blocks.length > 0 && (
+          <BlockView
+            blocks={post.blocks}
+            postTitle={post.title}
+            onForkProject={isAuthenticated ? handleForkProject : undefined}
+          />
+        )}
 
-            {/* Code view: CM6 highlighted, scrollable, word wrap */}
-            <CMHighlight
-              code={snippetFile.content}
-              lang={snippetFile.language}
-              scroll
-              className="max-h-[60vh]"
-            />
+        {/* Preview image fallback */}
+        {post.blocks.length === 0 && post.previewImageUrl && (
+          <div className="rounded-xl overflow-hidden border border-surface-border mb-5">
+            <img src={post.previewImageUrl} alt={post.title} className="w-full object-cover" />
           </div>
         )}
 
-        {/* Project: files list + preview */}
-        {post.type === 'project' && post.files.length > 0 && (
-          <div className="rounded-xl border border-surface-border overflow-hidden mb-5">
-            {/* Header */}
-            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-surface-border bg-surface-card/60">
-              <FolderOpen className="w-5 h-5 text-brand-400 shrink-0" />
-              <span className="font-medium text-white">{post.title}</span>
-            </div>
-            {/* Files list */}
-            <div className="border-b border-surface-border">
-              {post.files.map((f) => (
-                <div key={f.id} className="flex items-center gap-2.5 px-3 py-2 border-b border-surface-border/40 last:border-0">
-                  <span className="text-[10px] font-bold font-mono w-8 shrink-0" style={{ color: LANGUAGE_COLORS[f.language] ?? '#8b9ab5' }}>
-                    {f.name.split('.').pop()?.toUpperCase()}
-                  </span>
-                  <FileCode className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                  <span className="text-sm text-gray-300 font-mono">{f.name}</span>
-                </div>
-              ))}
-            </div>
-            {/* Preview */}
-            <CodePreview files={post.files} className="h-72" />
-          </div>
-        )}
-
-        {/* Non-snippet, non-project file preview */}
-        {!snippetFile && post.type !== 'project' && post.files.length > 0 && (
-          <CodePreview files={post.files} className="h-72 mb-5" />
-        )}
-
-        {/* Quote post embed — show the original post that was quoted */}
-        {post.type === 'gonderi' && post.repostedFrom && (
+        {/* Quote embed — original post */}
+        {isQuote && post.repostedFrom && (
           <div className="mb-5 rounded-xl border border-surface-border bg-surface-raised/30 p-3 hover:border-surface-raised transition-colors">
             <Link to={`/profile/${post.repostedFrom.author.username}`} className="flex items-center gap-2 mb-2">
               <Avatar
@@ -377,49 +298,12 @@ export default function PostDetailPage() {
                 <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
               )}
             </Link>
-
-            {/* Original snippet code */}
-            {post.repostedFrom.snippetPreview && (
-              <div className="mt-3 rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
-                <div className="flex items-center px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-widest"
-                    style={{ color: LANGUAGE_COLORS[post.repostedFrom.snippetLanguage ?? ''] ?? '#8b9ab5' }}
-                  >
-                    {post.repostedFrom.snippetLanguage ?? 'code'}
-                  </span>
-                </div>
-                <Link to={`/post/${post.repostedFrom.id}`} className="block relative select-none">
-                  <CMHighlight
-                    code={post.repostedFrom.snippetPreview}
-                    lang={post.repostedFrom.snippetLanguage ?? 'javascript'}
-                    className="max-h-40 overflow-hidden"
-                  />
-                  <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
-                </Link>
+            {post.repostedFrom.blocks.length > 0 && (
+              <div className="mt-3">
+                <BlockView blocks={post.repostedFrom.blocks} compact postTitle={post.repostedFrom.title} />
               </div>
             )}
-
-            {/* Original project preview */}
-            {post.repostedFrom.type === 'project' && post.repostedFrom.projectFiles && post.repostedFrom.projectFiles.length > 0 && (
-              <div className="mt-3 rounded-lg border border-surface-border overflow-hidden">
-                <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
-                  <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
-                  <span className="text-sm font-medium text-white truncate">{post.repostedFrom.title}</span>
-                </div>
-                <div className="h-36 bg-white">
-                  <iframe
-                    srcDoc={buildProjectSrcdoc(post.repostedFrom.projectFiles)}
-                    sandbox="allow-scripts allow-same-origin"
-                    className="w-full h-full border-0"
-                    title="Alıntı proje önizleme"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Original preview image (only if no snippet/project) */}
-            {!post.repostedFrom.snippetPreview && post.repostedFrom.type !== 'project' && post.repostedFrom.previewImageUrl && (
+            {post.repostedFrom.blocks.length === 0 && post.repostedFrom.previewImageUrl && (
               <Link to={`/post/${post.repostedFrom.id}`} className="block mt-3 rounded-lg overflow-hidden border border-surface-border">
                 <img src={post.repostedFrom.previewImageUrl} alt={post.repostedFrom.title} className="w-full aspect-video object-cover" />
               </Link>
@@ -439,7 +323,7 @@ export default function PostDetailPage() {
           </button>
           {isAuthenticated ? (
             <RepostMenu
-              post={post as unknown as PostPreview}
+              post={post}
               onRepost={handleRepost}
               onQuote={() => setQuoteOpen(true)}
             />
@@ -485,7 +369,7 @@ export default function PostDetailPage() {
         <QuoteComposer
           open={quoteOpen}
           onClose={() => setQuoteOpen(false)}
-          post={post as unknown as PostPreview}
+          post={post}
         />
       )}
       {isOwner && (

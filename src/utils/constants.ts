@@ -37,8 +37,11 @@ export const EXPLORE_CATEGORIES = [
   { id: 'ui',         label: 'UI / UX' },
 ] as const
 
-export const POST_TYPES = [
+export const BLOCK_TYPES = [
   { id: 'snippet', label: 'Snippet' },
   { id: 'project', label: 'Proje' },
   { id: 'article', label: 'Makale' },
+  { id: 'image',   label: 'Görsel' },
+  { id: 'link',    label: 'Link' },
+  { id: 'video',   label: 'Video' },
 ] as const

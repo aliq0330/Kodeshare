@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Play, Repeat2, FolderPlus, Check, Copy, FolderOpen, Repeat, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Repeat2, FolderPlus, Repeat, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
@@ -9,7 +9,7 @@ import ShareModal from '@modules/social/ShareModal'
 import PostStatsModal from '@modules/post/PostStatsModal'
 import EditPostModal from '@modules/post/EditPostModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
-import CMHighlight from '@components/shared/CMHighlight'
+import BlockView from '@modules/post/BlockView'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
 import { postService } from '@services/postService'
@@ -17,17 +17,10 @@ import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { usePostStore } from '@store/postStore'
-import type { PostPreview } from '@/types'
-
-function buildProjectSrcdoc(files: { language: string; content: string }[]): string {
-  const html = files.find((f) => f.language === 'html')?.content ?? ''
-  const css  = files.filter((f) => f.language === 'css').map((f) => f.content).join('\n')
-  const js   = files.filter((f) => f.language === 'javascript' || f.language === 'typescript').map((f) => f.content).join('\n')
-  return `<!doctype html><html><head><meta charset="utf-8"/><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`
-}
+import type { Post, PostBlock } from '@/types'
 
 interface PostCardProps {
-  post: PostPreview
+  post: Post
   onLike?: (postId: string) => void
   onSave?: (postId: string) => void
 }
@@ -41,7 +34,6 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const [statsOpen, setStatsOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleted, setDeleted] = useState(false)
   const [localPost, setLocalPost] = useState(post)
@@ -70,31 +62,20 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     }
   }
 
-  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[] }) => {
+  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[]; blocks: PostBlock[] }) => {
     setLocalPost((p) => ({ ...p, ...updated, isEdited: true }))
   }
 
-  // For a plain repost, render the original post's content in the card body.
-  const display: PostPreview = localPost.type === 'repost' && localPost.repostedFrom
-    ? ({
-        ...localPost.repostedFrom,
-        filesCount: localPost.repostedFrom.files?.length ?? 0,
-      } as unknown as PostPreview)
+  // For a plain repost, render the original post's content in the card body
+  const display: Post = localPost.type === 'repost' && localPost.repostedFrom
+    ? localPost.repostedFrom
     : localPost
 
+  // Quote post: type='post' with repostedFrom set
+  const isQuote = localPost.type === 'post' && !!localPost.repostedFrom
+
   const mainTag = display.tags[0]
-
   const isOwnerPost = localPost.type !== 'repost' || !localPost.repostedFrom
-
-  const handleCopySnippet = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    if (!display.snippetPreview) return
-    try {
-      await navigator.clipboard.writeText(display.snippetPreview)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch { /* clipboard API yoksa sessiz geç */ }
-  }
 
   const handleRepost = () => {
     if (!isAuthenticated) return
@@ -107,20 +88,15 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     setQuoteOpen(true)
   }
 
-  // For the repost menu/counter we always target the original
-  const repostTarget: PostPreview = localPost.type === 'repost' && localPost.repostedFrom
-    ? {
-        ...localPost.repostedFrom,
-        filesCount: localPost.repostedFrom.files?.length ?? 0,
-        isReposted: localPost.isReposted,
-      } as PostPreview
+  const repostTarget: Post = localPost.type === 'repost' && localPost.repostedFrom
+    ? { ...localPost.repostedFrom, isReposted: localPost.isReposted }
     : localPost
 
   if (deleted) return null
 
   return (
     <article className="card p-4 hover:border-surface-raised transition-colors group">
-      {/* Repost indicator — "KullanıcıAdı tarafından yeniden gönderildi" */}
+      {/* Repost indicator */}
       {localPost.type === 'repost' && localPost.repostedFrom && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
           <Repeat className="w-3.5 h-3.5" />
@@ -131,7 +107,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </div>
       )}
 
-      {/* Author (original author for plain reposts, wrapper author otherwise) */}
+      {/* Author */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <Link to={`/profile/${display.author.username}`} className="flex items-center gap-2.5 min-w-0">
           <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" online={display.author.isOnline} />
@@ -220,7 +196,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </div>
       </div>
 
-      {/* Content */}
+      {/* Title & description */}
       <Link to={`/post/${display.id}`} className="block mb-3">
         <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2 mb-1">
           {display.title}
@@ -230,74 +206,22 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         )}
       </Link>
 
-      {/* Snippet code panel (snippet posts and gonderi/quote posts with code) */}
-      {(display.type === 'snippet' || display.type === 'gonderi') && display.snippetPreview && (
-        <div className="mb-3 rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden">
-          {/* Header bar */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
-            <span
-              className="text-[11px] font-bold uppercase tracking-widest"
-              style={{ color: LANGUAGE_COLORS[display.snippetLanguage ?? ''] ?? '#8b9ab5' }}
-            >
-              {display.snippetLanguage ?? 'code'}
-            </span>
-            <button
-              onClick={handleCopySnippet}
-              className={`p-1.5 rounded-md transition-colors ${
-                copied
-                  ? 'text-emerald-400 bg-emerald-900/20'
-                  : 'text-gray-400 hover:bg-surface-raised hover:text-white'
-              }`}
-              title={copied ? 'Kopyalandı!' : 'Kopyala'}
-            >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-
-          {/* Code view — truncated with fade, click to open */}
-          <Link to={`/post/${display.id}`} className="block relative select-none">
-            <CMHighlight
-              code={display.snippetPreview}
-              lang={display.snippetLanguage ?? 'javascript'}
-              className="max-h-[7.5rem] overflow-hidden"
-            />
-            <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
-          </Link>
-        </div>
-      )}
-
-      {/* Project preview */}
-      {display.type === 'project' && display.projectFiles && display.projectFiles.length > 0 && (
-        <div className="mb-3 rounded-xl border border-surface-border overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
-            <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
-            <span className="text-sm font-medium text-white truncate">{display.title}</span>
-          </div>
-          <div className="h-36 bg-white">
-            <iframe
-              srcDoc={buildProjectSrcdoc(display.projectFiles)}
-              sandbox="allow-scripts allow-same-origin"
-              className="w-full h-full border-0"
-              title="Proje önizleme"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Preview image (hidden when a snippet code panel is shown) */}
-      {!display.snippetPreview && display.type !== 'snippet' && display.previewImageUrl && (
-        <Link to={`/post/${display.id}`} className="block mb-3 rounded-lg overflow-hidden border border-surface-border">
-          <div className="relative bg-surface-raised aspect-video group/preview">
-            <img src={display.previewImageUrl} alt={display.title} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center">
-              <Play className="w-10 h-10 text-white" />
-            </div>
-          </div>
+      {/* Blocks (compact mode) */}
+      {display.blocks.length > 0 && (
+        <Link to={`/post/${display.id}`} className="block">
+          <BlockView blocks={display.blocks} compact postTitle={display.title} />
         </Link>
       )}
 
-      {/* Quote post embed — original post shown inside quote */}
-      {localPost.type === 'gonderi' && localPost.repostedFrom && (
+      {/* Preview image fallback when no blocks */}
+      {display.blocks.length === 0 && display.previewImageUrl && (
+        <Link to={`/post/${display.id}`} className="block mb-3 rounded-lg overflow-hidden border border-surface-border">
+          <img src={display.previewImageUrl} alt={display.title} className="w-full aspect-video object-cover" />
+        </Link>
+      )}
+
+      {/* Quote embed — original post shown inside */}
+      {isQuote && localPost.repostedFrom && (
         <div className="mb-3 rounded-xl border border-surface-border bg-surface-raised/30 p-3">
           <div className="flex items-center gap-2 mb-2">
             <Avatar
@@ -319,49 +243,12 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{localPost.repostedFrom.description}</p>
             )}
           </Link>
-
-          {/* Original snippet code */}
-          {localPost.repostedFrom.snippetPreview && (
-            <div className="mt-2 rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
-              <div className="flex items-center px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
-                <span
-                  className="text-[10px] font-bold uppercase tracking-widest"
-                  style={{ color: LANGUAGE_COLORS[localPost.repostedFrom.snippetLanguage ?? ''] ?? '#8b9ab5' }}
-                >
-                  {localPost.repostedFrom.snippetLanguage ?? 'code'}
-                </span>
-              </div>
-              <Link to={`/post/${localPost.repostedFrom.id}`} className="block relative select-none">
-                <CMHighlight
-                  code={localPost.repostedFrom.snippetPreview}
-                  lang={localPost.repostedFrom.snippetLanguage ?? 'javascript'}
-                  className="max-h-24 overflow-hidden"
-                />
-                <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
-              </Link>
+          {localPost.repostedFrom.blocks.length > 0 && (
+            <div className="mt-2">
+              <BlockView blocks={localPost.repostedFrom.blocks} compact postTitle={localPost.repostedFrom.title} />
             </div>
           )}
-
-          {/* Original project preview */}
-          {localPost.repostedFrom.type === 'project' && localPost.repostedFrom.projectFiles && localPost.repostedFrom.projectFiles.length > 0 && (
-            <div className="mt-2 rounded-lg border border-surface-border overflow-hidden">
-              <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
-                <FolderOpen className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-                <span className="text-xs font-medium text-white truncate">{localPost.repostedFrom.title}</span>
-              </div>
-              <div className="h-28 bg-white">
-                <iframe
-                  srcDoc={buildProjectSrcdoc(localPost.repostedFrom.projectFiles)}
-                  sandbox="allow-scripts allow-same-origin"
-                  className="w-full h-full border-0"
-                  title="Alıntı proje önizleme"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Original preview image (only if no snippet/project) */}
-          {!localPost.repostedFrom.snippetPreview && localPost.repostedFrom.type !== 'project' && localPost.repostedFrom.previewImageUrl && (
+          {localPost.repostedFrom.blocks.length === 0 && localPost.repostedFrom.previewImageUrl && (
             <Link to={`/post/${localPost.repostedFrom.id}`} className="block mt-2 rounded-lg overflow-hidden border border-surface-border">
               <img src={localPost.repostedFrom.previewImageUrl} alt={localPost.repostedFrom.title} className="w-full aspect-video object-cover" />
             </Link>

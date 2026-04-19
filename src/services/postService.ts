@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { mapProfile } from '@store/authStore'
 import { notify, notifyMentions } from './notificationHelpers'
-import type { Post, PostPreview, CreatePostPayload, PaginatedResponse } from '@/types'
+import type { Post, PostPreview, CreatePostPayload, PaginatedResponse, PostBlock } from '@/types'
 
 const PAGE_SIZE = 20
 
@@ -16,8 +16,7 @@ async function currentUserId(): Promise<string | undefined> {
   return (await supabase.auth.getSession()).data.session?.user?.id
 }
 
-const POST_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_files(id,name,language,content), post_likes(user_id), post_saves(user_id)`
-const POST_SELECT_FULL = `*, author:profiles!posts_author_id_fkey(*), post_files(*), post_likes(user_id), post_saves(user_id)`
+const POST_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_blocks(id,type,position,data), post_likes(user_id), post_saves(user_id)`
 
 export const POSTS_PREVIEW_SELECT = POST_SELECT
 
@@ -27,6 +26,7 @@ export const postService = {
       .from('posts')
       .select(POST_SELECT, { count: 'exact' })
       .eq('is_published', true)
+      .neq('type', 'project')
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (tag && tag !== 'all') {
@@ -47,7 +47,7 @@ export const postService = {
     if (error) throw new Error(error.message)
 
     const userId = await currentUserId()
-    const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
+    const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
     await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
@@ -56,7 +56,7 @@ export const postService = {
   async getPost(id: string): Promise<Post> {
     const { data, error } = await supabase
       .from('posts')
-      .select(POST_SELECT_FULL)
+      .select(POST_SELECT)
       .eq('id', id)
       .single()
     if (error) throw new Error(error.message)
@@ -86,27 +86,26 @@ export const postService = {
     const { data: post, error } = await supabase
       .from('posts')
       .insert({
-        author_id: userId,
-        type: payload.type,
-        title: payload.title,
-        description: payload.description,
-        tags: payload.tags ?? [],
+        author_id:         userId,
+        type:              payload.type ?? 'post',
+        title:             payload.title,
+        description:       payload.description ?? null,
+        tags:              payload.tags ?? [],
         preview_image_url: payload.previewImageUrl ?? null,
-        live_demo_url: payload.liveDemoUrl ?? null,
-        reposted_from: payload.repostedFrom ?? null,
-        is_published: true,
+        reposted_from:     payload.repostedFrom ?? null,
+        is_published:      true,
       })
       .select()
       .single()
     if (error) throw new Error(error.message)
 
-    if (payload.files?.length) {
-      await supabase.from('post_files').insert(
-        payload.files.map((f, i) => ({ post_id: (post as { id: string }).id, name: f.name, language: f.language, content: f.content, order: i }))
+    const newPostId = (post as { id: string }).id
+
+    if (payload.blocks?.length) {
+      await supabase.from('post_blocks').insert(
+        payload.blocks.map((b) => ({ post_id: newPostId, type: b.type, position: b.position, data: b.data }))
       )
     }
-
-    const newPostId = (post as { id: string }).id
 
     if (payload.repostedFrom) {
       const { data: src } = await supabase
@@ -120,7 +119,7 @@ export const postService = {
           actorId: userId,
           type:    'repost',
           postId:  newPostId,
-          message: payload.type === 'gonderi' ? 'Gönderini alıntıladı' : 'Gönderini yeniden paylaştı',
+          message: payload.type === 'repost' ? 'Gönderini yeniden paylaştı' : 'Gönderini alıntıladı',
         })
       }
     }
@@ -137,16 +136,16 @@ export const postService = {
 
   async update(postId: string, payload: Partial<CreatePostPayload>): Promise<void> {
     await supabase.from('posts').update({
-      title: payload.title,
-      description: payload.description,
-      tags: payload.tags,
+      title:       payload.title,
+      description: payload.description ?? null,
+      tags:        payload.tags,
     }).eq('id', postId)
 
-    if (payload.files) {
-      await supabase.from('post_files').delete().eq('post_id', postId)
-      if (payload.files.length) {
-        await supabase.from('post_files').insert(
-          payload.files.map((f, i) => ({ post_id: postId, name: f.name, language: f.language, content: f.content, order: i }))
+    if (payload.blocks !== undefined) {
+      await supabase.from('post_blocks').delete().eq('post_id', postId)
+      if (payload.blocks.length) {
+        await supabase.from('post_blocks').insert(
+          payload.blocks.map((b) => ({ post_id: postId, type: b.type, position: b.position, data: b.data }))
         )
       }
     }
@@ -159,9 +158,9 @@ export const postService = {
     const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
     if (post && userId) {
       void notify({
-        userId: (post as { author_id: string }).author_id,
+        userId:  (post as { author_id: string }).author_id,
         actorId: userId,
-        type: 'like',
+        type:    'like',
         postId,
         message: 'Gönderini beğendi',
       })
@@ -230,7 +229,7 @@ export const postService = {
   },
 
   async quote(payload: Omit<CreatePostPayload, 'type'> & { repostedFrom: string }): Promise<Post> {
-    return this.create({ ...payload, type: 'gonderi' })
+    return this.create({ ...payload, type: 'post' })
   },
 
   async getWeeklyTop(limit = 6): Promise<PostPreview[]> {
@@ -239,12 +238,13 @@ export const postService = {
       .from('posts')
       .select(POST_SELECT)
       .eq('is_published', true)
+      .neq('type', 'project')
       .gte('created_at', since)
       .order('likes_count', { ascending: false })
       .limit(limit)
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
-    const posts = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
+    const posts = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
     await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return posts
@@ -260,12 +260,13 @@ export const postService = {
       .select(POST_SELECT, { count: 'exact' })
       .eq('author_id', (profile as { id: string }).id)
       .eq('is_published', true)
+      .neq('type', 'project')
       .order('created_at', { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
 
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
-    const posts: PostPreview[] = (data ?? []).map((p) => mapPostPreview(p as Record<string, unknown>, userId))
+    const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
     await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
@@ -283,7 +284,7 @@ export const postService = {
     const posts = (data ?? [])
       .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
       .filter(Boolean)
-      .map((p) => mapPostPreview(p, userId))
+      .map((p) => mapPost(p, userId))
     await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return posts
@@ -302,17 +303,16 @@ export const postService = {
     const posts = (data ?? [])
       .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
       .filter(Boolean)
-      .map((p) => mapPostPreview(p, userId))
+      .map((p) => mapPost(p, userId))
     await hydrateRepostedFrom(posts)
     await hydrateReposted(posts, userId)
     return posts
   },
 
-  async editPost(postId: string, payload: { title: string; description?: string; tags?: string[]; files?: Array<{ name: string; language: string; content: string; order: number }> }): Promise<void> {
-    // Always snapshot the current state before applying the edit
-    const [{ data: current }, { data: currentFiles }] = await Promise.all([
+  async editPost(postId: string, payload: { title: string; description?: string; tags?: string[]; blocks?: PostBlock[] }): Promise<void> {
+    const [{ data: current }, { data: currentBlocks }] = await Promise.all([
       supabase.from('posts').select('title, description, tags').eq('id', postId).single(),
-      supabase.from('post_files').select('name, language, content, order').eq('post_id', postId).order('order'),
+      supabase.from('post_blocks').select('id, type, position, data').eq('post_id', postId).order('position'),
     ])
 
     if (current) {
@@ -321,7 +321,7 @@ export const postService = {
         original_title:       current.title,
         original_description: current.description,
         original_tags:        current.tags ?? [],
-        original_files:       currentFiles ?? [],
+        original_blocks:      currentBlocks ?? [],
       })
     }
 
@@ -332,11 +332,11 @@ export const postService = {
 
     if (error) throw new Error(error.message)
 
-    if (payload.files) {
-      await supabase.from('post_files').delete().eq('post_id', postId)
-      if (payload.files.length) {
-        await supabase.from('post_files').insert(
-          payload.files.map((f, i) => ({ post_id: postId, name: f.name, language: f.language, content: f.content, order: i }))
+    if (payload.blocks !== undefined) {
+      await supabase.from('post_blocks').delete().eq('post_id', postId)
+      if (payload.blocks.length) {
+        await supabase.from('post_blocks').insert(
+          payload.blocks.map((b) => ({ post_id: postId, type: b.type, position: b.position, data: b.data }))
         )
       }
     }
@@ -345,7 +345,7 @@ export const postService = {
   async getPostEdits(postId: string) {
     const { data, error } = await supabase
       .from('post_edits')
-      .select('id, original_title, original_description, original_tags, original_files, edited_at')
+      .select('id, original_title, original_description, original_tags, original_blocks, edited_at')
       .eq('post_id', postId)
       .order('edited_at', { ascending: true })
     if (error) throw new Error(error.message)
@@ -354,7 +354,7 @@ export const postService = {
       original_title: string
       original_description: string | null
       original_tags: string[]
-      original_files: Array<{ name: string; language: string; content: string; order: number }> | null
+      original_blocks: PostBlock[] | null
       edited_at: string
     }>
   },
@@ -400,7 +400,7 @@ export async function hydratePostPreviewRows(
   rows: Record<string, unknown>[],
   userId?: string,
 ): Promise<PostPreview[]> {
-  const previews = rows.map((r) => mapPostPreview(r, userId))
+  const previews = rows.map((r) => mapPost(r, userId))
   await hydrateRepostedFrom(previews)
   await hydrateReposted(previews, userId)
   return previews
@@ -424,7 +424,7 @@ async function fetchOriginals(ids: string[]): Promise<Map<string, Post>> {
   if (ids.length === 0) return map
   const { data } = await supabase
     .from('posts')
-    .select(POST_SELECT_FULL)
+    .select(POST_SELECT)
     .in('id', ids)
   for (const row of (data ?? []) as Record<string, unknown>[]) {
     map.set(row.id as string, mapPost(row))
@@ -446,32 +446,32 @@ async function hydrateRepostedFrom(previews: PostPreview[]): Promise<void> {
   }
 }
 
-function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPreview {
+function mapPost(p: Record<string, unknown>, userId?: string): Post {
   const likes = (p.post_likes as { user_id: string }[]) ?? []
   const saves = (p.post_saves as { user_id: string }[]) ?? []
-  const files = (p.post_files as { id: string; name: string; language: string; content?: string }[]) ?? []
-  const firstFile = files[0]
-  const isSnippet = p.type === 'snippet'
-  const showSnippet = isSnippet || (p.type === 'gonderi' && !!firstFile?.content)
-  const preview: PostPreview = {
+  const rawBlocks = (p.post_blocks as Array<{ id: string; type: string; position: number; data: Record<string, unknown> }>) ?? []
+  const blocks: PostBlock[] = [...rawBlocks]
+    .sort((a, b) => a.position - b.position)
+    .map((b) => ({
+      id:       b.id,
+      type:     b.type as PostBlock['type'],
+      position: b.position,
+      data:     b.data,
+    }))
+
+  const post: Post = {
     id:              p.id as string,
-    type:            p.type as PostPreview['type'],
+    type:            p.type as Post['type'],
     title:           p.title as string,
     description:     p.description as string | null,
     tags:            (p.tags as string[]) ?? [],
-    filesCount:      files.length,
-    snippetPreview:  showSnippet ? (firstFile?.content?.slice(0, 500) ?? null) : null,
-    snippetLanguage: showSnippet ? (firstFile?.language ?? null) : null,
-    projectFiles: p.type === 'project'
-      ? files.map((f) => ({ id: f.id, name: f.name, language: f.language, content: f.content ?? '' }))
-      : undefined,
+    blocks,
     previewImageUrl: p.preview_image_url as string | null,
-    liveDemoUrl:     p.live_demo_url as string | null,
     likesCount:      (p.post_likes as unknown[] | null)?.length ?? (p.likes_count as number ?? 0),
-    commentsCount:   p.comments_count as number,
-    sharesCount:     p.shares_count as number,
-    savesCount:      p.saves_count as number,
-    viewsCount:      p.views_count as number,
+    commentsCount:   (p.comments_count as number) ?? 0,
+    sharesCount:     (p.shares_count as number) ?? 0,
+    savesCount:      (p.saves_count as number) ?? 0,
+    viewsCount:      (p.views_count as number) ?? 0,
     repostCount:     (p.repost_count as number) ?? 0,
     isLiked:         userId ? likes.some((l) => l.user_id === userId) : false,
     isSaved:         userId ? saves.some((s) => s.user_id === userId) : false,
@@ -484,21 +484,7 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
   }
   const repostedFromId = (p.reposted_from as string | null) ?? null
   if (repostedFromId) {
-    (preview as unknown as { _repostedFromId: string })._repostedFromId = repostedFromId
+    (post as unknown as { _repostedFromId: string })._repostedFromId = repostedFromId
   }
-  return preview
-}
-
-function mapPost(p: Record<string, unknown>, userId?: string): Post {
-  const preview = mapPostPreview(p, userId)
-  return {
-    ...preview,
-    files: ((p.post_files as Record<string, unknown>[]) ?? []).map((f) => ({
-      id:       f.id as string,
-      name:     f.name as string,
-      language: f.language as Post['files'][number]['language'],
-      content:  f.content as string,
-      order:    f.order as number,
-    })),
-  }
+  return post
 }

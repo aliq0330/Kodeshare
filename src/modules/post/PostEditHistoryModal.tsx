@@ -4,12 +4,12 @@ import Spinner from '@components/ui/Spinner'
 import CMHighlight from '@components/shared/CMHighlight'
 import { postService } from '@services/postService'
 import { timeAgo } from '@utils/formatters'
-import type { Post, PostPreview } from '@/types'
+import type { Post, PostBlock } from '@/types'
 
 interface PostEditHistoryModalProps {
   open: boolean
   onClose: () => void
-  post: Post | PostPreview
+  post: Post
 }
 
 interface EditRecord {
@@ -17,7 +17,7 @@ interface EditRecord {
   original_title: string
   original_description: string | null
   original_tags: string[]
-  original_files: Array<{ name: string; language: string; content: string; order: number }> | null
+  original_blocks: PostBlock[] | null
   edited_at: string
 }
 
@@ -27,67 +27,50 @@ interface Version {
   title: string
   description: string | null
   tags: string[]
-  files: Array<{ name: string; language: string; content: string }> | null
+  blocks: PostBlock[]
   isCurrent: boolean
-  codeExpected: boolean
 }
 
-function buildVersions(edits: EditRecord[], post: Post | PostPreview): Version[] {
-  const hasCode = post.type === 'snippet' || post.type === 'project'
-
-  // Each post_edits record = state BEFORE that edit (ordered ascending)
-  // edits[0] = original, edits[i>0] = state after i-th edit, current = latest
+function buildVersions(edits: EditRecord[], post: Post): Version[] {
   const versions: Version[] = edits.map((e, i) => ({
-    label:        i === 0 ? 'Orijinal' : `${i}. Düzenleme`,
-    sublabel:     timeAgo(e.edited_at),
-    title:        e.original_title,
-    description:  e.original_description,
-    tags:         e.original_tags ?? [],
-    files:        hasCode && e.original_files?.length ? e.original_files : null,
-    isCurrent:    false,
-    codeExpected: hasCode,
+    label:       i === 0 ? 'Orijinal' : `${i}. Düzenleme`,
+    sublabel:    timeAgo(e.edited_at),
+    title:       e.original_title,
+    description: e.original_description,
+    tags:        e.original_tags ?? [],
+    blocks:      e.original_blocks ?? [],
+    isCurrent:   false,
   }))
 
-  const fullPost = post as Post
-  const currentFiles: Version['files'] =
-    hasCode && fullPost.files?.length
-      ? fullPost.files.map((f) => ({ name: f.name, language: f.language, content: f.content }))
-      : hasCode && (post as PostPreview).snippetPreview
-        ? [{ name: 'snippet', language: (post as PostPreview).snippetLanguage ?? 'javascript', content: (post as PostPreview).snippetPreview! }]
-        : null
-
   versions.push({
-    label:        'Şu anki hal',
-    sublabel:     null,
-    title:        post.title,
-    description:  post.description,
-    tags:         post.tags,
-    files:        currentFiles,
-    isCurrent:    true,
-    codeExpected: hasCode,
+    label:       'Şu anki hal',
+    sublabel:    null,
+    title:       post.title,
+    description: post.description,
+    tags:        post.tags,
+    blocks:      post.blocks,
+    isCurrent:   true,
   })
 
-  return versions.reverse() // newest first
+  return versions.reverse()
 }
 
 function VersionCard({ version, index, total }: { version: Version; index: number; total: number }) {
   const [codeOpen, setCodeOpen] = useState(false)
-  const firstFile = version.files?.[0]
+  const firstSnippet = version.blocks.find((b) => b.type === 'snippet')
+  const snippetCount = version.blocks.filter((b) => b.type === 'snippet').length
 
   return (
     <div className={`relative pl-7 ${index < total - 1 ? 'pb-5' : ''}`}>
-      {/* Timeline line */}
       {index < total - 1 && (
         <div className="absolute left-[9px] top-5 bottom-0 w-px bg-surface-border" />
       )}
-      {/* Dot */}
       <div className={`absolute left-0 top-1.5 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center
         ${version.isCurrent ? 'border-brand-400 bg-brand-900/30' : 'border-surface-raised bg-surface-card'}`}
       >
         {version.isCurrent && <div className="w-2 h-2 rounded-full bg-brand-400" />}
       </div>
 
-      {/* Card */}
       <div className={`card-raised p-4 ${version.isCurrent ? 'border-brand-700/40' : ''}`}>
         <div className="flex items-center justify-between gap-2 mb-3">
           <span className={`text-xs font-semibold uppercase tracking-wider ${version.isCurrent ? 'text-brand-400' : 'text-gray-400'}`}>
@@ -115,13 +98,7 @@ function VersionCard({ version, index, total }: { version: Version; index: numbe
           </div>
         )}
 
-        {/* No file content note for old records without original_files */}
-        {version.codeExpected && !version.files && !version.isCurrent && (
-          <p className="text-[11px] text-gray-600 italic mt-1">Kod içeriği bu sürüm için mevcut değil</p>
-        )}
-
-        {/* Code preview */}
-        {firstFile && (
+        {firstSnippet && (
           <div className="mt-2 rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
             <button
               type="button"
@@ -129,23 +106,36 @@ function VersionCard({ version, index, total }: { version: Version; index: numbe
               className="w-full flex items-center justify-between px-3 py-1.5 border-b border-surface-border bg-surface-card/60 hover:bg-surface-raised/40 transition-colors"
             >
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                {firstFile.language}{version.files!.length > 1 ? ` · ${version.files!.length} dosya` : ''}
+                {(firstSnippet.data.language as string) ?? 'code'}
+                {snippetCount > 1 ? ` · ${snippetCount} snippet` : ''}
               </span>
               {codeOpen ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
             </button>
 
             {codeOpen ? (
-              version.files!.map((f, fi) => (
-                <div key={fi}>
-                  {version.files!.length > 1 && (
-                    <p className="px-3 py-1 text-[10px] text-gray-600 border-b border-surface-border/50">{f.name}</p>
-                  )}
-                  <CMHighlight code={f.content.slice(0, 1500)} lang={f.language} className="max-h-56 overflow-hidden" />
-                </div>
-              ))
+              version.blocks
+                .filter((b) => b.type === 'snippet')
+                .map((b, i) => (
+                  <div key={i}>
+                    {snippetCount > 1 && (
+                      <p className="px-3 py-1 text-[10px] text-gray-600 border-b border-surface-border/50">
+                        {(b.data.name as string) ?? `snippet ${i + 1}`}
+                      </p>
+                    )}
+                    <CMHighlight
+                      code={((b.data.content as string) ?? '').slice(0, 1500)}
+                      lang={(b.data.language as string) ?? 'javascript'}
+                      className="max-h-56 overflow-hidden"
+                    />
+                  </div>
+                ))
             ) : (
               <div className="pointer-events-none">
-                <CMHighlight code={firstFile.content.slice(0, 150)} lang={firstFile.language} className="max-h-14 overflow-hidden" />
+                <CMHighlight
+                  code={((firstSnippet.data.content as string) ?? '').slice(0, 150)}
+                  lang={(firstSnippet.data.language as string) ?? 'javascript'}
+                  className="max-h-14 overflow-hidden"
+                />
               </div>
             )}
           </div>
@@ -176,7 +166,6 @@ export default function PostEditHistoryModal({ open, onClose, post }: PostEditHi
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-xl card shadow-2xl flex flex-col overflow-hidden animate-slide-up max-h-[85vh]">
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border shrink-0">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-brand-400" />
@@ -192,7 +181,6 @@ export default function PostEditHistoryModal({ open, onClose, post }: PostEditHi
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-5 overflow-y-auto">
           {loading ? (
             <div className="flex justify-center py-8"><Spinner /></div>

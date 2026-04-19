@@ -55,9 +55,7 @@ export const usePostStore = create<PostState>((set, get) => ({
 
   createPost: async (payload) => {
     const post = await postService.create(payload)
-    set((s) => ({
-      posts: [{ ...post, filesCount: post.files.length }, ...s.posts],
-    }))
+    set((s) => ({ posts: [post, ...s.posts] }))
   },
 
   likePost: async (id) => {
