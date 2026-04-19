@@ -136,8 +136,8 @@ export default function AdminPage() {
                 <div key={u.id} className="card p-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar src={u.avatar_url} alt={u.display_name} size="sm" />
-                    <Link to={`/admin/user/${u.id}`} className="min-w-0 hover:opacity-80 transition-opacity">
-                      <p className="text-sm font-medium text-white truncate hover:text-brand-400 transition-colors">{u.display_name}</p>
+                    <Link to={`/admin/user/${u.id}`} className="min-w-0 group">
+                      <p className="text-sm font-medium text-brand-400 truncate group-hover:text-brand-300 transition-colors">{u.display_name}</p>
                       <p className="text-xs text-gray-500">@{u.username}</p>
                     </Link>
                   </div>
