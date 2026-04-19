@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Play, Repeat2, FolderPlus, Check, Copy, FolderOpen, Repeat, MoreHorizontal, Trash2, BarChart2 } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Play, Repeat2, FolderPlus, Check, Copy, FolderOpen, Repeat, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ShareModal from '@modules/social/ShareModal'
 import PostStatsModal from '@modules/post/PostStatsModal'
+import EditPostModal from '@modules/post/EditPostModal'
+import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import CMHighlight from '@components/shared/CMHighlight'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
@@ -37,9 +39,12 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleted, setDeleted] = useState(false)
+  const [localPost, setLocalPost] = useState(post)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const isOwner = !!user && user.id === post.author.id
@@ -65,15 +70,21 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     }
   }
 
+  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[] }) => {
+    setLocalPost((p) => ({ ...p, ...updated, isEdited: true }))
+  }
+
   // For a plain repost, render the original post's content in the card body.
-  const display: PostPreview = post.type === 'repost' && post.repostedFrom
+  const display: PostPreview = localPost.type === 'repost' && localPost.repostedFrom
     ? ({
-        ...post.repostedFrom,
-        filesCount: post.repostedFrom.files?.length ?? 0,
+        ...localPost.repostedFrom,
+        filesCount: localPost.repostedFrom.files?.length ?? 0,
       } as unknown as PostPreview)
-    : post
+    : localPost
 
   const mainTag = display.tags[0]
+
+  const isOwnerPost = localPost.type !== 'repost' || !localPost.repostedFrom
 
   const handleCopySnippet = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -87,7 +98,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
   const handleRepost = () => {
     if (!isAuthenticated) return
-    const targetId = post.type === 'repost' && post.repostedFrom ? post.repostedFrom.id : post.id
+    const targetId = localPost.type === 'repost' && localPost.repostedFrom ? localPost.repostedFrom.id : localPost.id
     void repostPost(targetId)
   }
 
@@ -97,24 +108,24 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   }
 
   // For the repost menu/counter we always target the original
-  const repostTarget: PostPreview = post.type === 'repost' && post.repostedFrom
+  const repostTarget: PostPreview = localPost.type === 'repost' && localPost.repostedFrom
     ? {
-        ...post.repostedFrom,
-        filesCount: post.repostedFrom.files?.length ?? 0,
-        isReposted: post.isReposted,
+        ...localPost.repostedFrom,
+        filesCount: localPost.repostedFrom.files?.length ?? 0,
+        isReposted: localPost.isReposted,
       } as PostPreview
-    : post
+    : localPost
 
   if (deleted) return null
 
   return (
     <article className="card p-4 hover:border-surface-raised transition-colors group">
       {/* Repost indicator — "KullanıcıAdı tarafından yeniden gönderildi" */}
-      {post.type === 'repost' && post.repostedFrom && (
+      {localPost.type === 'repost' && localPost.repostedFrom && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
           <Repeat className="w-3.5 h-3.5" />
-          <Link to={`/profile/${post.author.username}`} className="hover:text-gray-300">
-            {post.author.displayName}
+          <Link to={`/profile/${localPost.author.username}`} className="hover:text-gray-300">
+            {localPost.author.displayName}
           </Link>
           tarafından yeniden gönderildi
         </div>
@@ -126,7 +137,20 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" online={display.author.isOnline} />
           <div className="min-w-0">
             <p className="text-sm font-medium text-white truncate">{display.author.displayName}</p>
-            <p className="text-xs text-gray-500">@{display.author.username} · {timeAgo(display.createdAt)}</p>
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              @{display.author.username} · {timeAgo(display.createdAt)}
+              {localPost.isEdited && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); setHistoryOpen(true) }}
+                  className="inline-flex items-center gap-0.5 text-gray-600 hover:text-gray-400 transition-colors"
+                  title="Düzenleme geçmişini gör"
+                >
+                  <Clock className="w-3 h-3" />
+                  düzenlendi
+                </button>
+              )}
+            </p>
           </div>
         </Link>
         <div className="flex items-center gap-2 shrink-0">
@@ -169,6 +193,16 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
                     <FolderPlus className="w-4 h-4 text-brand-400" />
                     <span className="text-white">Koleksiyona ekle</span>
                   </button>
+                  {isOwner && isOwnerPost && (
+                    <button
+                      type="button"
+                      onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                    >
+                      <Pencil className="w-4 h-4 text-amber-400" />
+                      <span className="text-white">Düzenle</span>
+                    </button>
+                  )}
                   {isOwner && (
                     <button
                       type="button"
@@ -263,44 +297,44 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       )}
 
       {/* Quote post embed — original post shown inside quote */}
-      {post.type === 'gonderi' && post.repostedFrom && (
+      {localPost.type === 'gonderi' && localPost.repostedFrom && (
         <div className="mb-3 rounded-xl border border-surface-border bg-surface-raised/30 p-3">
           <div className="flex items-center gap-2 mb-2">
             <Avatar
-              src={post.repostedFrom.author.avatarUrl}
-              alt={post.repostedFrom.author.displayName}
+              src={localPost.repostedFrom.author.avatarUrl}
+              alt={localPost.repostedFrom.author.displayName}
               size="xs"
             />
             <Link
-              to={`/profile/${post.repostedFrom.author.username}`}
+              to={`/profile/${localPost.repostedFrom.author.username}`}
               className="text-xs text-gray-400 hover:text-gray-200"
             >
-              <span className="font-medium text-gray-200">{post.repostedFrom.author.displayName}</span>
-              <span className="ml-1">@{post.repostedFrom.author.username}</span>
+              <span className="font-medium text-gray-200">{localPost.repostedFrom.author.displayName}</span>
+              <span className="ml-1">@{localPost.repostedFrom.author.username}</span>
             </Link>
           </div>
-          <Link to={`/post/${post.repostedFrom.id}`} className="block">
-            <p className="text-sm font-semibold text-white line-clamp-2">{post.repostedFrom.title}</p>
-            {post.repostedFrom.description && (
-              <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
+          <Link to={`/post/${localPost.repostedFrom.id}`} className="block">
+            <p className="text-sm font-semibold text-white line-clamp-2">{localPost.repostedFrom.title}</p>
+            {localPost.repostedFrom.description && (
+              <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{localPost.repostedFrom.description}</p>
             )}
           </Link>
 
           {/* Original snippet code */}
-          {post.repostedFrom.snippetPreview && (
+          {localPost.repostedFrom.snippetPreview && (
             <div className="mt-2 rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
               <div className="flex items-center px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
                 <span
                   className="text-[10px] font-bold uppercase tracking-widest"
-                  style={{ color: LANGUAGE_COLORS[post.repostedFrom.snippetLanguage ?? ''] ?? '#8b9ab5' }}
+                  style={{ color: LANGUAGE_COLORS[localPost.repostedFrom.snippetLanguage ?? ''] ?? '#8b9ab5' }}
                 >
-                  {post.repostedFrom.snippetLanguage ?? 'code'}
+                  {localPost.repostedFrom.snippetLanguage ?? 'code'}
                 </span>
               </div>
-              <Link to={`/post/${post.repostedFrom.id}`} className="block relative select-none">
+              <Link to={`/post/${localPost.repostedFrom.id}`} className="block relative select-none">
                 <CMHighlight
-                  code={post.repostedFrom.snippetPreview}
-                  lang={post.repostedFrom.snippetLanguage ?? 'javascript'}
+                  code={localPost.repostedFrom.snippetPreview}
+                  lang={localPost.repostedFrom.snippetLanguage ?? 'javascript'}
                   className="max-h-24 overflow-hidden"
                 />
                 <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
@@ -309,15 +343,15 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           )}
 
           {/* Original project preview */}
-          {post.repostedFrom.type === 'project' && post.repostedFrom.projectFiles && post.repostedFrom.projectFiles.length > 0 && (
+          {localPost.repostedFrom.type === 'project' && localPost.repostedFrom.projectFiles && localPost.repostedFrom.projectFiles.length > 0 && (
             <div className="mt-2 rounded-lg border border-surface-border overflow-hidden">
               <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-surface-border bg-surface-card/60">
                 <FolderOpen className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-                <span className="text-xs font-medium text-white truncate">{post.repostedFrom.title}</span>
+                <span className="text-xs font-medium text-white truncate">{localPost.repostedFrom.title}</span>
               </div>
               <div className="h-28 bg-white">
                 <iframe
-                  srcDoc={buildProjectSrcdoc(post.repostedFrom.projectFiles)}
+                  srcDoc={buildProjectSrcdoc(localPost.repostedFrom.projectFiles)}
                   sandbox="allow-scripts allow-same-origin"
                   className="w-full h-full border-0"
                   title="Alıntı proje önizleme"
@@ -327,9 +361,9 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           )}
 
           {/* Original preview image (only if no snippet/project) */}
-          {!post.repostedFrom.snippetPreview && post.repostedFrom.type !== 'project' && post.repostedFrom.previewImageUrl && (
-            <Link to={`/post/${post.repostedFrom.id}`} className="block mt-2 rounded-lg overflow-hidden border border-surface-border">
-              <img src={post.repostedFrom.previewImageUrl} alt={post.repostedFrom.title} className="w-full aspect-video object-cover" />
+          {!localPost.repostedFrom.snippetPreview && localPost.repostedFrom.type !== 'project' && localPost.repostedFrom.previewImageUrl && (
+            <Link to={`/post/${localPost.repostedFrom.id}`} className="block mt-2 rounded-lg overflow-hidden border border-surface-border">
+              <img src={localPost.repostedFrom.previewImageUrl} alt={localPost.repostedFrom.title} className="w-full aspect-video object-cover" />
             </Link>
           )}
         </div>
@@ -421,6 +455,21 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           onClose={() => setQuoteOpen(false)}
           post={repostTarget}
         />
+      )}
+      {isOwner && isOwnerPost && (
+        <>
+          <EditPostModal
+            open={editOpen}
+            onClose={() => setEditOpen(false)}
+            post={localPost}
+            onSaved={handleEditSaved}
+          />
+          <PostEditHistoryModal
+            open={historyOpen}
+            onClose={() => setHistoryOpen(false)}
+            post={localPost}
+          />
+        </>
       )}
     </article>
   )
