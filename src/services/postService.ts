@@ -308,6 +308,50 @@ export const postService = {
     return posts
   },
 
+  async editPost(postId: string, payload: { title: string; description?: string; tags?: string[] }): Promise<void> {
+    const { data: existing } = await supabase
+      .from('post_edits')
+      .select('id')
+      .eq('post_id', postId)
+      .maybeSingle()
+
+    if (!existing) {
+      const { data: current } = await supabase
+        .from('posts')
+        .select('title, description, tags')
+        .eq('id', postId)
+        .single()
+
+      if (current) {
+        await supabase.from('post_edits').insert({
+          post_id:              postId,
+          original_title:       current.title,
+          original_description: current.description,
+          original_tags:        current.tags ?? [],
+        })
+      }
+    }
+
+    const { error } = await supabase
+      .from('posts')
+      .update({ title: payload.title, description: payload.description ?? null, tags: payload.tags ?? [], is_edited: true })
+      .eq('id', postId)
+
+    if (error) throw new Error(error.message)
+  },
+
+  async getPostEdit(postId: string) {
+    const { data, error } = await supabase
+      .from('post_edits')
+      .select('original_title, original_description, original_tags, edited_at')
+      .eq('post_id', postId)
+      .order('edited_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (error) throw new Error(error.message)
+    return data
+  },
+
   async getPostLikers(postId: string) {
     const { data, error } = await supabase
       .from('post_likes')
@@ -419,6 +463,7 @@ function mapPostPreview(p: Record<string, unknown>, userId?: string): PostPrevie
     isLiked:         userId ? likes.some((l) => l.user_id === userId) : false,
     isSaved:         userId ? saves.some((s) => s.user_id === userId) : false,
     isReposted:      false,
+    isEdited:        !!(p.is_edited),
     author:          mapProfile(p.author as Record<string, unknown>),
     repostedFrom:    null,
     createdAt:       p.created_at as string,

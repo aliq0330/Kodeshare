@@ -30,6 +30,7 @@ export interface Post {
   isLiked: boolean
   isSaved: boolean
   isReposted: boolean
+  isEdited: boolean
   author: UserPreview
   repostedFrom: Post | null
   snippetPreview?: string | null

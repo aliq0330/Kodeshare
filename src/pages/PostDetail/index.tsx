@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, Repeat2, MoreHorizontal, Trash2, BarChart2 } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -12,6 +12,8 @@ import CommentThread from '@modules/social/CommentThread'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
 import PostStatsModal from '@modules/post/PostStatsModal'
+import EditPostModal from '@modules/post/EditPostModal'
+import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { postService } from '@services/postService'
@@ -41,6 +43,8 @@ export default function PostDetailPage() {
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const { hash } = useLocation()
 
@@ -60,6 +64,10 @@ export default function PostDetailPage() {
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [menuOpen])
+
+  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[] }) => {
+    setPost((p) => p ? { ...p, ...updated, isEdited: true } : p)
+  }
 
   const handleDelete = async () => {
     if (!post) return
@@ -238,6 +246,16 @@ export default function PostDetailPage() {
                     {isOwner && (
                       <button
                         type="button"
+                        onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                      >
+                        <Pencil className="w-4 h-4 text-amber-400" />
+                        <span className="text-white">Düzenle</span>
+                      </button>
+                    )}
+                    {isOwner && (
+                      <button
+                        type="button"
                         onClick={handleDelete}
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                       >
@@ -258,7 +276,20 @@ export default function PostDetailPage() {
           <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />
           <div>
             <p className="text-sm font-medium text-white">{post.author.displayName}</p>
-            <p className="text-xs text-gray-500">@{post.author.username} · {timeAgo(post.createdAt)}</p>
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              @{post.author.username} · {timeAgo(post.createdAt)}
+              {post.isEdited && (
+                <button
+                  type="button"
+                  onClick={() => setHistoryOpen(true)}
+                  className="inline-flex items-center gap-0.5 text-gray-600 hover:text-gray-400 transition-colors"
+                  title="Düzenleme geçmişini gör"
+                >
+                  <Clock className="w-3 h-3" />
+                  düzenlendi
+                </button>
+              )}
+            </p>
           </div>
         </Link>
 
@@ -456,6 +487,21 @@ export default function PostDetailPage() {
           onClose={() => setQuoteOpen(false)}
           post={post as unknown as PostPreview}
         />
+      )}
+      {isOwner && (
+        <>
+          <EditPostModal
+            open={editOpen}
+            onClose={() => setEditOpen(false)}
+            post={post}
+            onSaved={handleEditSaved}
+          />
+          <PostEditHistoryModal
+            open={historyOpen}
+            onClose={() => setHistoryOpen(false)}
+            post={post}
+          />
+        </>
       )}
 
       <div id="comments">
