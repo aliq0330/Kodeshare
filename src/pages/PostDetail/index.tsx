@@ -281,7 +281,7 @@ export default function PostDetailPage() {
               {post.isEdited && (
                 <button
                   type="button"
-                  onClick={() => setHistoryOpen(true)}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryOpen(true) }}
                   className="inline-flex items-center gap-0.5 text-gray-600 hover:text-gray-400 transition-colors"
                   title="Düzenleme geçmişini gör"
                 >
