@@ -1,10 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Code2, Search, Bell, Mail, Plus } from 'lucide-react'
+import { Code2, Search, Bell, Mail, Plus, ShieldCheck } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Dropdown from '@components/ui/Dropdown'
 import { useAuthStore } from '@store/authStore'
 import { useNotificationStore } from '@store/notificationStore'
+import { isAdmin } from '@/lib/admin'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -12,6 +13,12 @@ export default function Navbar() {
   const unreadCount = useNotificationStore((s) => s.unreadCount)
 
   const userMenuItems = [
+    ...(isAdmin(user?.id) ? [{
+      label: 'Admin Paneli',
+      icon: <ShieldCheck className="w-4 h-4" />,
+      onClick: () => navigate('/admin'),
+      divider: false,
+    }] : []),
     { label: 'Profil', onClick: () => navigate(`/profile/${user?.username}`) },
     { label: 'Koleksiyonlarım', onClick: () => navigate(`/profile/${user?.username}?tab=collections`) },
     { label: 'Ayarlar', onClick: () => navigate('/settings') },
