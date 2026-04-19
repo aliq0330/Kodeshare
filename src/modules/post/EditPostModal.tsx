@@ -220,7 +220,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
         title:       title.trim(),
         description: description.trim() || undefined,
         tags,
-        blocks:      validBlocks as PostBlock[],
+        blocks:      validBlocks as unknown as PostBlock[],
       })
 
       const updatedBlocks: PostBlock[] = validBlocks.map((b, i) => ({
