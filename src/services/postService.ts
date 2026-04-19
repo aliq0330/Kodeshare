@@ -309,27 +309,20 @@ export const postService = {
   },
 
   async editPost(postId: string, payload: { title: string; description?: string; tags?: string[]; files?: Array<{ name: string; language: string; content: string; order: number }> }): Promise<void> {
-    const { data: existing } = await supabase
-      .from('post_edits')
-      .select('id')
-      .eq('post_id', postId)
-      .maybeSingle()
+    // Always snapshot the current state before applying the edit
+    const [{ data: current }, { data: currentFiles }] = await Promise.all([
+      supabase.from('posts').select('title, description, tags').eq('id', postId).single(),
+      supabase.from('post_files').select('name, language, content, order').eq('post_id', postId).order('order'),
+    ])
 
-    if (!existing) {
-      const { data: current } = await supabase
-        .from('posts')
-        .select('title, description, tags')
-        .eq('id', postId)
-        .single()
-
-      if (current) {
-        await supabase.from('post_edits').insert({
-          post_id:              postId,
-          original_title:       current.title,
-          original_description: current.description,
-          original_tags:        current.tags ?? [],
-        })
-      }
+    if (current) {
+      await supabase.from('post_edits').insert({
+        post_id:              postId,
+        original_title:       current.title,
+        original_description: current.description,
+        original_tags:        current.tags ?? [],
+        original_files:       currentFiles ?? [],
+      })
     }
 
     const { error } = await supabase
@@ -349,16 +342,27 @@ export const postService = {
     }
   },
 
-  async getPostEdit(postId: string) {
+  async getPostEdits(postId: string) {
     const { data, error } = await supabase
       .from('post_edits')
-      .select('original_title, original_description, original_tags, edited_at')
+      .select('id, original_title, original_description, original_tags, original_files, edited_at')
       .eq('post_id', postId)
       .order('edited_at', { ascending: true })
-      .limit(1)
-      .maybeSingle()
     if (error) throw new Error(error.message)
-    return data
+    return (data ?? []) as Array<{
+      id: string
+      original_title: string
+      original_description: string | null
+      original_tags: string[]
+      original_files: Array<{ name: string; language: string; content: string; order: number }> | null
+      edited_at: string
+    }>
+  },
+
+  /** @deprecated use getPostEdits */
+  async getPostEdit(postId: string) {
+    const edits = await this.getPostEdits(postId)
+    return edits[0] ?? null
   },
 
   async getPostLikers(postId: string) {
