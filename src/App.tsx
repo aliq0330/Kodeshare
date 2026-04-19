@@ -15,6 +15,7 @@ import LoginPage from '@pages/Auth/Login'
 import RegisterPage from '@pages/Auth/Register'
 import PostDetailPage from '@pages/PostDetail'
 import CollectionDetailPage from '@pages/CollectionDetail'
+import AdminPage from '@pages/Admin'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
 import { useEditorStore } from '@store/editorStore'
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
         <Route path="/messages/:conversationId" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/post/:postId" element={<PostDetailPage />} />
         <Route path="/collection/:collectionId" element={<CollectionDetailPage />} />
