@@ -307,6 +307,27 @@ export const postService = {
     await hydrateReposted(posts, userId)
     return posts
   },
+
+  async getPostLikers(postId: string) {
+    const { data, error } = await supabase
+      .from('post_likes')
+      .select('created_at, profile:profiles!post_likes_user_id_fkey(id, username, display_name, avatar_url, is_verified, is_online)')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return (data ?? []).map((row: any) => mapProfile(row.profile as Record<string, unknown>))
+  },
+
+  async getPostReposters(postId: string) {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('created_at, author:profiles!posts_author_id_fkey(id, username, display_name, avatar_url, is_verified, is_online)')
+      .eq('reposted_from', postId)
+      .eq('type', 'repost')
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return (data ?? []).map((row: any) => mapProfile(row.author as Record<string, unknown>))
+  },
 }
 
 function tagCaseVariants(tag: string): string[] {
