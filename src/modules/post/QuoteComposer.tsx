@@ -8,14 +8,13 @@ import Avatar from '@components/ui/Avatar'
 import SnippetCodeEditor, { type SnippetLang } from './SnippetCodeEditor'
 import { postService } from '@services/postService'
 import { usePostStore } from '@store/postStore'
-import { LANGUAGE_COLORS } from '@utils/constants'
 import toast from 'react-hot-toast'
-import type { PostPreview } from '@/types'
+import type { Post } from '@/types'
 
 interface QuoteComposerProps {
   open: boolean
   onClose: () => void
-  post: PostPreview | null
+  post: Post | null
 }
 
 const EXT_MAP: Record<SnippetLang, string> = {
@@ -25,10 +24,10 @@ const EXT_MAP: Record<SnippetLang, string> = {
 }
 
 export default function QuoteComposer({ open, onClose, post }: QuoteComposerProps) {
-  const [title, setTitle] = useState('')
+  const [title, setTitle]     = useState('')
   const [description, setDescription] = useState('')
-  const [tags, setTags] = useState('')
-  const [code, setCode] = useState('')
+  const [tags, setTags]       = useState('')
+  const [code, setCode]       = useState('')
   const [language, setLanguage] = useState<SnippetLang>('javascript')
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -45,14 +44,15 @@ export default function QuoteComposer({ open, onClose, post }: QuoteComposerProp
     if (!t) { toast.error('Başlık gerekli'); return }
     setLoading(true)
     try {
-      const files = code.trim()
-        ? [{ name: `snippet.${EXT_MAP[language]}`, language, content: code, order: 0 }]
+      const blocks = code.trim()
+        ? [{ type: 'snippet' as const, position: 0, data: { language, content: code, name: `snippet.${EXT_MAP[language]}` } }]
         : []
+
       await postService.quote({
         title: t,
         description: description.trim() || undefined,
         tags: tags.split(',').map((x) => x.trim()).filter(Boolean),
-        files,
+        blocks,
         repostedFrom: post.id,
       })
       usePostStore.setState((s) => ({
@@ -69,22 +69,13 @@ export default function QuoteComposer({ open, onClose, post }: QuoteComposerProp
     }
   }
 
+  const firstSnippetBlock = post.blocks.find((b) => b.type === 'snippet')
+
   return (
     <Modal open={open} onClose={onClose} title="Alıntı ile Paylaş" size="lg">
       <div className="flex flex-col gap-4">
-        <Input
-          label="Başlık"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Bu alıntıya ne katıyorsun?"
-        />
-        <Textarea
-          label="Açıklama"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Kendi yorumunu ekle..."
-          rows={3}
-        />
+        <Input label="Başlık" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Bu alıntıya ne katıyorsun?" />
+        <Textarea label="Açıklama" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Kendi yorumunu ekle..." rows={3} />
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-gray-400">Snippet (opsiyonel)</label>
@@ -98,12 +89,7 @@ export default function QuoteComposer({ open, onClose, post }: QuoteComposerProp
           />
         </div>
 
-        <Input
-          label="Etiketler"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder="react, css, ... (virgülle ayır)"
-        />
+        <Input label="Etiketler" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="react, css, ... (virgülle ayır)" />
 
         {/* Embedded original post */}
         <div className="rounded-xl border border-surface-border bg-surface-raised/40 p-3">
@@ -120,12 +106,9 @@ export default function QuoteComposer({ open, onClose, post }: QuoteComposerProp
             {post.description && (
               <p className="text-xs text-gray-400 line-clamp-2 mt-1">{post.description}</p>
             )}
-            {post.snippetPreview && (
-              <pre
-                className="mt-2 text-[11px] font-mono bg-[#0d1117] rounded-md p-2 overflow-hidden max-h-24 whitespace-pre-wrap"
-                style={{ color: LANGUAGE_COLORS[post.snippetLanguage ?? ''] ?? '#8b9ab5' }}
-              >
-                {post.snippetPreview.slice(0, 220)}
+            {firstSnippetBlock && (
+              <pre className="mt-2 text-[11px] font-mono bg-[#0d1117] rounded-md p-2 overflow-hidden max-h-24 whitespace-pre-wrap text-gray-400">
+                {String(firstSnippetBlock.data.content ?? '').slice(0, 220)}
               </pre>
             )}
           </Link>
@@ -133,9 +116,7 @@ export default function QuoteComposer({ open, onClose, post }: QuoteComposerProp
 
         <div className="flex justify-end gap-2 pt-2 border-t border-surface-border">
           <Button variant="ghost" onClick={onClose}>İptal</Button>
-          <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!title.trim()}>
-            Paylaş
-          </Button>
+          <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!title.trim()}>Paylaş</Button>
         </div>
       </div>
     </Modal>

@@ -1,15 +1,14 @@
 import type { UserPreview } from './user'
 
-export type PostType = 'snippet' | 'project' | 'article' | 'repost' | 'gonderi'
+export type PostType = 'post' | 'repost' | 'project'
 
-export type PostLanguage = 'html' | 'css' | 'javascript' | 'typescript' | 'react' | 'vue' | 'other'
+export type PostBlockType = 'snippet' | 'project' | 'image' | 'link' | 'video' | 'article'
 
-export interface PostFile {
+export interface PostBlock {
   id: string
-  name: string
-  language: PostLanguage
-  content: string
-  order: number
+  type: PostBlockType
+  position: number
+  data: Record<string, unknown>
 }
 
 export interface Post {
@@ -18,9 +17,8 @@ export interface Post {
   title: string
   description: string | null
   tags: string[]
-  files: PostFile[]
+  blocks: PostBlock[]
   previewImageUrl: string | null
-  liveDemoUrl: string | null
   likesCount: number
   commentsCount: number
   sharesCount: number
@@ -33,24 +31,18 @@ export interface Post {
   isEdited: boolean
   author: UserPreview
   repostedFrom: Post | null
-  snippetPreview?: string | null
-  snippetLanguage?: string | null
-  projectFiles?: Array<{ id: string; name: string; language: string; content: string }>
   createdAt: string
   updatedAt: string
 }
 
-export type PostPreview = Omit<Post, 'files'> & {
-  filesCount: number
-}
+export type PostPreview = Post
 
 export interface CreatePostPayload {
-  type: PostType
+  type?: PostType
   title: string
   description?: string
   tags?: string[]
-  files: Omit<PostFile, 'id'>[]
+  blocks?: Array<{ type: PostBlockType; position: number; data: Record<string, unknown> }>
   previewImageUrl?: string
-  liveDemoUrl?: string
   repostedFrom?: string
 }

@@ -1,14 +1,17 @@
 import { useState, useRef } from 'react'
 import { Maximize2, RefreshCw } from 'lucide-react'
 import Button from '@components/ui/Button'
-import type { PostFile } from '@/types'
+interface FileEntry {
+  language: string
+  content: string
+}
 
 interface CodePreviewProps {
-  files: PostFile[]
+  files: FileEntry[]
   className?: string
 }
 
-function buildSrcdoc(files: PostFile[]): string {
+function buildSrcdoc(files: FileEntry[]): string {
   const html = files.find((f) => f.language === 'html')?.content ?? ''
   const css  = files.filter((f) => f.language === 'css').map((f) => f.content).join('\n')
   const js   = files.filter((f) => f.language === 'javascript' || f.language === 'typescript').map((f) => f.content).join('\n')

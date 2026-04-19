@@ -47,7 +47,7 @@ export interface Database {
         Row: {
           id: string
           author_id: string
-          type: 'snippet' | 'project' | 'article' | 'repost' | 'gonderi'
+          type: 'post' | 'repost' | 'project'
           title: string
           description: string | null
           tags: string[]
