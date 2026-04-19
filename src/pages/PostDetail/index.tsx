@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, Repeat2, MoreHorizontal, Trash2 } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, Copy, Check, FolderPlus, FolderOpen, FileCode, Repeat2, MoreHorizontal, Trash2, BarChart2 } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -11,6 +11,7 @@ import ShareModal from '@modules/social/ShareModal'
 import CommentThread from '@modules/social/CommentThread'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
+import PostStatsModal from '@modules/post/PostStatsModal'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { postService } from '@services/postService'
@@ -39,6 +40,7 @@ export default function PostDetailPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [statsOpen, setStatsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const { hash } = useLocation()
 
@@ -208,7 +210,15 @@ export default function PostDetailPage() {
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-1 z-20 w-44 card shadow-2xl py-1">
+                  <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+                    <button
+                      type="button"
+                      onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                    >
+                      <BarChart2 className="w-4 h-4 text-purple-400" />
+                      <span className="text-white">İstatistikler</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
@@ -432,6 +442,13 @@ export default function PostDetailPage() {
         onClose={() => setShareModalOpen(false)}
         postId={post.id}
         postTitle={post.title}
+      />
+      <PostStatsModal
+        open={statsOpen}
+        onClose={() => setStatsOpen(false)}
+        postId={post.id}
+        likesCount={post.likesCount}
+        repostCount={post.repostCount}
       />
       {isAuthenticated && (
         <QuoteComposer

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Play, Repeat2, FolderPlus, Check, Copy, FolderOpen, Repeat, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Play, Repeat2, FolderPlus, Check, Copy, FolderOpen, Repeat, MoreHorizontal, Trash2, BarChart2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ShareModal from '@modules/social/ShareModal'
+import PostStatsModal from '@modules/post/PostStatsModal'
 import CMHighlight from '@components/shared/CMHighlight'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
@@ -35,6 +36,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
+  const [statsOpen, setStatsOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleted, setDeleted] = useState(false)
@@ -142,7 +144,15 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
                 <MoreHorizontal className="w-4 h-4" />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-44 card shadow-2xl py-1">
+                <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <BarChart2 className="w-4 h-4 text-purple-400" />
+                    <span className="text-white">İstatistikler</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
@@ -397,6 +407,13 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         onClose={() => setShareModalOpen(false)}
         postId={display.id}
         postTitle={display.title}
+      />
+      <PostStatsModal
+        open={statsOpen}
+        onClose={() => setStatsOpen(false)}
+        postId={display.id}
+        likesCount={display.likesCount}
+        repostCount={display.repostCount}
       />
       {isAuthenticated && (
         <QuoteComposer
