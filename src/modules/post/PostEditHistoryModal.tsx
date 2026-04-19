@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Clock, ChevronDown, ChevronUp, Code2, FolderOpen, FileText, Image, Link2, Video } from 'lucide-react'
 import Spinner from '@components/ui/Spinner'
 import CMHighlight from '@components/shared/CMHighlight'
 import { postService } from '@services/postService'
@@ -55,11 +55,115 @@ function buildVersions(edits: EditRecord[], post: Post): Version[] {
   return versions.reverse()
 }
 
-function VersionCard({ version, index, total }: { version: Version; index: number; total: number }) {
-  const [codeOpen, setCodeOpen] = useState(false)
-  const firstSnippet = version.blocks.find((b) => b.type === 'snippet')
-  const snippetCount = version.blocks.filter((b) => b.type === 'snippet').length
+function BlockPreview({ block }: { block: PostBlock }) {
+  const [open, setOpen] = useState(false)
 
+  if (block.type === 'snippet') {
+    const lang    = (block.data.language as string) ?? 'javascript'
+    const content = (block.data.content as string) ?? ''
+    return (
+      <div className="rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-3 py-1.5 border-b border-surface-border bg-surface-card/60 hover:bg-surface-raised/40 transition-colors"
+        >
+          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+            <Code2 className="w-3 h-3" />
+            {lang}
+            {block.data.name ? ` · ${block.data.name}` : ''}
+          </span>
+          {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+        </button>
+        {open ? (
+          <CMHighlight code={content.slice(0, 2000)} lang={lang} className="max-h-64 overflow-hidden" />
+        ) : (
+          <div className="pointer-events-none">
+            <CMHighlight code={content.slice(0, 120)} lang={lang} className="max-h-12 overflow-hidden" />
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (block.type === 'project') {
+    const files = (block.data.files as Array<{ name: string; language: string }>) ?? []
+    return (
+      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2 flex-wrap">
+        <FolderOpen className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+        {files.length === 0 ? (
+          <span className="text-xs text-gray-500">Boş proje</span>
+        ) : (
+          files.map((f, i) => (
+            <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-surface-raised font-mono text-gray-300">
+              {f.name}
+            </span>
+          ))
+        )}
+      </div>
+    )
+  }
+
+  if (block.type === 'article') {
+    const content = (block.data.content as string) ?? ''
+    return (
+      <div className="rounded-lg border border-surface-border bg-surface-card/60 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-3 py-1.5 border-b border-surface-border bg-surface-card/60 hover:bg-surface-raised/40 transition-colors"
+        >
+          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+            <FileText className="w-3 h-3" />
+            Makale
+          </span>
+          {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+        </button>
+        <p className={`px-3 py-2 text-xs text-gray-300 whitespace-pre-wrap ${open ? '' : 'line-clamp-2'}`}>
+          {content || <span className="text-gray-600 italic">Boş</span>}
+        </p>
+      </div>
+    )
+  }
+
+  if (block.type === 'image') {
+    const url = (block.data.url as string) ?? ''
+    return (
+      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
+        <Image className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+        <span className="text-xs text-gray-400 truncate">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+      </div>
+    )
+  }
+
+  if (block.type === 'link') {
+    const url   = (block.data.url as string) ?? ''
+    const title = (block.data.title as string) ?? ''
+    return (
+      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex flex-col gap-0.5">
+        <div className="flex items-center gap-2">
+          <Link2 className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+          <span className="text-xs text-gray-400 truncate">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+        </div>
+        {title && <p className="text-[11px] text-gray-500 pl-5">{title}</p>}
+      </div>
+    )
+  }
+
+  if (block.type === 'video') {
+    const url = (block.data.url as string) ?? ''
+    return (
+      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
+        <Video className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+        <span className="text-xs text-gray-400 truncate">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+      </div>
+    )
+  }
+
+  return null
+}
+
+function VersionCard({ version, index, total }: { version: Version; index: number; total: number }) {
   return (
     <div className={`relative pl-7 ${index < total - 1 ? 'pb-5' : ''}`}>
       {index < total - 1 && (
@@ -84,61 +188,32 @@ function VersionCard({ version, index, total }: { version: Version; index: numbe
           )}
         </div>
 
-        <p className="text-sm font-semibold text-white mb-1">{version.title}</p>
+        {version.isCurrent ? (
+          <p className="text-xs text-gray-500 italic">Gönderi şu anki halinde görüntüleniyor.</p>
+        ) : (
+          <>
+            <p className="text-sm font-semibold text-white mb-1">{version.title}</p>
 
-        {version.description && (
-          <p className="text-xs text-gray-400 line-clamp-2 mb-2">{version.description}</p>
-        )}
+            {version.description && (
+              <p className="text-xs text-gray-400 line-clamp-2 mb-2">{version.description}</p>
+            )}
 
-        {version.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {version.tags.map((t) => (
-              <span key={t} className="tag text-[11px]">#{t}</span>
-            ))}
-          </div>
-        )}
-
-        {firstSnippet && (
-          <div className="mt-2 rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setCodeOpen((v) => !v)}
-              className="w-full flex items-center justify-between px-3 py-1.5 border-b border-surface-border bg-surface-card/60 hover:bg-surface-raised/40 transition-colors"
-            >
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                {(firstSnippet.data.language as string) ?? 'code'}
-                {snippetCount > 1 ? ` · ${snippetCount} snippet` : ''}
-              </span>
-              {codeOpen ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
-            </button>
-
-            {codeOpen ? (
-              version.blocks
-                .filter((b) => b.type === 'snippet')
-                .map((b, i) => (
-                  <div key={i}>
-                    {snippetCount > 1 && (
-                      <p className="px-3 py-1 text-[10px] text-gray-600 border-b border-surface-border/50">
-                        {(b.data.name as string) ?? `snippet ${i + 1}`}
-                      </p>
-                    )}
-                    <CMHighlight
-                      code={((b.data.content as string) ?? '').slice(0, 1500)}
-                      lang={(b.data.language as string) ?? 'javascript'}
-                      className="max-h-56 overflow-hidden"
-                    />
-                  </div>
-                ))
-            ) : (
-              <div className="pointer-events-none">
-                <CMHighlight
-                  code={((firstSnippet.data.content as string) ?? '').slice(0, 150)}
-                  lang={(firstSnippet.data.language as string) ?? 'javascript'}
-                  className="max-h-14 overflow-hidden"
-                />
+            {version.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {version.tags.map((t) => (
+                  <span key={t} className="tag text-[11px]">#{t}</span>
+                ))}
               </div>
             )}
-          </div>
+
+            {version.blocks.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {version.blocks.map((block, i) => (
+                  <BlockPreview key={block.id ?? i} block={block} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
