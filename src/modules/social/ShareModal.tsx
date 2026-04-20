@@ -104,7 +104,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 /* ─── Main component ─── */
 export default function ShareModal({ open, onClose, post, onRepost }: ShareModalProps) {
   const { user: me } = useAuthStore()
-  const url = `${window.location.origin}/post/${post.id}`
+  const url = `${window.location.origin}${import.meta.env.BASE_URL}post/${post.id}`
 
   const [query, setQuery]                   = useState('')
   const [recentUsers, setRecentUsers]       = useState<UserPreview[]>([])

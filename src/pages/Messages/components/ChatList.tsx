@@ -12,10 +12,10 @@ function formatLastMessage(content: string, senderId: string, myId?: string): st
   if (content.startsWith(POST_SHARE_PREFIX)) {
     try {
       const data = JSON.parse(content.slice(POST_SHARE_PREFIX.length)) as PostShareData
-      const who = senderId === myId ? 'Bir' : `${data.author.displayName} adlı kişinin`
-      return `📎 ${who} gönderisini paylaştı`
+      const isMine = senderId === myId
+      return `📎 ${data.author.displayName} adlı kişinin gönderisini ${isMine ? 'paylaştın' : 'paylaştı'}`
     } catch {
-      return '📎 Bir gönderi paylaştı'
+      return '📎 Bir gönderi paylaşıldı'
     }
   }
   return content
