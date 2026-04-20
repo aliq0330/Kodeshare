@@ -47,7 +47,7 @@ export const useEditorStore = create<EditorStoreState>()(
     (set, get) => ({
       files: DEFAULT_FILES,
       activeFileId: '1',
-      theme: 'vs-dark',
+      theme: 'one-dark' as EditorTheme,
       fontSize: 14,
       wordWrap: false,
       minimap: false,

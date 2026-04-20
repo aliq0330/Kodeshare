@@ -1,6 +1,16 @@
 export type EditorLanguage = 'html' | 'css' | 'javascript' | 'typescript'
 
-export type EditorTheme = 'vs-dark' | 'vs-light' | 'hc-black'
+export type EditorTheme =
+  | 'one-dark'
+  | 'dracula'
+  | 'github-dark'
+  | 'github-light'
+  | 'nord'
+  | 'tokyo-night'
+  | 'solarized-dark'
+  | 'solarized-light'
+  | 'material-dark'
+  | 'monokai'
 
 export interface EditorFile {
   id: string

@@ -15,6 +15,7 @@ import { projectService, type SavedProject } from '@services/projectService'
 import { languageFromFilename, defaultContentForLanguage } from '@editor/utils/languageUtils'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import EditorPane, { type SelectionCoords } from '@editor/components/EditorPane'
+import { getThemeConfig } from '@editor/themes'
 import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 import type { EditorLanguage, EditorTheme } from '@/types'
@@ -703,7 +704,7 @@ export default function EditorPage() {
   }, [])
 
   const hasUnsaved = files.some((f) => f.isModified)
-  const isDark     = theme !== 'vs-light'
+  const isDark     = getThemeConfig(theme).dark
 
   // ── Panel bar ─────────────────────────────────────────────────────────────
 
@@ -727,7 +728,7 @@ export default function EditorPage() {
         <WrapText className="w-3.5 h-3.5" />
       </button>
       <button
-        onClick={() => setTheme(isDark ? 'vs-light' : 'vs-dark')}
+        onClick={() => setTheme(isDark ? 'github-light' : 'one-dark')}
         title={isDark ? 'Açık tema' : 'Koyu tema'}
         className="p-1.5 rounded text-gray-600 hover:text-gray-300 transition-colors"
       >

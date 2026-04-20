@@ -4,7 +4,7 @@ import { EditorState } from '@codemirror/state'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { javascript } from '@codemirror/lang-javascript'
-import { oneDark } from '@codemirror/theme-one-dark'
+import { getThemeConfig } from '@editor/themes'
 import type { EditorFile, EditorTheme } from '@/types'
 
 export interface SelectionCoords {
@@ -44,6 +44,8 @@ export default function EditorPane({ file, theme, wordWrap, onChange, onSelectio
   onChangeRef.current = onChange
   onSelectionChangeRef.current = onSelectionChange
 
+  const themeConfig = getThemeConfig(theme)
+
   useEffect(() => {
     if (!containerRef.current || !file) return
 
@@ -69,7 +71,7 @@ export default function EditorPane({ file, theme, wordWrap, onChange, onSelectio
       }),
     ]
 
-    if (theme !== 'vs-light') extensions.push(oneDark)
+    if (themeConfig.extension) extensions.push(themeConfig.extension)
     if (wordWrap) extensions.push(EditorView.lineWrapping)
 
     const view = new EditorView({
@@ -102,7 +104,7 @@ export default function EditorPane({ file, theme, wordWrap, onChange, onSelectio
     <div
       ref={containerRef}
       className="h-full overflow-hidden"
-      style={{ background: theme === 'vs-light' ? '#fff' : '#0d1117' }}
+      style={{ background: themeConfig.bg }}
     />
   )
 }

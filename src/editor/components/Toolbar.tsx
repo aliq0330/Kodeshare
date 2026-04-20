@@ -18,9 +18,8 @@ interface ToolbarProps {
 }
 
 const THEMES: { id: EditorTheme; label: string }[] = [
-  { id: 'vs-dark',  label: 'Dark' },
-  { id: 'vs-light', label: 'Light' },
-  { id: 'hc-black', label: 'HC' },
+  { id: 'one-dark',     label: 'Dark'  },
+  { id: 'github-light', label: 'Light' },
 ]
 
 function ToolbarBtn({ active, onClick, title, children }: {
