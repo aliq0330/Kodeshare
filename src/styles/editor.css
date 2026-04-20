@@ -1,3 +1,11 @@
+/* iOS Safari zoom fix for CodeMirror — contenteditable also triggers zoom if font-size < 16px */
+@supports (-webkit-touch-callout: none) {
+  .cm-content,
+  .cm-scroller {
+    font-size: 16px !important;
+  }
+}
+
 /* CodeMirror 6 overrides */
 .cm-editor {
   height: 100%;
