@@ -35,11 +35,6 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Prevent iOS Safari auto-zoom on input focus (triggered when font-size < 16px) */
-  input, textarea, select {
-    font-size: max(16px, 1em);
-  }
-
   html.dark body  { @apply text-white; }
   html.light body { color: #0f172a; }
 
@@ -96,6 +91,13 @@
 
   .skeleton {
     @apply bg-surface-raised animate-pulse rounded;
+  }
+}
+
+/* iOS Safari zoom fix — must be outside @layer to beat Tailwind utility specificity */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
   }
 }
 
