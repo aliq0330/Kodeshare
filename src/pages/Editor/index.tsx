@@ -14,10 +14,11 @@ import { useAuthStore } from '@store/authStore'
 import { projectService, type SavedProject } from '@services/projectService'
 import { languageFromFilename, defaultContentForLanguage } from '@editor/utils/languageUtils'
 import { LANGUAGE_COLORS } from '@utils/constants'
-import EditorPane from '@editor/components/EditorPane'
+import EditorPane, { type SelectionCoords } from '@editor/components/EditorPane'
 import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 import type { EditorLanguage, EditorTheme } from '@/types'
+import { useComposerStore } from '@store/composerStore'
 import '@/styles/editor.css'
 
 // ─── InlineEdit ────────────────────────────────────────────────────────────
@@ -483,6 +484,10 @@ export default function EditorPage() {
     fetch: fetchProjects, setActiveId, addProject, patch: patchProject, remove: removeProject,
   } = useProjectStore()
 
+  const { openWithSnippet } = useComposerStore()
+  const [selectedCode,      setSelectedCode]       = useState('')
+  const [tooltipCoords,     setTooltipCoords]      = useState<SelectionCoords | null>(null)
+
   const [showProjects,      setShowProjects]      = useState(true)
   const [showPreview,       setShowPreview]        = useState(true)
   const [isSaving,          setIsSaving]           = useState(false)
@@ -692,6 +697,11 @@ export default function EditorPage() {
 
   const handleMobileDragEnd = () => { mobileDragRef.current = null }
 
+  const handleSelectionChange = useCallback((text: string, coords: SelectionCoords | null) => {
+    setSelectedCode(text)
+    setTooltipCoords(coords)
+  }, [])
+
   const hasUnsaved = files.some((f) => f.isModified)
   const isDark     = theme !== 'vs-light'
 
@@ -820,6 +830,7 @@ export default function EditorPage() {
           theme={theme}
           wordWrap={wordWrap}
           onChange={updateActiveFile}
+          onSelectionChange={handleSelectionChange}
         />
       </div>
     </div>
@@ -847,6 +858,29 @@ export default function EditorPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ background: '#0d1117' }}>
+      {tooltipCoords && selectedCode && (
+        <div
+          style={{
+            position: 'fixed',
+            top: tooltipCoords.top - 44,
+            left: Math.max(8, Math.min(tooltipCoords.left, window.innerWidth - 210)),
+            zIndex: 9999,
+          }}
+        >
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault()
+              openWithSnippet(selectedCode, activeFile?.language ?? 'javascript')
+              setTooltipCoords(null)
+              setSelectedCode('')
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-brand-500 text-white shadow-lg hover:bg-brand-600 transition-colors whitespace-nowrap"
+          >
+            <Code2 className="w-3.5 h-3.5" />
+            Snippet olarak paylaş
+          </button>
+        </div>
+      )}
       {PanelBar}
       {MobileTabBar}
 
@@ -891,6 +925,7 @@ export default function EditorPage() {
                   theme={theme}
                   wordWrap={wordWrap}
                   onChange={updateActiveFile}
+                  onSelectionChange={handleSelectionChange}
                 />
               </div>
             </div>

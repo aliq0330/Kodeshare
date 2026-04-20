@@ -103,7 +103,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const { createPost } = usePostStore()
-  const { open, prefilledProject, openComposer, closeComposer } = useComposerStore()
+  const { open, prefilledProject, prefilledSnippet, openComposer, closeComposer } = useComposerStore()
 
   const [title, setTitle]             = useState('')
   const [description, setDescription] = useState('')
@@ -122,10 +122,15 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const [pickerLoading, setPickerLoading]       = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
 
-  // Restore draft / prefilled project
+  // Restore draft / prefilled content
   useEffect(() => {
     if (!open || hydratedRef.current) return
     hydratedRef.current = true
+    if (prefilledSnippet) {
+      const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
+      setBlocks([b])
+      return
+    }
     if (prefilledProject) {
       const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
       setBlocks([b])
@@ -138,7 +143,13 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     if (d.description) setDescription(d.description)
     if (d.tags)        setTags(d.tags)
     if (d.blocks?.length) setBlocks(d.blocks)
-  }, [open, prefilledProject])
+  }, [open, prefilledProject, prefilledSnippet])
+
+  useEffect(() => {
+    if (!open || !prefilledSnippet) return
+    const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
+    setBlocks([b])
+  }, [prefilledSnippet, open])
 
   useEffect(() => {
     if (!open || !prefilledProject) return
