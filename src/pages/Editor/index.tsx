@@ -621,9 +621,14 @@ export default function EditorPage() {
     if (!isAuthenticated) { toast.error('Kaydetmek için giriş yapmalısın'); return }
     const hasContent = files.some((f) => f.content.trim())
     if (!hasContent) return
+
+    // activeProjectId persist edilse de proje silinmiş olabilir; kontrol et
+    const projectExists = activeProjectId && projects.some((p) => p.id === activeProjectId)
+    const targetProjectId = projectExists ? activeProjectId : null
+
     setIsSaving(true)
     try {
-      if (!activeProjectId) {
+      if (!targetProjectId) {
         // Proje yok — yeni proje oluştur ve mevcut dosyaları kaydet
         const newProject = await addProject(projectTitle)
         if (!newProject) throw new Error('Proje oluşturulamadı')
@@ -633,9 +638,9 @@ export default function EditorPage() {
         patchProject(newProject.id, { title: projectTitle, files: files.map((f) => ({ ...f, isModified: false })) })
         toast.success('Proje oluşturuldu ve kaydedildi')
       } else {
-        await projectService.save(activeProjectId, projectTitle, files)
+        await projectService.save(targetProjectId, projectTitle, files)
         markAllSaved()
-        patchProject(activeProjectId, {
+        patchProject(targetProjectId, {
           title: projectTitle,
           files: files.map((f) => ({ ...f, isModified: false })),
         })
@@ -646,7 +651,7 @@ export default function EditorPage() {
     } finally {
       setIsSaving(false)
     }
-  }, [activeProjectId, projectTitle, files, isAuthenticated, markAllSaved, patchProject, addProject, setActiveId])
+  }, [activeProjectId, projects, projectTitle, files, isAuthenticated, markAllSaved, patchProject, addProject, setActiveId])
 
   useAutoSave(handleSave)
 
@@ -793,7 +798,7 @@ export default function EditorPage() {
       const newFile = await projectService.addFile(project.id, name, project.files.length)
       patchProject(project.id, { files: [...project.files, newFile] })
       if (project.id === activeProjectId) {
-        addFile({ name: newFile.name, language: newFile.language, content: '', isModified: false })
+        addFile({ id: newFile.id, name: newFile.name, language: newFile.language, content: defaultContentForLanguage(newFile.language), isModified: false })
       }
     } catch {
       toast.error('Dosya eklenemedi')

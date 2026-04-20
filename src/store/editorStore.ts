@@ -20,7 +20,7 @@ interface EditorStoreState {
   isSaving: boolean
   appTheme: AppTheme
   setActiveFile:    (id: string) => void
-  addFile:          (file: Omit<EditorFile, 'id'>) => void
+  addFile:          (file: Omit<EditorFile, 'id'> & { id?: string }) => void
   removeFile:       (id: string) => void
   updateFile:       (id: string, patch: Partial<EditorFile>) => void
   setTheme:         (theme: EditorTheme) => void
@@ -60,7 +60,7 @@ export const useEditorStore = create<EditorStoreState>()(
       setActiveFile: (id) => set({ activeFileId: id }),
 
       addFile: (file) => {
-        const id = uid()
+        const id = file.id ?? uid()
         set((s) => ({ files: [...s.files, { ...file, id }], activeFileId: id }))
       },
 

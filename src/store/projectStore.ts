@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import { projectService, type SavedProject } from '@services/projectService'
 import toast from 'react-hot-toast'
 
@@ -14,7 +15,9 @@ interface ProjectStore {
   remove: (id: string) => void
 }
 
-export const useProjectStore = create<ProjectStore>((set, get) => ({
+export const useProjectStore = create<ProjectStore>()(
+  persist(
+  (set, get) => ({
   projects: [],
   loading: false,
   activeProjectId: null,
@@ -55,4 +58,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           ? (s.projects.find((p) => p.id !== id)?.id ?? null)
           : s.activeProjectId,
     })),
-}))
+  }),
+  { name: 'project-active', partialize: (s) => ({ activeProjectId: s.activeProjectId }) },
+))
