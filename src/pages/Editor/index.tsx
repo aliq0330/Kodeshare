@@ -354,9 +354,9 @@ function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, o
         return (
           <div
             key={file.id}
-            onClick={() => onSelect(file.id)}
+            onMouseDown={() => onSelect(file.id)}
             className={cn(
-              'group flex items-center gap-1.5 px-3 h-[26px] rounded cursor-pointer whitespace-nowrap transition-all text-[12px] font-mono',
+              'group flex items-center gap-1.5 px-3 h-[26px] rounded cursor-pointer whitespace-nowrap transition-all text-[12px] font-mono select-none',
               isActive
                 ? 'bg-[#1e2535] text-[#e2e8f0] border border-[#2a3347]'
                 : 'text-[#6b7a99] hover:bg-[#161e2d] hover:text-[#c0cce0] border border-transparent',
@@ -366,7 +366,7 @@ function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, o
             <span>{file.name}</span>
             {file.isModified && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />}
             <button
-              onClick={(e) => { e.stopPropagation(); onClose(file.id) }}
+              onMouseDown={(e) => { e.stopPropagation(); onClose(file.id) }}
               className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-[#2a3347] text-gray-600 hover:text-gray-300 transition-all -mr-1"
             >
               <X className="w-3 h-3" />
@@ -468,6 +468,17 @@ function PreviewPanel({ files }: { files: ReturnType<typeof useEditor>['files'] 
   )
 }
 
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+function getAutoFilename(type: 'html' | 'css' | 'js', existingNames: string[]): string {
+  const bases = { html: 'index', css: 'style', js: 'script' }
+  const base = bases[type]
+  if (!existingNames.includes(`${base}.${type}`)) return `${base}.${type}`
+  let i = 1
+  while (existingNames.includes(`${base}${i}.${type}`)) i++
+  return `${base}${i}.${type}`
+}
+
 // ─── Main Editor Page ──────────────────────────────────────────────────────
 
 export default function EditorPage() {
@@ -488,6 +499,7 @@ export default function EditorPage() {
   const [isSaving,          setIsSaving]           = useState(false)
   const [mobilePanel,       setMobilePanel]        = useState<'projects' | 'editor'>('editor')
   const [mobileShowPreview, setMobileShowPreview]  = useState(true)
+  const [addFileTarget,     setAddFileTarget]      = useState<SavedProject | 'local' | null>(null)
 
   // Mobil dikey bölme: editör yüzdesi (20–80)
   const [mobileEditorPct, setMobileEditorPct] = useState(50)
@@ -618,18 +630,8 @@ export default function EditorPage() {
 
   // ── Add file to project ───────────────────────────────────────────────────
 
-  const handleAddFile = async (project: SavedProject) => {
-    const name = prompt('Dosya adı (örn. app.js):')
-    if (!name?.trim()) return
-    try {
-      const newFile = await projectService.addFile(project.id, name.trim(), project.files.length)
-      patchProject(project.id, { files: [...project.files, newFile] })
-      if (project.id === activeProjectId) {
-        addFile({ name: newFile.name, language: newFile.language, content: '', isModified: false })
-      }
-    } catch {
-      toast.error('Dosya eklenemedi')
-    }
+  const handleAddFile = (project: SavedProject) => {
+    setAddFileTarget(project)
   }
 
   // ── Delete file ───────────────────────────────────────────────────────────
@@ -671,10 +673,34 @@ export default function EditorPage() {
   // ── Inline add file (local only, for current editor session) ──────────────
 
   const handleAddLocalFile = () => {
-    const name = prompt('Dosya adı (örn. script.js):')
-    if (!name) return
-    const lang = languageFromFilename(name)
-    addFile({ name, language: lang, content: defaultContentForLanguage(lang), isModified: false })
+    setAddFileTarget('local')
+  }
+
+  // ── File type selection (from modal) ──────────────────────────────────────
+
+  const handleFileTypeSelect = async (type: 'html' | 'css' | 'js') => {
+    const target = addFileTarget
+    setAddFileTarget(null)
+    if (!target) return
+
+    if (target === 'local') {
+      const name = getAutoFilename(type, files.map((f) => f.name))
+      const lang = languageFromFilename(name)
+      addFile({ name, language: lang, content: defaultContentForLanguage(lang), isModified: false })
+      return
+    }
+
+    const project = target
+    const name = getAutoFilename(type, project.files.map((f) => f.name))
+    try {
+      const newFile = await projectService.addFile(project.id, name, project.files.length)
+      patchProject(project.id, { files: [...project.files, newFile] })
+      if (project.id === activeProjectId) {
+        addFile({ name: newFile.name, language: newFile.language, content: '', isModified: false })
+      }
+    } catch {
+      toast.error('Dosya eklenemedi')
+    }
   }
 
   const handleMobileDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -847,6 +873,47 @@ export default function EditorPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ background: '#0d1117' }}>
+      {/* ── File type selection modal ─────────────────────────────────── */}
+      {addFileTarget !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setAddFileTarget(null)}
+        >
+          <div
+            className="rounded-xl border border-[#2a3347] shadow-2xl p-6 w-72"
+            style={{ background: '#0d1117' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-center mb-5 text-[#e2e8f0]">
+              Dosya türünü seçin
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                { type: 'html', color: '#e34c26' },
+                { type: 'css',  color: '#264de4' },
+                { type: 'js',   color: '#f7df1e' },
+              ] as const).map(({ type, color }) => (
+                <button
+                  key={type}
+                  onClick={() => handleFileTypeSelect(type)}
+                  className="flex flex-col items-center gap-1 py-5 rounded-xl border-2 font-bold text-lg transition-all hover:scale-105 active:scale-95 select-none"
+                  style={{ borderColor: color + '66', background: color + '11', color }}
+                >
+                  {type.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setAddFileTarget(null)}
+              className="mt-4 w-full py-2 text-xs rounded-lg transition-colors text-gray-600 hover:text-gray-400"
+            >
+              İptal
+            </button>
+          </div>
+        </div>
+      )}
+
       {PanelBar}
       {MobileTabBar}
 
