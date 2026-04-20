@@ -10,6 +10,7 @@ export type AppTheme = 'dark' | 'light' | 'system'
 interface EditorStoreState {
   files: EditorFile[]
   activeFileId: string | null
+  activeProjectId: string | null
   theme: EditorTheme
   fontSize: number
   wordWrap: boolean
@@ -19,21 +20,23 @@ interface EditorStoreState {
   projectTitle: string
   isSaving: boolean
   appTheme: AppTheme
-  setActiveFile:    (id: string) => void
-  addFile:          (file: Omit<EditorFile, 'id'> & { id?: string }) => void
-  removeFile:       (id: string) => void
-  updateFile:       (id: string, patch: Partial<EditorFile>) => void
-  setTheme:         (theme: EditorTheme) => void
-  setFontSize:      (size: number) => void
-  setAppTheme:      (theme: AppTheme) => void
-  toggleWordWrap:   () => void
-  toggleMinimap:    () => void
-  toggleAutoSave:   () => void
-  toggleFullscreen: () => void
-  setProjectTitle:  (title: string) => void
-  loadProject:      (title: string, projectFiles: EditorFile[]) => void
-  save:             () => void
-  markAllSaved:     () => void
+  setActiveFile:       (id: string) => void
+  setActiveProjectId:  (id: string | null) => void
+  addFile:             (file: Omit<EditorFile, 'id'> & { id?: string }) => void
+  removeFile:          (id: string) => void
+  updateFile:          (id: string, patch: Partial<EditorFile>) => void
+  setTheme:            (theme: EditorTheme) => void
+  setFontSize:         (size: number) => void
+  setAppTheme:         (theme: AppTheme) => void
+  toggleWordWrap:      () => void
+  toggleMinimap:       () => void
+  toggleAutoSave:      () => void
+  toggleFullscreen:    () => void
+  setProjectTitle:     (title: string) => void
+  // projectId geçilirse activeProjectId de güncellenir
+  loadProject:         (title: string, projectFiles: EditorFile[], projectId?: string | null) => void
+  save:                () => void
+  markAllSaved:        () => void
 }
 
 const DEFAULT_FILES: EditorFile[] = [
@@ -47,6 +50,7 @@ export const useEditorStore = create<EditorStoreState>()(
     (set, get) => ({
       files: DEFAULT_FILES,
       activeFileId: '1',
+      activeProjectId: null,
       theme: 'one-dark' as EditorTheme,
       fontSize: 16,
       wordWrap: false,
@@ -57,7 +61,8 @@ export const useEditorStore = create<EditorStoreState>()(
       isSaving: false,
       appTheme: 'dark',
 
-      setActiveFile: (id) => set({ activeFileId: id }),
+      setActiveFile:      (id) => set({ activeFileId: id }),
+      setActiveProjectId: (id) => set({ activeProjectId: id }),
 
       addFile: (file) => {
         const id = file.id ?? uid()
@@ -79,14 +84,19 @@ export const useEditorStore = create<EditorStoreState>()(
       setTheme:         (theme)    => set({ theme }),
       setFontSize:      (fontSize) => set({ fontSize }),
       setAppTheme:      (appTheme) => set({ appTheme }),
-      toggleWordWrap:   ()        => set((s) => ({ wordWrap: !s.wordWrap })),
-      toggleMinimap:    ()        => set((s) => ({ minimap: !s.minimap })),
-      toggleAutoSave:   ()        => set((s) => ({ autoSave: !s.autoSave })),
-      toggleFullscreen: ()        => set((s) => ({ isFullscreen: !s.isFullscreen })),
-      setProjectTitle:  (title)   => set({ projectTitle: title }),
+      toggleWordWrap:   ()         => set((s) => ({ wordWrap: !s.wordWrap })),
+      toggleMinimap:    ()         => set((s) => ({ minimap: !s.minimap })),
+      toggleAutoSave:   ()         => set((s) => ({ autoSave: !s.autoSave })),
+      toggleFullscreen: ()         => set((s) => ({ isFullscreen: !s.isFullscreen })),
+      setProjectTitle:  (title)    => set({ projectTitle: title }),
 
-      loadProject: (title, projectFiles) =>
-        set({ projectTitle: title, files: projectFiles, activeFileId: projectFiles[0]?.id ?? null }),
+      loadProject: (title, projectFiles, projectId = null) =>
+        set({
+          projectTitle:    title,
+          files:           projectFiles,
+          activeFileId:    projectFiles[0]?.id ?? null,
+          activeProjectId: projectId,
+        }),
 
       save: () => {
         set({ isSaving: true })
@@ -101,7 +111,18 @@ export const useEditorStore = create<EditorStoreState>()(
     }),
     {
       name: 'editor',
-      partialize: (s) => ({ files: s.files, activeFileId: s.activeFileId, theme: s.theme, fontSize: s.fontSize, wordWrap: s.wordWrap, minimap: s.minimap, autoSave: s.autoSave, projectTitle: s.projectTitle, appTheme: s.appTheme }),
+      partialize: (s) => ({
+        files:            s.files,
+        activeFileId:     s.activeFileId,
+        activeProjectId:  s.activeProjectId,
+        theme:            s.theme,
+        fontSize:         s.fontSize,
+        wordWrap:         s.wordWrap,
+        minimap:          s.minimap,
+        autoSave:         s.autoSave,
+        projectTitle:     s.projectTitle,
+        appTheme:         s.appTheme,
+      }),
     },
   ),
 )
