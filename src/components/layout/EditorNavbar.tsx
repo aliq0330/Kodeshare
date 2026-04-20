@@ -9,8 +9,8 @@ import { useComposerStore } from '@store/composerStore'
 
 export default function EditorNavbar() {
   const { user } = useAuthStore()
-  const { projectTitle, isSaving, setProjectTitle } = useEditorStore()
-  const { projects, activeProjectId } = useProjectStore()
+  const { projectTitle, isSaving, setProjectTitle, activeProjectId } = useEditorStore()
+  const { projects } = useProjectStore()
   const { openWithProject, openComposer } = useComposerStore()
 
   const handlePublish = () => {
