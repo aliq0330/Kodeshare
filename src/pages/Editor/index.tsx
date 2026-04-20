@@ -803,6 +803,22 @@ export default function EditorPage() {
     }
   }
 
+  // ── Close tab (editör sekmesindeki X) ────────────────────────────────────
+  // Aktif proje varsa DB + projectStore'dan da siler; yoksa sadece editörden kaldırır
+
+  const handleCloseTab = useCallback(async (fileId: string) => {
+    removeFile(fileId)
+    if (!activeProjectId) return
+    const project = projects.find((p) => p.id === activeProjectId)
+    if (!project?.files.some((f) => f.id === fileId)) return
+    try {
+      await projectService.deleteFile(fileId)
+      patchProject(activeProjectId, { files: project.files.filter((f) => f.id !== fileId) })
+    } catch {
+      toast.error('Dosya projeden silinemedi')
+    }
+  }, [activeProjectId, projects, removeFile, patchProject])
+
   const handleSelectionChange = useCallback((text: string, coords: SelectionCoords | null) => {
     setSelectedCode(text)
     setTooltipCoords(coords)
@@ -929,7 +945,7 @@ export default function EditorPage() {
         files={files}
         activeFileId={activeFileId}
         onSelect={setActiveFile}
-        onClose={removeFile}
+        onClose={handleCloseTab}
         ui={ui}
       />
       <div className="flex-1 overflow-hidden">
@@ -1091,7 +1107,7 @@ export default function EditorPage() {
                   files={files}
                   activeFileId={activeFileId}
                   onSelect={setActiveFile}
-                  onClose={removeFile}
+                  onClose={handleCloseTab}
                   ui={ui}
                 />
                 <div className="flex-1 overflow-hidden">
