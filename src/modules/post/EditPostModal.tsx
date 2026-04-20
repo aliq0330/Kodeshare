@@ -247,7 +247,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
           label="Başlık"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Gönderi başlığı"
+          placeholder="Gönderi başlığı... (Boş bırakılamaz)"
         />
         <Textarea
           label="Açıklama"
