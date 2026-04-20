@@ -573,10 +573,10 @@ export default function EditorPage() {
     files, activeFile, activeFileId, theme, fontSize, wordWrap,
     setActiveFile, addFile, removeFile, updateActiveFile, toggleWordWrap, setTheme,
   } = useEditor()
-  const { projectTitle, setProjectTitle, loadProject, markAllSaved } = useEditorStore()
+  const { projectTitle, setProjectTitle, loadProject, markAllSaved, activeProjectId, setActiveProjectId } = useEditorStore()
   const {
-    projects, loading, activeProjectId,
-    fetch: fetchProjects, setActiveId, addProject, patch: patchProject, remove: removeProject,
+    projects, loading,
+    fetch: fetchProjects, addProject, patch: patchProject, remove: removeProject,
   } = useProjectStore()
 
   const { openWithSnippet } = useComposerStore()
@@ -600,8 +600,7 @@ export default function EditorPage() {
     if (!urlProjectId || !projects.length) return
     const found = projects.find((p) => p.id === urlProjectId)
     if (found) {
-      loadProject(found.title, found.files)
-      setActiveId(found.id)
+      loadProject(found.title, found.files, found.id)
       setActiveFile(found.files[0]?.id ?? null)
     }
   }, [urlProjectId, projects.length]) // eslint-disable-line
@@ -634,7 +633,7 @@ export default function EditorPage() {
         if (!newProject) throw new Error('Proje oluşturulamadı')
         await projectService.save(newProject.id, projectTitle, files)
         markAllSaved()
-        setActiveId(newProject.id)
+        setActiveProjectId(newProject.id)
         patchProject(newProject.id, { title: projectTitle, files: files.map((f) => ({ ...f, isModified: false })) })
         toast.success('Proje oluşturuldu ve kaydedildi')
       } else {
@@ -651,7 +650,7 @@ export default function EditorPage() {
     } finally {
       setIsSaving(false)
     }
-  }, [activeProjectId, projects, projectTitle, files, isAuthenticated, markAllSaved, patchProject, addProject, setActiveId])
+  }, [activeProjectId, projects, projectTitle, files, isAuthenticated, markAllSaved, patchProject, addProject, setActiveProjectId])
 
   useAutoSave(handleSave)
 
@@ -659,12 +658,11 @@ export default function EditorPage() {
 
   const handleOpenFile = useCallback((project: SavedProject, fileId: string) => {
     if (project.id !== activeProjectId) {
-      loadProject(project.title, project.files)
-      setActiveId(project.id)
+      loadProject(project.title, project.files, project.id)
     }
     setActiveFile(fileId)
     if (window.innerWidth < 640) setMobilePanel('editor')
-  }, [activeProjectId, loadProject, setActiveId, setActiveFile])
+  }, [activeProjectId, loadProject, setActiveFile])
 
   // ── Add project ───────────────────────────────────────────────────────────
 
@@ -674,7 +672,7 @@ export default function EditorPage() {
     if (!name?.trim()) return
     const project = await addProject(name.trim())
     if (project) {
-      loadProject(project.title, project.files)
+      loadProject(project.title, project.files, project.id)
       setActiveFile(project.files[0]?.id ?? null)
       if (window.innerWidth < 640) setMobilePanel('editor')
     }
@@ -708,8 +706,8 @@ export default function EditorPage() {
       removeProject(project.id)
       if (project.id === activeProjectId) {
         const next = projects.find((p) => p.id !== project.id)
-        if (next) { loadProject(next.title, next.files); setActiveId(next.id) }
-        else { loadProject('Yeni Proje', []); setActiveId(null) }
+        if (next) { loadProject(next.title, next.files, next.id) }
+        else { loadProject('Yeni Proje', [], null) }
       }
       toast.success('Proje silindi')
     } catch {
