@@ -4,7 +4,7 @@ import {
   Files, Code2, Eye, WrapText, Sun, Moon, Plus, Trash2, X,
   RefreshCw, ExternalLink, Monitor, Tablet, Smartphone,
   Loader2, Save, ChevronRight, ChevronDown, FolderOpen, Cloud,
-  Pencil, Check, GripHorizontal,
+  Pencil, Check,
 } from 'lucide-react'
 import { useEditor } from '@editor/hooks/useEditor'
 import { useAutoSave } from '@editor/hooks/useAutoSave'
@@ -321,13 +321,11 @@ function ProjectsSidebar({
 
 // ─── FileTabs ──────────────────────────────────────────────────────────────
 
-function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, onToggleMobilePreview, ui }: {
+function FileTabs({ files, activeFileId, onSelect, onClose, ui }: {
   files: ReturnType<typeof useEditor>['files']
   activeFileId: string | null
   onSelect: (id: string) => void
   onClose: (id: string) => void
-  mobileShowPreview?: boolean
-  onToggleMobilePreview?: () => void
   ui: UiColors
 }) {
   return (
@@ -335,19 +333,6 @@ function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, o
       className="flex items-center gap-0.5 px-2 overflow-x-auto scrollbar-none shrink-0"
       style={{ height: 34, background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}
     >
-      {/* Mobil Önizleme toggle — en solda */}
-      {onToggleMobilePreview !== undefined && (
-        <button
-          onClick={onToggleMobilePreview}
-          className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded text-[12px] font-medium whitespace-nowrap transition-all shrink-0 border mr-1"
-          style={mobileShowPreview
-            ? { background: ui.raisedBg, color: '#8aa8ff', borderColor: ui.border }
-            : { color: ui.textMuted, borderColor: 'transparent' }}
-        >
-          <Eye className="w-3 h-3" />
-          <span>Önizleme</span>
-        </button>
-      )}
       {files.map((file) => {
         const color    = LANGUAGE_COLORS[file.language] ?? '#8b9ab5'
         const ext      = file.name.split('.').pop() ?? ''
@@ -491,12 +476,7 @@ export default function EditorPage() {
   const [showPreview,       setShowPreview]        = useState(true)
   const [isSaving,          setIsSaving]           = useState(false)
   const [mobilePanel,       setMobilePanel]        = useState<'projects' | 'editor'>('editor')
-  const [mobileShowPreview, setMobileShowPreview]  = useState(true)
-
-  // Mobil dikey bölme: editör yüzdesi (20–80)
-  const [mobileEditorPct, setMobileEditorPct] = useState(50)
-  const mobileDragRef    = useRef<{ startY: number; startPct: number } | null>(null)
-  const mobileContentRef = useRef<HTMLDivElement>(null)
+  const [mobileShowPreview, setMobileShowPreview]  = useState(false)
 
   // Fetch saved projects on auth
   useEffect(() => {
@@ -693,21 +673,6 @@ export default function EditorPage() {
     const lang = languageFromFilename(name)
     addFile({ name, language: lang, content: defaultContentForLanguage(lang), isModified: false })
   }
-
-  const handleMobileDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
-    mobileDragRef.current = { startY: e.clientY, startPct: mobileEditorPct }
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-
-  const handleMobileDragMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!mobileDragRef.current || !mobileContentRef.current) return
-    const totalH = mobileContentRef.current.clientHeight
-    if (totalH === 0) return
-    const delta = e.clientY - mobileDragRef.current.startY
-    setMobileEditorPct(Math.min(80, Math.max(20, mobileDragRef.current.startPct + (delta / totalH) * 100)))
-  }
-
-  const handleMobileDragEnd = () => { mobileDragRef.current = null }
 
   const handleSelectionChange = useCallback((text: string, coords: SelectionCoords | null) => {
     setSelectedCode(text)
@@ -914,56 +879,63 @@ export default function EditorPage() {
         )}
       </div>
 
-      {/* Mobile: projeler veya editör+önizleme dikey bölme */}
+      {/* Mobile: projeler veya editör/önizleme */}
       <div className="sm:hidden flex-1 overflow-hidden">
         {mobilePanel === 'projects' && (
           <ProjectsSidebar {...sidebarProps} />
         )}
         {mobilePanel === 'editor' && (
-          <div ref={mobileContentRef} className="flex flex-col h-full overflow-hidden">
-            {/* Editör — önizleme açıksa sürüklenebilir, kapalıysa tüm ekran */}
-            <div
-              className="flex flex-col overflow-hidden shrink-0"
-              style={{ height: mobileShowPreview ? `${mobileEditorPct}%` : '100%' }}
-            >
-              <FileTabs
-                files={files}
-                activeFileId={activeFileId}
-                onSelect={setActiveFile}
-                onClose={removeFile}
-                mobileShowPreview={mobileShowPreview}
-                onToggleMobilePreview={() => setMobileShowPreview((p) => !p)}
-                ui={ui}
-              />
-              <div className="flex-1 overflow-hidden">
-                <EditorPane
-                  file={activeFile}
-                  theme={theme}
-                  fontSize={fontSize}
-                  wordWrap={wordWrap}
-                  onChange={updateActiveFile}
-                  onSelectionChange={handleSelectionChange}
-                />
+          <div className="flex flex-col h-full overflow-hidden">
+            {/* Modern segmented control */}
+            <div className="shrink-0 px-3 py-2" style={{ background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}>
+              <div className="flex rounded-xl p-1" style={{ background: ui.raisedBg }}>
+                {([
+                  { show: false, icon: Code2, label: 'Kod'       },
+                  { show: true,  icon: Eye,   label: 'Önizleme'  },
+                ] as const).map(({ show, icon: Icon, label }) => {
+                  const isActive = mobileShowPreview === show
+                  return (
+                    <button
+                      key={String(show)}
+                      onPointerDown={(e) => { e.preventDefault(); setMobileShowPreview(show) }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[13px] font-semibold transition-all select-none touch-manipulation"
+                      style={isActive
+                        ? { background: ui.pageBg, color: '#8aa8ff', boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }
+                        : { color: ui.textMuted }}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Sürükleme tutacağı + önizleme — sadece Önizleme açıkken */}
-            {mobileShowPreview && (
-              <>
-                <div
-                  className="h-3 shrink-0 flex items-center justify-center touch-none select-none cursor-row-resize transition-colors"
-                  style={{ background: ui.border }}
-                  onPointerDown={handleMobileDragStart}
-                  onPointerMove={handleMobileDragMove}
-                  onPointerUp={handleMobileDragEnd}
-                  onPointerCancel={handleMobileDragEnd}
-                >
-                  <GripHorizontal className="w-6 h-3 text-gray-600" />
+            {/* Full-screen editor or preview */}
+            {!mobileShowPreview ? (
+              <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <FileTabs
+                  files={files}
+                  activeFileId={activeFileId}
+                  onSelect={setActiveFile}
+                  onClose={removeFile}
+                  ui={ui}
+                />
+                <div className="flex-1 overflow-hidden">
+                  <EditorPane
+                    file={activeFile}
+                    theme={theme}
+                    fontSize={fontSize}
+                    wordWrap={wordWrap}
+                    onChange={updateActiveFile}
+                    onSelectionChange={handleSelectionChange}
+                  />
                 </div>
-                <div className="flex-1 min-h-0 overflow-hidden">
-                  <PreviewPanel files={files} ui={ui} />
-                </div>
-              </>
+              </div>
+            ) : (
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <PreviewPanel files={files} ui={ui} />
+              </div>
             )}
           </div>
         )}
