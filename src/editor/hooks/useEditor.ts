@@ -3,7 +3,8 @@ import { useEditorStore } from '@store/editorStore'
 export function useEditor() {
   const store = useEditorStore()
 
-  const activeFile = store.files.find((f) => f.id === store.activeFileId) ?? null
+  const activeFile =
+    store.files.find((f) => f.id === store.activeFileId) ?? store.files[0] ?? null
 
   const updateActiveFile = (content: string) => {
     if (!store.activeFileId) return
