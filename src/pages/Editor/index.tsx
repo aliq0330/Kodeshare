@@ -4,7 +4,7 @@ import {
   Files, Code2, Eye, WrapText, Sun, Moon, Plus, Trash2, X,
   RefreshCw, ExternalLink, Monitor, Tablet, Smartphone,
   Loader2, Save, ChevronRight, ChevronDown, FolderOpen, Cloud,
-  Pencil, Check, CornerDownLeft, RotateCcw, RotateCw,
+  Pencil, Check,
 } from 'lucide-react'
 import { useEditor } from '@editor/hooks/useEditor'
 import { useAutoSave } from '@editor/hooks/useAutoSave'
@@ -20,92 +20,7 @@ import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 import type { EditorLanguage, EditorTheme } from '@/types'
 import { useComposerStore } from '@store/composerStore'
-import { EditorView } from 'codemirror'
-import { EditorSelection } from '@codemirror/state'
-import { undo, redo } from '@codemirror/commands'
 import '@/styles/editor.css'
-
-// ─── MobileKeyboardToolbar ─────────────────────────────────────────────────
-
-const TOOLBAR_KEYS = [
-  '{', '}', '[', ']', '(', ')', ';', ':', '=', '"', "'", '`', '/', '<', '>', '+', '-', '*', '_', '.',
-]
-
-function MobileKeyboardToolbar({ view, ui }: { view: EditorView | null; ui: UiColors }) {
-  const [kbHeight, setKbHeight] = useState(0)
-
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    const update = () => {
-      const kh = window.innerHeight - vv.height - vv.offsetTop
-      setKbHeight(Math.max(0, Math.round(kh)))
-    }
-    vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
-    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update) }
-  }, [])
-
-  if (kbHeight < 100) return null
-
-  const insert = (text: string) => {
-    if (!view) return
-    view.dispatch(view.state.changeByRange((range) => ({
-      changes: { from: range.from, to: range.to, insert: text },
-      range: EditorSelection.cursor(range.from + text.length),
-    })))
-    view.focus()
-  }
-
-  const tab = () => {
-    if (!view) return
-    view.dispatch(view.state.changeByRange((range) => ({
-      changes: { from: range.from, to: range.to, insert: '  ' },
-      range: EditorSelection.cursor(range.from + 2),
-    })))
-    view.focus()
-  }
-
-  const newline = () => {
-    if (!view) return
-    const { state } = view
-    const range = state.selection.main
-    const lineIndent = state.doc.lineAt(range.from).text.match(/^(\s*)/)?.[1] ?? ''
-    const text = '\n' + lineIndent
-    view.dispatch(state.changeByRange(() => ({
-      changes: { from: range.from, to: range.to, insert: text },
-      range: EditorSelection.cursor(range.from + text.length),
-    })))
-    view.focus()
-  }
-
-  const btnStyle = { background: ui.raisedBg, color: ui.text, border: `1px solid ${ui.border}` }
-  const btn = (label: React.ReactNode, action: () => void, key?: string) => (
-    <button
-      key={key ?? String(label)}
-      onPointerDown={(e) => { e.preventDefault(); action() }}
-      className="shrink-0 flex items-center justify-center rounded-md text-[13px] font-mono font-semibold transition-colors active:opacity-60 touch-manipulation select-none"
-      style={{ ...btnStyle, minWidth: 36, height: 36, paddingInline: 8 }}
-    >
-      {label}
-    </button>
-  )
-
-  return (
-    <div
-      className="sm:hidden fixed left-0 right-0 z-50 flex items-center px-1.5 gap-1 overflow-x-auto scrollbar-none"
-      style={{ bottom: kbHeight, height: 44, background: ui.panelBg, borderTop: `1px solid ${ui.border}` }}
-    >
-      {btn(<RotateCcw className="w-3.5 h-3.5" />, () => { if (view) { undo(view); view.focus() } }, 'undo')}
-      {btn(<RotateCw  className="w-3.5 h-3.5" />, () => { if (view) { redo(view); view.focus() } }, 'redo')}
-      <div className="w-px h-5 shrink-0 mx-0.5" style={{ background: ui.border }} />
-      {btn('⇥', tab, 'tab')}
-      {TOOLBAR_KEYS.map((k) => btn(k, () => insert(k)))}
-      <div className="w-px h-5 shrink-0 mx-0.5" style={{ background: ui.border }} />
-      {btn(<CornerDownLeft className="w-3.5 h-3.5" />, newline, 'enter')}
-    </div>
-  )
-}
 
 // ─── InlineEdit ────────────────────────────────────────────────────────────
 
@@ -556,7 +471,6 @@ export default function EditorPage() {
   const { openWithSnippet } = useComposerStore()
   const [selectedCode,      setSelectedCode]       = useState('')
   const [tooltipCoords,     setTooltipCoords]      = useState<SelectionCoords | null>(null)
-  const [mobileEditorView,  setMobileEditorView]   = useState<EditorView | null>(null)
 
   const [showProjects,      setShowProjects]      = useState(true)
   const [showPreview,       setShowPreview]        = useState(true)
@@ -949,7 +863,6 @@ export default function EditorPage() {
       )}
       {PanelBar}
       {MobileTabBar}
-      <MobileKeyboardToolbar view={mobileEditorView} ui={ui} />
 
       {/* Desktop: side-by-side */}
       <div className="hidden sm:flex flex-1 overflow-hidden">
@@ -1016,7 +929,6 @@ export default function EditorPage() {
                     wordWrap={wordWrap}
                     onChange={updateActiveFile}
                     onSelectionChange={handleSelectionChange}
-                    onViewReady={setMobileEditorView}
                   />
                 </div>
               </div>

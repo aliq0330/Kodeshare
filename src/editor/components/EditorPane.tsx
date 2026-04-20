@@ -20,7 +20,6 @@ interface EditorPaneProps {
   wordWrap: boolean
   onChange: (content: string) => void
   onSelectionChange?: (text: string, coords: SelectionCoords | null) => void
-  onViewReady?: (view: EditorView | null) => void
 }
 
 function langExtension(lang: string) {
@@ -40,15 +39,13 @@ function makeBaseTheme(fontSize: number) {
   })
 }
 
-export default function EditorPane({ file, theme, fontSize, wordWrap, onChange, onSelectionChange, onViewReady }: EditorPaneProps) {
+export default function EditorPane({ file, theme, fontSize, wordWrap, onChange, onSelectionChange }: EditorPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   const onSelectionChangeRef = useRef(onSelectionChange)
-  const onViewReadyRef = useRef(onViewReady)
   onChangeRef.current = onChange
   onSelectionChangeRef.current = onSelectionChange
-  onViewReadyRef.current = onViewReady
 
   const themeConfig = getThemeConfig(theme)
 
@@ -85,9 +82,8 @@ export default function EditorPane({ file, theme, fontSize, wordWrap, onChange, 
       parent: containerRef.current,
     })
     viewRef.current = view
-    onViewReadyRef.current?.(view)
 
-    return () => { view.destroy(); viewRef.current = null; onViewReadyRef.current?.(null) }
+    return () => { view.destroy(); viewRef.current = null }
   }, [file?.id, theme, fontSize, wordWrap]) // eslint-disable-line
 
   useEffect(() => {
