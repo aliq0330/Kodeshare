@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Clock, ChevronDown, ChevronUp, Code2, FolderOpen, FileText, Image, Link2, Video } from 'lucide-react'
+import { X, Clock, ChevronDown, ChevronUp, Code2, FolderOpen, FileText, Image, Link2, Video, Copy, Check } from 'lucide-react'
 import Spinner from '@components/ui/Spinner'
 import CMHighlight from '@components/shared/CMHighlight'
 import { postService } from '@services/postService'
@@ -55,6 +55,31 @@ function buildVersions(edits: EditRecord[], post: Post): Version[] {
   return versions.reverse()
 }
 
+function useCopy(): { copied: boolean; copy: (text: string) => void } {
+  const [copied, setCopied] = useState(false)
+  const copy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    }).catch(() => {})
+  }
+  return { copied, copy }
+}
+
+function CopyBtn({ text, className = '' }: { text: string; className?: string }) {
+  const { copied, copy } = useCopy()
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); copy(text) }}
+      title="Kopyala"
+      className={`p-1 rounded transition-colors ${copied ? 'text-green-400' : 'text-gray-500 hover:text-gray-300'} ${className}`}
+    >
+      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+    </button>
+  )
+}
+
 function BlockPreview({ block }: { block: PostBlock }) {
   const [open, setOpen] = useState(false)
 
@@ -62,7 +87,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
     const lang    = (block.data.language as string) ?? 'javascript'
     const content = (block.data.content as string) ?? ''
     return (
-      <div className="rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
+      <div className="rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden group">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -73,7 +98,12 @@ function BlockPreview({ block }: { block: PostBlock }) {
             {lang}
             {block.data.name ? ` · ${block.data.name}` : ''}
           </span>
-          {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+          <span className="flex items-center gap-1">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <CopyBtn text={content} />
+            </span>
+            {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+          </span>
         </button>
         {open ? (
           <CMHighlight code={content.slice(0, 2000)} lang={lang} className="max-h-64 overflow-hidden" />
@@ -87,9 +117,10 @@ function BlockPreview({ block }: { block: PostBlock }) {
   }
 
   if (block.type === 'project') {
-    const files = (block.data.files as Array<{ name: string; language: string }>) ?? []
+    const files = (block.data.files as Array<{ name: string; language: string; content?: string }>) ?? []
+    const copyText = files.map((f) => f.content ? `// ${f.name}\n${f.content}` : f.name).join('\n\n')
     return (
-      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2 flex-wrap">
+      <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2 flex-wrap relative">
         <FolderOpen className="w-3.5 h-3.5 text-brand-400 shrink-0" />
         {files.length === 0 ? (
           <span className="text-xs text-gray-500">Boş proje</span>
@@ -100,6 +131,11 @@ function BlockPreview({ block }: { block: PostBlock }) {
             </span>
           ))
         )}
+        {files.length > 0 && (
+          <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+            <CopyBtn text={copyText} />
+          </span>
+        )}
       </div>
     )
   }
@@ -107,7 +143,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
   if (block.type === 'article') {
     const content = (block.data.content as string) ?? ''
     return (
-      <div className="rounded-lg border border-surface-border bg-surface-card/60 overflow-hidden">
+      <div className="group rounded-lg border border-surface-border bg-surface-card/60 overflow-hidden">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -117,7 +153,14 @@ function BlockPreview({ block }: { block: PostBlock }) {
             <FileText className="w-3 h-3" />
             Makale
           </span>
-          {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+          <span className="flex items-center gap-1">
+            {content && (
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <CopyBtn text={content} />
+              </span>
+            )}
+            {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+          </span>
         </button>
         <p className={`px-3 py-2 text-xs text-gray-300 whitespace-pre-wrap ${open ? '' : 'line-clamp-2'}`}>
           {content || <span className="text-gray-600 italic">Boş</span>}
@@ -129,9 +172,14 @@ function BlockPreview({ block }: { block: PostBlock }) {
   if (block.type === 'image') {
     const url = (block.data.url as string) ?? ''
     return (
-      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
+      <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
         <Image className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-        <span className="text-xs text-gray-400 truncate">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+        <span className="text-xs text-gray-400 truncate flex-1">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+        {url && (
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <CopyBtn text={url} />
+          </span>
+        )}
       </div>
     )
   }
@@ -140,10 +188,15 @@ function BlockPreview({ block }: { block: PostBlock }) {
     const url   = (block.data.url as string) ?? ''
     const title = (block.data.title as string) ?? ''
     return (
-      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex flex-col gap-0.5">
+      <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <Link2 className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-          <span className="text-xs text-gray-400 truncate">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+          <span className="text-xs text-gray-400 truncate flex-1">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+          {url && (
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+              <CopyBtn text={url} />
+            </span>
+          )}
         </div>
         {title && <p className="text-[11px] text-gray-500 pl-5">{title}</p>}
       </div>
@@ -153,9 +206,14 @@ function BlockPreview({ block }: { block: PostBlock }) {
   if (block.type === 'video') {
     const url = (block.data.url as string) ?? ''
     return (
-      <div className="rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
+      <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
         <Video className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-        <span className="text-xs text-gray-400 truncate">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+        <span className="text-xs text-gray-400 truncate flex-1">{url || <span className="italic text-gray-600">URL yok</span>}</span>
+        {url && (
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <CopyBtn text={url} />
+          </span>
+        )}
       </div>
     )
   }
