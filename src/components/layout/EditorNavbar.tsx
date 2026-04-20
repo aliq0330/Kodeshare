@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Code2, Save, Share2, Play, ArrowLeft } from 'lucide-react'
+import { Code2, Share2, ArrowLeft } from 'lucide-react'
 import Button from '@components/ui/Button'
 import Avatar from '@components/ui/Avatar'
 import { useAuthStore } from '@store/authStore'
@@ -9,7 +9,7 @@ import { useComposerStore } from '@store/composerStore'
 
 export default function EditorNavbar() {
   const { user } = useAuthStore()
-  const { projectTitle, isSaving, save, setProjectTitle } = useEditorStore()
+  const { projectTitle, isSaving, setProjectTitle } = useEditorStore()
   const { projects, activeProjectId } = useProjectStore()
   const { openWithProject, openComposer } = useComposerStore()
 
@@ -51,14 +51,6 @@ export default function EditorNavbar() {
 
       {/* Right — eylemler */}
       <div className="flex items-center gap-1 shrink-0">
-        <Button variant="ghost" size="sm" onClick={save}>
-          <Save className="w-4 h-4" />
-          <span className="hidden md:inline ml-1">Kaydet</span>
-        </Button>
-        <Button variant="secondary" size="sm">
-          <Play className="w-4 h-4" />
-          <span className="hidden md:inline ml-1">Çalıştır</span>
-        </Button>
         <Button variant="primary" size="sm" onClick={handlePublish}>
           <Share2 className="w-4 h-4" />
           <span className="hidden md:inline ml-1">Paylaş</span>
