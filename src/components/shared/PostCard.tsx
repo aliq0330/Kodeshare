@@ -328,6 +328,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         onClose={() => setShareModalOpen(false)}
         postId={display.id}
         postTitle={display.title}
+        onRepost={() => repostPost(display.id)}
       />
       <PostStatsModal
         open={statsOpen}

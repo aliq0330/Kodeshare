@@ -357,6 +357,7 @@ export default function PostDetailPage() {
         onClose={() => setShareModalOpen(false)}
         postId={post.id}
         postTitle={post.title}
+        onRepost={handleRepost}
       />
       <PostStatsModal
         open={statsOpen}
