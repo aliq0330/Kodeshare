@@ -4,7 +4,7 @@ import {
   Files, Code2, Eye, WrapText, Sun, Moon, Plus, Trash2, X,
   RefreshCw, ExternalLink, Monitor, Tablet, Smartphone,
   Loader2, Save, ChevronRight, ChevronDown, FolderOpen, Cloud,
-  Pencil, Check,
+  Pencil, Check, Palette,
 } from 'lucide-react'
 import { useEditor } from '@editor/hooks/useEditor'
 import { useAutoSave } from '@editor/hooks/useAutoSave'
@@ -15,12 +15,112 @@ import { projectService, type SavedProject } from '@services/projectService'
 import { languageFromFilename, defaultContentForLanguage } from '@editor/utils/languageUtils'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import EditorPane, { type SelectionCoords } from '@editor/components/EditorPane'
-import { getThemeConfig, type UiColors } from '@editor/themes'
+import { getThemeConfig, EDITOR_THEMES, type UiColors, type PreviewColors } from '@editor/themes'
 import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 import type { EditorLanguage, EditorTheme } from '@/types'
 import { useComposerStore } from '@store/composerStore'
 import '@/styles/editor.css'
+
+// ─── ThemePreview ──────────────────────────────────────────────────────────
+
+function ThemePreview({ p, bg }: { p: PreviewColors; bg: string }) {
+  const s: React.CSSProperties = {
+    background: bg, borderRadius: 6, padding: '6px 8px',
+    fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 9, lineHeight: 1.7, overflow: 'hidden',
+  }
+  const line = (n: number, content: React.ReactNode) => (
+    <div style={{ display: 'flex', gap: 6 }}>
+      <span style={{ color: p.gutter, minWidth: 8, userSelect: 'none' }}>{n}</span>
+      <span>{content}</span>
+    </div>
+  )
+  return (
+    <div style={s}>
+      {line(1, <span style={{ color: p.comment }}>{'// kodeshare'}</span>)}
+      {line(2, <><span style={{ color: p.keyword }}>function </span><span style={{ color: p.fn }}>greet</span><span style={{ color: p.text }}>{'(name) {'}</span></>)}
+      {line(3, <><span style={{ color: p.keyword }}>{'  return '}</span><span style={{ color: p.string }}>"Hi" </span><span style={{ color: p.text }}>+ name</span></>)}
+      {line(4, <span style={{ color: p.text }}>{'}'}</span>)}
+    </div>
+  )
+}
+
+// ─── ThemePicker ───────────────────────────────────────────────────────────
+
+function ThemePicker({ theme, setTheme, ui, align = 'right' }: {
+  theme: EditorTheme
+  setTheme: (t: EditorTheme) => void
+  ui: UiColors
+  align?: 'left' | 'right'
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        title="Editör teması"
+        className={cn(
+          'p-1.5 rounded transition-colors',
+          open ? 'text-[#8aa8ff]' : 'text-gray-500 hover:text-gray-300',
+        )}
+        style={open ? { background: ui.raisedBg } : undefined}
+      >
+        <Palette className="w-3.5 h-3.5" />
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full mt-1 z-50 w-64 rounded-xl border shadow-2xl overflow-hidden"
+          style={{
+            background: ui.panelBg,
+            borderColor: ui.border,
+            [align === 'right' ? 'right' : 'left']: 0,
+          }}
+        >
+          <div className="px-3 py-2 border-b" style={{ borderColor: ui.border }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: ui.textMuted }}>
+              Editör Teması
+            </span>
+          </div>
+          <div className="p-2 grid grid-cols-2 gap-2 max-h-72 overflow-y-auto scrollbar-none">
+            {EDITOR_THEMES.map((t) => {
+              const active = theme === (t.id as EditorTheme)
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => { setTheme(t.id as EditorTheme); setOpen(false) }}
+                  className="flex flex-col rounded-lg border overflow-hidden text-left transition-all"
+                  style={{ borderColor: active ? '#4a7aff' : ui.border, boxShadow: active ? '0 0 0 1px #4a7aff44' : undefined }}
+                >
+                  <div className="w-full pointer-events-none">
+                    <ThemePreview p={t.preview} bg={t.bg} />
+                  </div>
+                  <div className="flex items-center justify-between px-2 py-1.5" style={{ background: t.dark ? '#0d0e14' : '#f0f0f0' }}>
+                    <span className={cn('text-[10px] font-medium', t.dark ? 'text-gray-300' : 'text-gray-700')}>
+                      {t.name}
+                    </span>
+                    {active && <Check className="w-3 h-3 text-[#4a7aff] shrink-0" />}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── InlineEdit ────────────────────────────────────────────────────────────
 
@@ -712,6 +812,7 @@ export default function EditorPage() {
       >
         {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
       </button>
+      <ThemePicker theme={theme} setTheme={setTheme} ui={ui} />
 
       {/* Project title */}
       {activeProjectId && (
@@ -887,8 +988,8 @@ export default function EditorPage() {
         {mobilePanel === 'editor' && (
           <div className="flex flex-col h-full overflow-hidden">
             {/* Modern segmented control */}
-            <div className="shrink-0 px-3 py-2" style={{ background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}>
-              <div className="flex rounded-xl p-1" style={{ background: ui.raisedBg }}>
+            <div className="shrink-0 flex items-center gap-2 px-3 py-2" style={{ background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}>
+              <div className="flex flex-1 rounded-xl p-1" style={{ background: ui.raisedBg }}>
                 {([
                   { show: false, icon: Code2, label: 'Kod'       },
                   { show: true,  icon: Eye,   label: 'Önizleme'  },
@@ -909,6 +1010,7 @@ export default function EditorPage() {
                   )
                 })}
               </div>
+              <ThemePicker theme={theme} setTheme={setTheme} ui={ui} align="right" />
             </div>
 
             {/* Full-screen editor or preview */}
