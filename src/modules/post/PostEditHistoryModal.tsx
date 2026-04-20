@@ -250,10 +250,20 @@ function VersionCard({ version, index, total }: { version: Version; index: numbe
           <p className="text-xs text-gray-500 italic">Gönderi şu anki halinde görüntüleniyor.</p>
         ) : (
           <>
-            <p className="text-sm font-semibold text-white mb-1">{version.title}</p>
+            <div className="group flex items-start gap-1 mb-1">
+              <p className="text-sm font-semibold text-white flex-1">{version.title}</p>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5">
+                <CopyBtn text={version.title} />
+              </span>
+            </div>
 
             {version.description && (
-              <p className="text-xs text-gray-400 line-clamp-2 mb-2">{version.description}</p>
+              <div className="group flex items-start gap-1 mb-2">
+                <p className="text-xs text-gray-400 line-clamp-2 flex-1">{version.description}</p>
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <CopyBtn text={version.description} />
+                </span>
+              </div>
             )}
 
             {version.tags.length > 0 && (
