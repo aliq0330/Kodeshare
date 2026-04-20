@@ -128,16 +128,16 @@ export default function AppearanceSettings() {
           Yazı Boyutu <span className="text-brand-400">{fontSize}px</span>
         </p>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">12px</span>
+          <span className="text-xs text-gray-500">16px</span>
           <input
             type="range"
-            min={12}
-            max={20}
+            min={16}
+            max={24}
             value={fontSize}
             onChange={(e) => setFontSize(Number(e.target.value))}
             className="flex-1 accent-brand-500"
           />
-          <span className="text-xs text-gray-500">20px</span>
+          <span className="text-xs text-gray-500">24px</span>
         </div>
       </div>
     </div>

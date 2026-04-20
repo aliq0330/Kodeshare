@@ -476,7 +476,7 @@ export default function EditorPage() {
   const { projectId: urlProjectId } = useParams<{ projectId?: string }>()
   const { isAuthenticated } = useAuthStore()
   const {
-    files, activeFile, activeFileId, theme, wordWrap,
+    files, activeFile, activeFileId, theme, fontSize, wordWrap,
     setActiveFile, addFile, removeFile, updateActiveFile, toggleWordWrap, setTheme,
   } = useEditor()
   const { projectTitle, setProjectTitle, loadProject, markAllSaved } = useEditorStore()
@@ -829,6 +829,7 @@ export default function EditorPage() {
         <EditorPane
           file={activeFile}
           theme={theme}
+          fontSize={fontSize}
           wordWrap={wordWrap}
           onChange={updateActiveFile}
           onSelectionChange={handleSelectionChange}

@@ -48,7 +48,7 @@ export const useEditorStore = create<EditorStoreState>()(
       files: DEFAULT_FILES,
       activeFileId: '1',
       theme: 'one-dark' as EditorTheme,
-      fontSize: 14,
+      fontSize: 16,
       wordWrap: false,
       minimap: false,
       autoSave: true,

@@ -16,6 +16,7 @@ export interface SelectionCoords {
 interface EditorPaneProps {
   file: EditorFile | null
   theme: EditorTheme
+  fontSize: number
   wordWrap: boolean
   onChange: (content: string) => void
   onSelectionChange?: (text: string, coords: SelectionCoords | null) => void
@@ -29,14 +30,16 @@ function langExtension(lang: string) {
   return []
 }
 
-const baseTheme = EditorView.theme({
-  '&': { height: '100%' },
-  '.cm-scroller': { fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: '13px', lineHeight: '1.6' },
-  '.cm-content': { paddingTop: '8px', paddingBottom: '8px' },
-  '.cm-gutters': { borderRight: 'none' },
-})
+function makeBaseTheme(fontSize: number) {
+  return EditorView.theme({
+    '&': { height: '100%' },
+    '.cm-scroller': { fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: `${fontSize}px`, lineHeight: '1.6' },
+    '.cm-content': { paddingTop: '8px', paddingBottom: '8px' },
+    '.cm-gutters': { borderRight: 'none' },
+  })
+}
 
-export default function EditorPane({ file, theme, wordWrap, onChange, onSelectionChange }: EditorPaneProps) {
+export default function EditorPane({ file, theme, fontSize, wordWrap, onChange, onSelectionChange }: EditorPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
@@ -52,7 +55,7 @@ export default function EditorPane({ file, theme, wordWrap, onChange, onSelectio
     const extensions = [
       basicSetup,
       langExtension(file.language),
-      baseTheme,
+      makeBaseTheme(fontSize),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           onChangeRef.current(update.state.doc.toString())
@@ -81,7 +84,7 @@ export default function EditorPane({ file, theme, wordWrap, onChange, onSelectio
     viewRef.current = view
 
     return () => { view.destroy(); viewRef.current = null }
-  }, [file?.id, theme, wordWrap]) // eslint-disable-line
+  }, [file?.id, theme, fontSize, wordWrap]) // eslint-disable-line
 
   useEffect(() => {
     const view = viewRef.current
