@@ -15,6 +15,7 @@ interface PostState {
   isLoading: boolean
   hasNextPage: boolean
   currentPage: number
+  lastParams: FetchParams
   fetchPosts: (params: FetchParams) => Promise<void>
   createPost: (payload: CreatePostPayload) => Promise<void>
   likePost: (id: string) => Promise<void>
@@ -31,12 +32,17 @@ export const usePostStore = create<PostState>((set, get) => ({
   isLoading: false,
   hasNextPage: true,
   currentPage: 1,
+  lastParams: {},
 
   fetchPosts: async ({ tab, tag, query, page = 1 }) => {
     if (page > 1 && get().isLoading) return
     const seq = ++fetchSeq
-    if (page === 1) set({ posts: [], isLoading: true, currentPage: 1, hasNextPage: true })
-    else set({ isLoading: true })
+    set((s) => ({
+      isLoading: true,
+      lastParams: { tab, tag, query, page },
+      // page=1 yenileme: mevcut postları silmeden loading göster, başarıda değiştir
+      ...(page === 1 ? { currentPage: 1, hasNextPage: true } : {}),
+    }))
     try {
       const res = await postService.getFeed({ tab, tag, query, page })
       if (seq !== fetchSeq) return

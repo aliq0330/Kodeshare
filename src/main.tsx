@@ -8,7 +8,7 @@ import { usePostStore } from '@store/postStore'
 import { useSupabaseRealtime } from '@realtime/useSupabaseRealtime'
 import './styles/globals.css'
 
-const STALE_MS = 60_000 // 60 saniye uzakta kalınırsa veri sıfırlanır
+const STALE_MS = 5 * 60_000 // 5 dakika uzakta kalınırsa veri yenilenir
 
 function Root() {
   const init = useAuthStore((s) => s.init)
@@ -35,9 +35,10 @@ function Root() {
         usePostStore.setState({ isLoading: false })
       }
 
-      // 60 saniyeden uzun süre uzakta kalındıysa veriyi de sıfırla
+      // 5 dakikadan uzun süre uzakta kalındıysa feed'i yenile (sıfırlama değil)
       if (hiddenAt > 0 && Date.now() - hiddenAt > STALE_MS) {
-        postState.reset()
+        const { lastParams, fetchPosts } = usePostStore.getState()
+        fetchPosts({ ...lastParams, page: 1 })
       }
 
       hiddenAt = 0
