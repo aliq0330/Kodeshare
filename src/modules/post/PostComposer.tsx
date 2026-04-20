@@ -29,6 +29,11 @@ function newId(): string {
   return Math.random().toString(36).slice(2, 10)
 }
 
+function toSnippetLang(lang: string): SnippetLang {
+  if (lang === 'css' || lang === 'html') return lang
+  return 'javascript'
+}
+
 function detectLangFromContent(code: string): SnippetLang | null {
   const c = code.trim()
   if (!c) return null
