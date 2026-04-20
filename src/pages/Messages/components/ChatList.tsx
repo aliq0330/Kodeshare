@@ -6,6 +6,20 @@ import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import { useMessageStore } from '@store/messageStore'
 import { useAuthStore } from '@store/authStore'
+import { POST_SHARE_PREFIX, type PostShareData } from '@modules/social/ShareModal'
+
+function formatLastMessage(content: string, senderId: string, myId?: string): string {
+  if (content.startsWith(POST_SHARE_PREFIX)) {
+    try {
+      const data = JSON.parse(content.slice(POST_SHARE_PREFIX.length)) as PostShareData
+      const who = senderId === myId ? 'Bir' : `${data.author.displayName} adlı kişinin`
+      return `📎 ${who} gönderisini paylaştı`
+    } catch {
+      return '📎 Bir gönderi paylaştı'
+    }
+  }
+  return content
+}
 
 interface ChatListProps {
   activeId: string | null
@@ -69,7 +83,9 @@ export default function ChatList({ activeId, onSelect }: ChatListProps) {
                       {conv.lastMessage ? timeAgo(conv.lastMessage.createdAt) : ''}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 truncate">{conv.lastMessage?.content}</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {conv.lastMessage ? formatLastMessage(conv.lastMessage.content, conv.lastMessage.sender.id, user?.id) : ''}
+                  </p>
                 </div>
                 {conv.unreadCount > 0 && (
                   <span className="w-5 h-5 bg-brand-500 rounded-full text-xs font-bold flex items-center justify-center text-white shrink-0">
