@@ -1,19 +1,78 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Send, Smile } from 'lucide-react'
+import { ArrowLeft, Send, Smile, ExternalLink } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
+import BlockView from '@modules/post/BlockView'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import { useMessageStore } from '@store/messageStore'
 import { useAuthStore, mapProfile } from '@store/authStore'
 import { supabase } from '@/lib/supabase'
+import { POST_SHARE_PREFIX, type PostShareData } from '@modules/social/ShareModal'
 import type { Message } from '@/types'
 import toast from 'react-hot-toast'
 
 interface ChatWindowProps {
   conversationId: string
   onBack: () => void
+}
+
+function parsePostShare(content: string): PostShareData | null {
+  if (!content.startsWith(POST_SHARE_PREFIX)) return null
+  try { return JSON.parse(content.slice(POST_SHARE_PREFIX.length)) } catch { return null }
+}
+
+function PostShareCard({ data }: { data: PostShareData }) {
+  return (
+    <Link to={`/post/${data.id}`} className="block group">
+      <div className="card p-3 w-72 hover:border-brand-500/40 transition-colors">
+        {/* Header */}
+        <div className="flex items-center gap-1.5 mb-2 text-[11px] text-gray-500">
+          <ExternalLink className="w-3 h-3" />
+          <span>Gönderi paylaşıldı</span>
+        </div>
+
+        {/* Author */}
+        <div className="flex items-center gap-2 mb-2">
+          <Avatar src={data.author.avatarUrl} alt={data.author.displayName} size="xs" />
+          <div className="min-w-0">
+            <span className="text-xs font-medium text-gray-200 truncate">{data.author.displayName}</span>
+            <span className="text-xs text-gray-500 ml-1">@{data.author.username}</span>
+          </div>
+        </div>
+
+        {/* Title */}
+        <p className="text-sm font-semibold text-white leading-snug mb-1">{data.title}</p>
+
+        {/* Description */}
+        {data.description && (
+          <p className="text-xs text-gray-400 line-clamp-2 mb-1.5">{data.description}</p>
+        )}
+
+        {/* Tags */}
+        {data.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {data.tags.slice(0, 4).map((t) => (
+              <span key={t} className="tag text-[11px]">#{t}</span>
+            ))}
+          </div>
+        )}
+
+        {/* Blocks */}
+        {data.blocks.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-surface-border">
+            <BlockView blocks={data.blocks} compact postTitle={data.title} />
+          </div>
+        )}
+
+        {/* View link */}
+        <p className="mt-2 text-[11px] text-brand-400 font-medium group-hover:text-brand-300 transition-colors">
+          Gönderiyi görüntüle →
+        </p>
+      </div>
+    </Link>
+  )
 }
 
 export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
@@ -32,8 +91,6 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
     markConversationRead(conversationId)
   }, [conversationId, fetchMessages, markConversationRead])
 
-  // Conversation-specific realtime subscription — global subscription lacks a filter
-  // so Supabase can't apply the RLS join; a direct conversation_id filter fixes this.
   useEffect(() => {
     const channel = supabase
       .channel(`chat-${conversationId}`)
@@ -111,6 +168,25 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
         )}
         {msgs.map((msg) => {
           const isMine = msg.sender.id === user?.id
+          const postShare = parsePostShare(msg.content)
+
+          if (postShare) {
+            return (
+              <div key={msg.id} className={cn('flex flex-col gap-1', isMine ? 'items-end' : 'items-start')}>
+                {!isMine && (
+                  <div className="flex items-center gap-1.5 ml-1">
+                    <Avatar src={msg.sender.avatarUrl} alt={msg.sender.displayName} size="xs" />
+                    <span className="text-[11px] text-gray-500">{msg.sender.displayName}</span>
+                  </div>
+                )}
+                <PostShareCard data={postShare} />
+                <p className={cn('text-[10px] text-gray-600 px-1', isMine ? 'text-right' : '')}>
+                  {timeAgo(msg.createdAt)}
+                </p>
+              </div>
+            )
+          }
+
           return (
             <div key={msg.id} className={cn('flex gap-2 max-w-[70%]', isMine ? 'ml-auto flex-row-reverse' : '')}>
               {!isMine && <Avatar src={msg.sender.avatarUrl} alt={msg.sender.displayName} size="xs" className="mt-1 shrink-0" />}

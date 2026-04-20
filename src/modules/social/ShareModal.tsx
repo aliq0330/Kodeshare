@@ -7,13 +7,24 @@ import { messageService } from '@services/messageService'
 import { userService } from '@services/userService'
 import { useAuthStore } from '@store/authStore'
 import toast from 'react-hot-toast'
-import type { UserPreview, User } from '@/types'
+import type { Post, UserPreview, User } from '@/types'
+
+export const POST_SHARE_PREFIX = '__POST_SHARE__:'
+
+export interface PostShareData {
+  id: string
+  title: string
+  description: string | null
+  tags: string[]
+  blocks: Post['blocks']
+  author: { username: string; displayName: string; avatarUrl: string | null }
+  url: string
+}
 
 interface ShareModalProps {
   open: boolean
   onClose: () => void
-  postId: string
-  postTitle: string
+  post: Post
   onRepost?: () => void
 }
 
@@ -91,9 +102,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 /* ─── Main component ─── */
-export default function ShareModal({ open, onClose, postId, postTitle, onRepost }: ShareModalProps) {
+export default function ShareModal({ open, onClose, post, onRepost }: ShareModalProps) {
   const { user: me } = useAuthStore()
-  const url = `${window.location.origin}/post/${postId}`
+  const url = `${window.location.origin}/post/${post.id}`
 
   const [query, setQuery]                   = useState('')
   const [recentUsers, setRecentUsers]       = useState<UserPreview[]>([])
@@ -173,8 +184,21 @@ export default function ShareModal({ open, onClose, postId, postTitle, onRepost 
     if (!me) { toast.error('Giriş yapmalısın'); return }
     setSendingTo(userId)
     try {
+      const payload: PostShareData = {
+        id:          post.id,
+        title:       post.title,
+        description: post.description,
+        tags:        post.tags,
+        blocks:      post.blocks,
+        author: {
+          username:    post.author.username,
+          displayName: post.author.displayName,
+          avatarUrl:   post.author.avatarUrl,
+        },
+        url,
+      }
       const conv = await messageService.startConversation(userId)
-      await messageService.send(conv.id, `📎 ${postTitle}\n${url}`)
+      await messageService.send(conv.id, `${POST_SHARE_PREFIX}${JSON.stringify(payload)}`)
       setSentTo((prev) => new Set([...prev, userId]))
       toast.success('Gönderi iletildi!')
     } catch (e: any) {
@@ -194,7 +218,7 @@ export default function ShareModal({ open, onClose, postId, postTitle, onRepost 
 
   const deviceShare = async () => {
     if (typeof navigator.share === 'function') {
-      try { await navigator.share({ title: postTitle, url }) } catch { /* cancelled */ }
+      try { await navigator.share({ title: post.title, url }) } catch { /* cancelled */ }
     } else {
       copyLink()
     }
@@ -297,12 +321,12 @@ export default function ShareModal({ open, onClose, postId, postTitle, onRepost 
           <RoundBtn
             icon={<WhatsAppIcon className="w-5 h-5 text-[#25D366]" />}
             label="WhatsApp"
-            onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`${postTitle} ${url}`)}`, '_blank')}
+            onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`${post.title} ${url}`)}`, '_blank')}
           />
           <RoundBtn
             icon={<TelegramIcon className="w-5 h-5 text-[#2AABEE]" />}
             label="Telegram"
-            onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(postTitle)}`, '_blank')}
+            onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(post.title)}`, '_blank')}
           />
           <RoundBtn
             icon={copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5 text-gray-300" />}
