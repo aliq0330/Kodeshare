@@ -528,22 +528,35 @@ export default function EditorPage() {
   // ── Save ─────────────────────────────────────────────────────────────────
 
   const handleSave = useCallback(async () => {
-    if (!isAuthenticated || !activeProjectId) return
+    if (!isAuthenticated) { toast.error('Kaydetmek için giriş yapmalısın'); return }
+    const hasContent = files.some((f) => f.content.trim())
+    if (!hasContent) return
     setIsSaving(true)
     try {
-      await projectService.save(activeProjectId, projectTitle, files)
-      markAllSaved()
-      patchProject(activeProjectId, {
-        title: projectTitle,
-        files: files.map((f) => ({ ...f, isModified: false })),
-      })
-      toast.success('Proje kaydedildi')
+      if (!activeProjectId) {
+        // Proje yok — yeni proje oluştur ve mevcut dosyaları kaydet
+        const newProject = await addProject(projectTitle)
+        if (!newProject) throw new Error('Proje oluşturulamadı')
+        await projectService.save(newProject.id, projectTitle, files)
+        markAllSaved()
+        setActiveId(newProject.id)
+        patchProject(newProject.id, { title: projectTitle, files: files.map((f) => ({ ...f, isModified: false })) })
+        toast.success('Proje oluşturuldu ve kaydedildi')
+      } else {
+        await projectService.save(activeProjectId, projectTitle, files)
+        markAllSaved()
+        patchProject(activeProjectId, {
+          title: projectTitle,
+          files: files.map((f) => ({ ...f, isModified: false })),
+        })
+        toast.success('Proje kaydedildi')
+      }
     } catch {
       toast.error('Kaydedilemedi')
     } finally {
       setIsSaving(false)
     }
-  }, [activeProjectId, projectTitle, files, isAuthenticated, markAllSaved, patchProject])
+  }, [activeProjectId, projectTitle, files, isAuthenticated, markAllSaved, patchProject, addProject, setActiveId])
 
   useAutoSave(handleSave)
 
@@ -749,15 +762,13 @@ export default function EditorPage() {
         <div className="ml-auto">
           <button
             onClick={handleSave}
-            disabled={isSaving || !activeProjectId}
+            disabled={isSaving}
             title="Kaydet (Ctrl+S)"
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-              !activeProjectId
-                ? 'text-gray-700 border border-transparent cursor-not-allowed'
-                : hasUnsaved
-                  ? 'bg-[#1e2a3a] text-[#8aa8ff] border border-[#2a3a56] hover:bg-[#243247]'
-                  : 'text-gray-600 border border-transparent',
+              hasUnsaved || !activeProjectId
+                ? 'bg-[#1e2a3a] text-[#8aa8ff] border border-[#2a3a56] hover:bg-[#243247]'
+                : 'text-gray-600 border border-transparent',
             )}
           >
             {isSaving
@@ -797,7 +808,7 @@ export default function EditorPage() {
       ))}
 
       {/* Mobile save button */}
-      {isAuthenticated && activeProjectId && (
+      {isAuthenticated && (
         <button
           onClick={handleSave}
           disabled={isSaving}
@@ -925,6 +936,7 @@ export default function EditorPage() {
                 <EditorPane
                   file={activeFile}
                   theme={theme}
+                  fontSize={fontSize}
                   wordWrap={wordWrap}
                   onChange={updateActiveFile}
                   onSelectionChange={handleSelectionChange}
