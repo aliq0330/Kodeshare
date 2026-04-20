@@ -7,11 +7,18 @@ import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import type { EditorFile, EditorTheme } from '@/types'
 
+export interface SelectionCoords {
+  top: number
+  left: number
+  bottom: number
+}
+
 interface EditorPaneProps {
   file: EditorFile | null
   theme: EditorTheme
   wordWrap: boolean
   onChange: (content: string) => void
+  onSelectionChange?: (text: string, coords: SelectionCoords | null) => void
 }
 
 function langExtension(lang: string) {
@@ -29,13 +36,14 @@ const baseTheme = EditorView.theme({
   '.cm-gutters': { borderRight: 'none' },
 })
 
-export default function EditorPane({ file, theme, wordWrap, onChange }: EditorPaneProps) {
+export default function EditorPane({ file, theme, wordWrap, onChange, onSelectionChange }: EditorPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
+  const onSelectionChangeRef = useRef(onSelectionChange)
   onChangeRef.current = onChange
+  onSelectionChangeRef.current = onSelectionChange
 
-  // Recreate editor when file or settings change
   useEffect(() => {
     if (!containerRef.current || !file) return
 
@@ -44,7 +52,20 @@ export default function EditorPane({ file, theme, wordWrap, onChange }: EditorPa
       langExtension(file.language),
       baseTheme,
       EditorView.updateListener.of((update) => {
-        if (update.docChanged) onChangeRef.current(update.state.doc.toString())
+        if (update.docChanged) {
+          onChangeRef.current(update.state.doc.toString())
+          onSelectionChangeRef.current?.('', null)
+        }
+        if (update.selectionSet && !update.docChanged) {
+          const sel = update.state.selection.main
+          if (sel.from !== sel.to) {
+            const text = update.state.sliceDoc(sel.from, sel.to)
+            const coords = update.view.coordsAtPos(sel.from)
+            onSelectionChangeRef.current?.(text, coords ? { top: coords.top, left: coords.left, bottom: coords.bottom } : null)
+          } else {
+            onSelectionChangeRef.current?.('', null)
+          }
+        }
       }),
     ]
 
@@ -60,7 +81,6 @@ export default function EditorPane({ file, theme, wordWrap, onChange }: EditorPa
     return () => { view.destroy(); viewRef.current = null }
   }, [file?.id, theme, wordWrap]) // eslint-disable-line
 
-  // Sync external content (e.g., undo from store)
   useEffect(() => {
     const view = viewRef.current
     if (!view || !file) return
