@@ -4,6 +4,7 @@ import Spinner from '@components/ui/Spinner'
 import CMHighlight from '@components/shared/CMHighlight'
 import { postService } from '@services/postService'
 import { timeAgo } from '@utils/formatters'
+import toast from 'react-hot-toast'
 import type { Post, PostBlock } from '@/types'
 
 interface PostEditHistoryModalProps {
@@ -80,6 +81,30 @@ function CopyBtn({ text, className = '' }: { text: string; className?: string })
   )
 }
 
+function FileBadge({ file }: { file: { name: string; language: string; content?: string } }) {
+  const { copied, copy } = useCopy()
+  const handleCopy = () => {
+    if (!file.content) return
+    copy(file.content)
+    toast.success(`${file.name} dosyasının içeriği kopyalandı`)
+  }
+  return (
+    <span className="group/badge relative inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-raised font-mono text-gray-300">
+      {file.name}
+      {file.content && (
+        <button
+          type="button"
+          onClick={handleCopy}
+          title={`${file.name} kopyala`}
+          className="opacity-0 group-hover/badge:opacity-100 transition-opacity"
+        >
+          {copied ? <Check className="w-2.5 h-2.5 text-green-400" /> : <Copy className="w-2.5 h-2.5 text-gray-500 hover:text-gray-300" />}
+        </button>
+      )}
+    </span>
+  )
+}
+
 function BlockPreview({ block }: { block: PostBlock }) {
   const [open, setOpen] = useState(false)
 
@@ -126,9 +151,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
           <span className="text-xs text-gray-500">Boş proje</span>
         ) : (
           files.map((f, i) => (
-            <span key={i} className="text-[11px] px-1.5 py-0.5 rounded bg-surface-raised font-mono text-gray-300">
-              {f.name}
-            </span>
+            <FileBadge key={i} file={f} />
           ))
         )}
         {files.length > 0 && (
