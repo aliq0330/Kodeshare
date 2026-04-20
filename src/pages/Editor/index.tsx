@@ -15,7 +15,7 @@ import { projectService, type SavedProject } from '@services/projectService'
 import { languageFromFilename, defaultContentForLanguage } from '@editor/utils/languageUtils'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import EditorPane, { type SelectionCoords } from '@editor/components/EditorPane'
-import { getThemeConfig } from '@editor/themes'
+import { getThemeConfig, type UiColors } from '@editor/themes'
 import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 import type { EditorLanguage, EditorTheme } from '@/types'
@@ -82,6 +82,7 @@ interface ProjectsSidebarProps {
   activeProjectId: string | null
   activeFileId: string | null
   isAuthenticated: boolean
+  ui: UiColors
   onOpenFile: (project: SavedProject, fileId: string) => void
   onAddProject: () => void
   onSaveProject: (project: SavedProject) => void
@@ -93,7 +94,7 @@ interface ProjectsSidebarProps {
 }
 
 function ProjectsSidebar({
-  projects, loading, activeProjectId, activeFileId, isAuthenticated,
+  projects, loading, activeProjectId, activeFileId, isAuthenticated, ui,
   onOpenFile, onAddProject, onSaveProject, onDeleteProject, onRenameProject,
   onAddFile, onDeleteFile, onRenameFile,
 }: ProjectsSidebarProps) {
@@ -111,13 +112,13 @@ function ProjectsSidebar({
   return (
     <div
       className="flex flex-col h-full"
-      style={{ background: '#0a0f1a', borderRight: '1px solid #1e2535' }}
+      style={{ background: ui.sidebarBg, borderRight: `1px solid ${ui.border}`, color: ui.text }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-3 border-b border-[#1e2535]">
+      <div className="flex items-center justify-between px-3 py-3" style={{ borderBottom: `1px solid ${ui.border}` }}>
         <div className="flex items-center gap-2">
           <FolderOpen className="w-4 h-4 text-[#8aa8ff]" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: ui.textMuted }}>
             Projelerim
           </span>
         </div>
@@ -125,7 +126,10 @@ function ProjectsSidebar({
           <button
             onClick={onAddProject}
             title="Yeni proje"
-            className="p-1.5 rounded-md hover:bg-[#1e2535] text-gray-600 hover:text-[#8aa8ff] transition-colors"
+            className="p-1.5 rounded-md transition-colors text-[#8aa8ff]"
+            style={{ color: ui.textMuted }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = ui.raisedBg)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -160,10 +164,10 @@ function ProjectsSidebar({
             <div key={project.id}>
               {/* Project row */}
               <div
-                className={cn(
-                  'group flex items-center gap-1 px-2 py-2.5 cursor-pointer select-none transition-colors',
-                  isActive ? 'bg-[#151e30]' : 'hover:bg-[#111827]',
-                )}
+                className="group flex items-center gap-1 px-2 py-2.5 cursor-pointer select-none transition-colors"
+                style={{ background: isActive ? ui.raisedBg : undefined }}
+                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = ui.raisedBg }}
+                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
               >
                 {/* Chevron — expand/collapse */}
                 <button
@@ -186,10 +190,8 @@ function ProjectsSidebar({
                 ) : (
                   <span
                     onClick={() => toggleExpand(project.id)}
-                    className={cn(
-                      'flex-1 text-sm font-medium truncate transition-colors',
-                      isActive ? 'text-[#8aa8ff]' : 'text-[#7a8aa8] hover:text-[#c8d8f0]',
-                    )}
+                    className="flex-1 text-sm font-medium truncate transition-colors"
+                    style={{ color: isActive ? '#8aa8ff' : ui.textMuted }}
                     title="Dosyaları göster / gizle"
                   >
                     {project.title}
@@ -252,12 +254,10 @@ function ProjectsSidebar({
                       <div
                         key={file.id}
                         onClick={() => onOpenFile(project, file.id)}
-                        className={cn(
-                          'group/file flex items-center gap-2 pl-8 pr-2 py-1.5 cursor-pointer select-none transition-colors',
-                          isFileActive
-                            ? 'bg-[#1e2a4a] text-[#8aa8ff]'
-                            : 'text-[#6b7a99] hover:bg-[#111827] hover:text-[#c0cce0]',
-                        )}
+                        className="group/file flex items-center gap-2 pl-8 pr-2 py-1.5 cursor-pointer select-none transition-colors"
+                        style={{ background: isFileActive ? ui.raisedBg : undefined, color: isFileActive ? '#8aa8ff' : ui.textMuted }}
+                        onMouseEnter={(e) => { if (!isFileActive) e.currentTarget.style.background = ui.raisedBg }}
+                        onMouseLeave={(e) => { if (!isFileActive) e.currentTarget.style.background = 'transparent' }}
                       >
                         <span
                           className="text-[10px] font-bold shrink-0 w-8"
@@ -321,29 +321,28 @@ function ProjectsSidebar({
 
 // ─── FileTabs ──────────────────────────────────────────────────────────────
 
-function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, onToggleMobilePreview }: {
+function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, onToggleMobilePreview, ui }: {
   files: ReturnType<typeof useEditor>['files']
   activeFileId: string | null
   onSelect: (id: string) => void
   onClose: (id: string) => void
   mobileShowPreview?: boolean
   onToggleMobilePreview?: () => void
+  ui: UiColors
 }) {
   return (
     <div
       className="flex items-center gap-0.5 px-2 overflow-x-auto scrollbar-none shrink-0"
-      style={{ height: 34, background: '#0d1117', borderBottom: '1px solid #1e2535' }}
+      style={{ height: 34, background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}
     >
       {/* Mobil Önizleme toggle — en solda */}
       {onToggleMobilePreview !== undefined && (
         <button
           onClick={onToggleMobilePreview}
-          className={cn(
-            'sm:hidden flex items-center gap-1 px-2 h-[26px] rounded text-[12px] font-medium whitespace-nowrap transition-all shrink-0 border mr-1',
-            mobileShowPreview
-              ? 'bg-[#1e2a3a] text-[#8aa8ff] border-[#2a3a56]'
-              : 'text-[#6b7a99] hover:bg-[#161e2d] hover:text-[#c0cce0] border-transparent',
-          )}
+          className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded text-[12px] font-medium whitespace-nowrap transition-all shrink-0 border mr-1"
+          style={mobileShowPreview
+            ? { background: ui.raisedBg, color: '#8aa8ff', borderColor: ui.border }
+            : { color: ui.textMuted, borderColor: 'transparent' }}
         >
           <Eye className="w-3 h-3" />
           <span>Önizleme</span>
@@ -357,19 +356,18 @@ function FileTabs({ files, activeFileId, onSelect, onClose, mobileShowPreview, o
           <div
             key={file.id}
             onClick={() => onSelect(file.id)}
-            className={cn(
-              'group flex items-center gap-1.5 px-3 h-[26px] rounded cursor-pointer whitespace-nowrap transition-all text-[12px] font-mono',
-              isActive
-                ? 'bg-[#1e2535] text-[#e2e8f0] border border-[#2a3347]'
-                : 'text-[#6b7a99] hover:bg-[#161e2d] hover:text-[#c0cce0] border border-transparent',
-            )}
+            className="group flex items-center gap-1.5 px-3 h-[26px] rounded cursor-pointer whitespace-nowrap transition-all text-[12px] font-mono border"
+            style={isActive
+              ? { background: ui.raisedBg, color: ui.text, borderColor: ui.border }
+              : { color: ui.textMuted, borderColor: 'transparent' }}
           >
             <span className="text-[9px] font-bold" style={{ color }}>{ext.toUpperCase()}</span>
             <span>{file.name}</span>
             {file.isModified && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />}
             <button
               onClick={(e) => { e.stopPropagation(); onClose(file.id) }}
-              className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-[#2a3347] text-gray-600 hover:text-gray-300 transition-all -mr-1"
+              className="opacity-0 group-hover:opacity-100 p-0.5 rounded transition-all -mr-1"
+              style={{ color: ui.textMuted }}
             >
               <X className="w-3 h-3" />
             </button>
@@ -400,7 +398,7 @@ function buildPreviewDoc(files: ReturnType<typeof useEditor>['files']) {
     .replace('</body>', `<script>${script}<\/script></body>`)
 }
 
-function PreviewPanel({ files }: { files: ReturnType<typeof useEditor>['files'] }) {
+function PreviewPanel({ files, ui }: { files: ReturnType<typeof useEditor>['files']; ui: UiColors }) {
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [src, setSrc]           = useState('')
   const [key, setKey]           = useState(0)
@@ -415,22 +413,20 @@ function PreviewPanel({ files }: { files: ReturnType<typeof useEditor>['files'] 
   return (
     <div
       className="flex flex-col h-full"
-      style={{ background: '#0d1117', borderLeft: '1px solid #1e2535' }}
+      style={{ background: ui.pageBg, borderLeft: `1px solid ${ui.border}` }}
     >
       <div
         className="hidden sm:flex items-center gap-1 px-3 shrink-0"
-        style={{ height: 34, borderBottom: '1px solid #1e2535' }}
+        style={{ height: 34, borderBottom: `1px solid ${ui.border}` }}
       >
-        <div className="flex items-center gap-0.5 bg-[#161e2d] rounded-md p-0.5">
+        <div className="flex items-center gap-0.5 rounded-md p-0.5" style={{ background: ui.raisedBg }}>
           {VIEWPORTS.map(({ id, icon: Icon, label }) => (
             <button
               key={id}
               onClick={() => setViewport(id)}
               title={label}
-              className={cn(
-                'p-1 rounded transition-colors',
-                viewport === id ? 'bg-[#2a3347] text-white' : 'text-gray-600 hover:text-gray-300',
-              )}
+              className="p-1 rounded transition-colors"
+              style={viewport === id ? { background: ui.border, color: ui.text } : { color: ui.textMuted }}
             >
               <Icon className="w-3.5 h-3.5" />
             </button>
@@ -440,20 +436,22 @@ function PreviewPanel({ files }: { files: ReturnType<typeof useEditor>['files'] 
           <button
             onClick={() => setKey((k) => k + 1)}
             title="Yenile"
-            className="p-1 rounded text-gray-600 hover:text-gray-300 hover:bg-[#1e2535] transition-colors"
+            className="p-1 rounded transition-colors"
+            style={{ color: ui.textMuted }}
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => window.open(src, '_blank')}
             title="Yeni sekmede aç"
-            className="p-1 rounded text-gray-600 hover:text-gray-300 hover:bg-[#1e2535] transition-colors"
+            className="p-1 rounded transition-colors"
+            style={{ color: ui.textMuted }}
           >
             <ExternalLink className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-hidden flex items-start justify-center bg-[#1a1a2e]">
+      <div className="flex-1 overflow-hidden flex items-start justify-center" style={{ background: ui.raisedBg }}>
         <div
           className="h-full transition-all duration-300 bg-white"
           style={{ width: vp.width, maxWidth: '100%' }}
@@ -716,15 +714,17 @@ export default function EditorPage() {
     setTooltipCoords(coords)
   }, [])
 
-  const hasUnsaved = files.some((f) => f.isModified)
-  const isDark     = getThemeConfig(theme).dark
+  const themeConfig = getThemeConfig(theme)
+  const ui          = themeConfig.ui
+  const hasUnsaved  = files.some((f) => f.isModified)
+  const isDark      = themeConfig.dark
 
   // ── Panel bar ─────────────────────────────────────────────────────────────
 
   const PanelBar = (
     <div
       className="hidden sm:flex items-center gap-1 px-3 shrink-0"
-      style={{ height: 40, background: '#07090f', borderBottom: '1px solid #1e2535' }}
+      style={{ height: 40, background: ui.panelBg, borderBottom: `1px solid ${ui.border}`, color: ui.text }}
     >
       <div className="flex items-center gap-1">
         <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={Files}  label="Projeler"  />
@@ -786,7 +786,7 @@ export default function EditorPage() {
   const MobileTabBar = (
     <div
       className="sm:hidden flex shrink-0"
-      style={{ background: '#07090f', borderBottom: '1px solid #1e2535' }}
+      style={{ background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}
     >
       {([
         { id: 'projects', icon: Files, label: 'Projeler' },
@@ -835,6 +835,7 @@ export default function EditorPage() {
         activeFileId={activeFileId}
         onSelect={setActiveFile}
         onClose={removeFile}
+        ui={ui}
       />
       <div className="flex-1 overflow-hidden">
         <EditorPane
@@ -857,6 +858,7 @@ export default function EditorPage() {
     activeProjectId,
     activeFileId,
     isAuthenticated,
+    ui,
     onOpenFile:      handleOpenFile,
     onAddProject:    handleAddProject,
     onSaveProject:   handleSaveProject,
@@ -870,7 +872,7 @@ export default function EditorPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full overflow-hidden" style={{ background: '#0d1117' }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ background: ui.pageBg, color: ui.text }}>
       {tooltipCoords && selectedCode && (
         <div
           style={{
@@ -907,7 +909,7 @@ export default function EditorPage() {
         {EditorColumn}
         {showPreview && (
           <div className="flex-1 overflow-hidden">
-            <PreviewPanel files={files} />
+            <PreviewPanel files={files} ui={ui} />
           </div>
         )}
       </div>
@@ -931,6 +933,7 @@ export default function EditorPage() {
                 onClose={removeFile}
                 mobileShowPreview={mobileShowPreview}
                 onToggleMobilePreview={() => setMobileShowPreview((p) => !p)}
+                ui={ui}
               />
               <div className="flex-1 overflow-hidden">
                 <EditorPane
@@ -949,7 +952,7 @@ export default function EditorPage() {
               <>
                 <div
                   className="h-3 shrink-0 flex items-center justify-center touch-none select-none cursor-row-resize transition-colors"
-                  style={{ background: '#1e2535' }}
+                  style={{ background: ui.border }}
                   onPointerDown={handleMobileDragStart}
                   onPointerMove={handleMobileDragMove}
                   onPointerUp={handleMobileDragEnd}
@@ -958,7 +961,7 @@ export default function EditorPage() {
                   <GripHorizontal className="w-6 h-3 text-gray-600" />
                 </div>
                 <div className="flex-1 min-h-0 overflow-hidden">
-                  <PreviewPanel files={files} />
+                  <PreviewPanel files={files} ui={ui} />
                 </div>
               </>
             )}
