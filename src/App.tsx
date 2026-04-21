@@ -11,6 +11,8 @@ import MessagesPage from '@pages/Messages'
 import NotificationsPage from '@pages/Notifications'
 import SettingsPage from '@pages/Settings'
 import EditorPage from '@pages/Editor'
+import ArticlesPage from '@pages/Article'
+import ArticleEditorPage from '@pages/Article/editor'
 import LoginPage from '@pages/Auth/Login'
 import RegisterPage from '@pages/Auth/Register'
 import PostDetailPage from '@pages/PostDetail'
@@ -64,6 +66,10 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
       </Route>
 
+      {/* Article editor — full screen */}
+      <Route path="/article/new"  element={<ProtectedRoute><ArticleEditorPage /></ProtectedRoute>} />
+      <Route path="/article/:id"  element={<ProtectedRoute><ArticleEditorPage /></ProtectedRoute>} />
+
       {/* Editor — full screen, own layout */}
       <Route
         path="/editor/:projectId?"
@@ -79,6 +85,7 @@ export default function App() {
       {/* Main app */}
       <Route element={<MainLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="/articles" element={<ProtectedRoute><ArticlesPage /></ProtectedRoute>} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/featured" element={<FeaturedPage />} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
