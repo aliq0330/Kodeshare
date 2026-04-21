@@ -21,47 +21,26 @@ const BLOCK_OPTIONS: { type: BlockType; icon: React.ElementType; label: string }
   { type: 'divider', icon: Minus,     label: 'Ayırıcı'  },
 ]
 
-function BlockInsertToolbar({
-  rectTop, rectBottom, rectLeft,
-  onSelect, onClose,
-}: {
-  rectTop: number; rectBottom: number; rectLeft: number
-  onSelect: (t: BlockType) => void
-  onClose: () => void
-}) {
-  const toolbarH = 44
-  const gap      = 6
-  const showBelow = rectTop < 80
-  const top = showBelow ? rectBottom + gap : rectTop - toolbarH - gap
-  const left = Math.max(8, rectLeft)
-
+function BlockInsertToolbar({ onSelect, onClose }: { onSelect: (t: BlockType) => void; onClose: () => void }) {
   return (
-    <>
-      {/* backdrop to close on outside click */}
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div
-        className="fixed z-50 flex items-center gap-1 px-3 py-2 rounded-2xl border border-[#2a3347] bg-[#0a0f1a]/98 backdrop-blur-md shadow-2xl overflow-x-auto scrollbar-none"
-        style={{ top, left, right: 8, maxWidth: 'calc(100vw - 16px)' }}
-        onClick={e => e.stopPropagation()}
-      >
-        {BLOCK_OPTIONS.map(({ type, icon: Icon, label }) => (
-          <button
-            key={type}
-            onClick={() => onSelect(type)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#131c2e] hover:bg-[#1e2a3d] border border-[#2a3347] hover:border-brand-600/40 text-gray-300 hover:text-white text-xs font-medium transition-colors shrink-0 whitespace-nowrap"
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
-        ))}
+    <div className="absolute bottom-full left-0 right-0 z-50 mb-1 flex items-center gap-1 px-3 py-2 rounded-2xl border border-[#2a3347] bg-[#0a0f1a] shadow-2xl overflow-x-auto scrollbar-none">
+      {BLOCK_OPTIONS.map(({ type, icon: Icon, label }) => (
         <button
-          onClick={onClose}
-          className="ml-1 w-7 h-7 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-300 hover:bg-[#1a2233] transition-colors shrink-0"
+          key={type}
+          onClick={() => onSelect(type)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#131c2e] hover:bg-[#1e2a3d] border border-[#2a3347] hover:border-brand-600/40 text-gray-300 hover:text-white text-xs font-medium transition-colors shrink-0 whitespace-nowrap"
         >
-          <X className="w-3.5 h-3.5" />
+          <Icon className="w-3.5 h-3.5" />
+          {label}
         </button>
-      </div>
-    </>
+      ))}
+      <button
+        onClick={onClose}
+        className="ml-1 w-7 h-7 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-300 hover:bg-[#1a2233] transition-colors shrink-0"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
   )
 }
 
@@ -212,9 +191,7 @@ export default function ArticleEditorPage() {
   const [hoverAdd,          setHoverAdd]          = useState<string | null>(null)
   const [showFmtBar,        setShowFmtBar]        = useState(false)
   const [fmtBarPos,         setFmtBarPos]         = useState({ top: 0, left: 0 })
-  const [blockToolbar, setBlockToolbar] = useState<{
-    blockId: string; rectTop: number; rectBottom: number; rectLeft: number
-  } | null>(null)
+  const [blockToolbarId, setBlockToolbarId] = useState<string | null>(null)
 
   // Uncontrolled content refs
   const titleRef    = useRef<HTMLDivElement>(null)
@@ -449,19 +426,6 @@ export default function ArticleEditorPage() {
         </div>
       </header>
 
-      {/* ── Block insert toolbar ── */}
-      {blockToolbar && (
-        <BlockInsertToolbar
-          rectTop={blockToolbar.rectTop}
-          rectBottom={blockToolbar.rectBottom}
-          rectLeft={blockToolbar.rectLeft}
-          onSelect={type => {
-            insertBlockAfter(blockToolbar.blockId, type)
-            setBlockToolbar(null)
-          }}
-          onClose={() => setBlockToolbar(null)}
-        />
-      )}
 
       {/* ── Tags bar ── */}
       {showTags && (
@@ -519,17 +483,20 @@ export default function ArticleEditorPage() {
             >
               {/* + button */}
               <button
-                onClick={() => {
-                  const el = blockElems.current.get(block.id)
-                  if (!el) return
-                  const r = el.getBoundingClientRect()
-                  setBlockToolbar({ blockId: block.id, rectTop: r.top, rectBottom: r.bottom, rectLeft: r.left })
-                }}
+                onClick={() => setBlockToolbarId(id => id === block.id ? null : block.id)}
                 className="absolute -left-8 top-0.5 w-6 h-6 rounded-md flex items-center justify-center hover:bg-[#1e2535] text-gray-600 hover:text-gray-300 transition-all opacity-0 group-hover/block:opacity-100"
                 title="Blok ekle"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
+
+              {/* Inline toolbar above this block */}
+              {blockToolbarId === block.id && (
+                <BlockInsertToolbar
+                  onSelect={type => { insertBlockAfter(block.id, type); setBlockToolbarId(null) }}
+                  onClose={() => setBlockToolbarId(null)}
+                />
+              )}
 
               <Block
                 block={block}
@@ -545,18 +512,24 @@ export default function ArticleEditorPage() {
         </div>
 
         {/* Add block at end */}
-        <button
-          onClick={e => {
-            const lastId = blocks[blocks.length - 1]?.id
-            const el = lastId ? blockElems.current.get(lastId) : null
-            const r = el ? el.getBoundingClientRect() : (e.currentTarget as HTMLElement).getBoundingClientRect()
-            setBlockToolbar({ blockId: lastId ?? '', rectTop: r.top, rectBottom: r.bottom, rectLeft: r.left })
-          }}
-          className="flex items-center gap-2 mt-6 text-gray-600 hover:text-gray-400 text-sm transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Blok ekle
-        </button>
+        <div className="relative mt-6">
+          {blockToolbarId === '__end__' && (
+            <BlockInsertToolbar
+              onSelect={type => {
+                insertBlockAfter(blocks[blocks.length - 1]?.id ?? '', type)
+                setBlockToolbarId(null)
+              }}
+              onClose={() => setBlockToolbarId(null)}
+            />
+          )}
+          <button
+            onClick={() => setBlockToolbarId(id => id === '__end__' ? null : '__end__')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-400 text-sm transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Blok ekle
+          </button>
+        </div>
       </main>
 
       {/* ── Floating format toolbar ── */}
