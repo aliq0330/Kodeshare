@@ -13,6 +13,7 @@ import SettingsPage from '@pages/Settings'
 import EditorPage from '@pages/Editor'
 import ArticlesPage from '@pages/Article'
 import ArticleEditorPage from '@pages/Article/editor'
+import ArticleViewPage from '@pages/Article/view'
 import LoginPage from '@pages/Auth/Login'
 import RegisterPage from '@pages/Auth/Register'
 import PostDetailPage from '@pages/PostDetail'
@@ -66,9 +67,10 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
       </Route>
 
-      {/* Article editor — full screen */}
-      <Route path="/article/new"  element={<ProtectedRoute><ArticleEditorPage /></ProtectedRoute>} />
-      <Route path="/article/:id"  element={<ProtectedRoute><ArticleEditorPage /></ProtectedRoute>} />
+      {/* Article — full screen */}
+      <Route path="/article/new"       element={<ProtectedRoute><ArticleEditorPage /></ProtectedRoute>} />
+      <Route path="/article/:id/view"  element={<ProtectedRoute><ArticleViewPage /></ProtectedRoute>} />
+      <Route path="/article/:id"       element={<ProtectedRoute><ArticleEditorPage /></ProtectedRoute>} />
 
       {/* Editor — full screen, own layout */}
       <Route

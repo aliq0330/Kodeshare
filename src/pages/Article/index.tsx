@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom'
-import { PenLine, Clock, Globe, Lock, Trash2, Plus, BookOpen } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { PenLine, Clock, Globe, Lock, Trash2, Plus, BookOpen, Eye } from 'lucide-react'
 import { useArticleStore } from '@store/articleStore'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -103,6 +103,14 @@ export default function ArticlesPage() {
 
                   {/* Edit / Delete */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Link
+                      to={`/article/${article.id}/view`}
+                      onClick={e => e.stopPropagation()}
+                      className="p-1.5 rounded-lg hover:bg-[#1e2535] text-gray-500 hover:text-white transition-colors"
+                      title="Görüntüle"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </Link>
                     <button
                       onClick={e => { e.stopPropagation(); handleOpen(article.id) }}
                       className="p-1.5 rounded-lg hover:bg-[#1e2535] text-gray-500 hover:text-white transition-colors"

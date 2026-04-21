@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import {
   ArrowLeft, Clock, Tag, Plus, Bold, Italic,
   Link2, Code, Heading2, Heading3, Quote as QuoteIcon,
   Type, Heading1, Code2, Image as ImageIcon, Minus, Trash2,
-  Check,
+  Check, Eye,
 } from 'lucide-react'
 import { useArticleStore, type BlockType, type ArticleBlock, genBlockId } from '@store/articleStore'
 
@@ -444,6 +444,15 @@ export default function ArticleEditorPage() {
           >
             <Tag className="w-4 h-4" />
           </button>
+          {articleId && (
+            <Link
+              to={`/article/${articleId}/view`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#1e2535] transition-colors"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Görüntüle</span>
+            </Link>
+          )}
           <button
             onClick={handlePublishToggle}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
