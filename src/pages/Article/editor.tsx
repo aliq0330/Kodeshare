@@ -4,62 +4,45 @@ import {
   ArrowLeft, Clock, Tag, Plus, Bold, Italic,
   Link2, Code, Heading2, Heading3, Quote as QuoteIcon,
   Type, Heading1, Code2, Image as ImageIcon, Minus, Trash2,
-  Check, Eye,
+  Check, Eye, X,
 } from 'lucide-react'
 import { useArticleStore, type BlockType, type ArticleBlock, genBlockId } from '@store/articleStore'
 
-// ── Block type menu ────────────────────────────────────────────────────────────
+// ── Block insert toolbar ───────────────────────────────────────────────────────
 
-const BLOCK_OPTIONS: { type: BlockType; icon: React.ElementType; label: string; desc: string }[] = [
-  { type: 'p',       icon: Type,       label: 'Metin',    desc: 'Normal paragraf' },
-  { type: 'h1',      icon: Heading1,   label: 'Başlık 1', desc: 'Büyük başlık' },
-  { type: 'h2',      icon: Heading2,   label: 'Başlık 2', desc: 'Orta başlık' },
-  { type: 'h3',      icon: Heading3,   label: 'Başlık 3', desc: 'Küçük başlık' },
-  { type: 'quote',   icon: QuoteIcon,  label: 'Alıntı',   desc: 'Vurgulanan metin' },
-  { type: 'code',    icon: Code2,      label: 'Kod',      desc: 'Kod bloğu' },
-  { type: 'image',   icon: ImageIcon,  label: 'Görsel',   desc: 'Resim URL ekle' },
-  { type: 'divider', icon: Minus,      label: 'Ayırıcı',  desc: 'Yatay çizgi' },
+const BLOCK_OPTIONS: { type: BlockType; icon: React.ElementType; label: string }[] = [
+  { type: 'p',       icon: Type,      label: 'Metin'    },
+  { type: 'h1',      icon: Heading1,  label: 'Başlık 1' },
+  { type: 'h2',      icon: Heading2,  label: 'Başlık 2' },
+  { type: 'h3',      icon: Heading3,  label: 'Başlık 3' },
+  { type: 'quote',   icon: QuoteIcon, label: 'Alıntı'   },
+  { type: 'code',    icon: Code2,     label: 'Kod'      },
+  { type: 'image',   icon: ImageIcon, label: 'Görsel'   },
+  { type: 'divider', icon: Minus,     label: 'Ayırıcı'  },
 ]
 
-interface SlashMenuProps {
-  filter: string
-  position: { top: number; left: number }
-  onSelect: (type: BlockType) => void
-  onClose: () => void
-}
-
-function SlashMenu({ filter, position, onSelect, onClose }: SlashMenuProps) {
-  const filtered = BLOCK_OPTIONS.filter(o =>
-    o.label.toLowerCase().includes(filter.toLowerCase()) ||
-    o.desc.toLowerCase().includes(filter.toLowerCase())
-  )
-
-  useEffect(() => {
-    if (filtered.length === 0) onClose()
-  }, [filtered.length, onClose])
-
+function BlockInsertToolbar({ onSelect, onClose }: { onSelect: (t: BlockType) => void; onClose: () => void }) {
   return (
-    <div
-      className="fixed z-50 bg-[#131c2e] border border-[#2a3347] rounded-2xl shadow-2xl p-2 w-60"
-      style={{ top: position.top, left: position.left }}
-      onMouseDown={e => e.preventDefault()}
-    >
-      <p className="text-[11px] text-gray-500 uppercase tracking-wider px-2 mb-2 font-semibold">Blok ekle</p>
-      {filtered.map(({ type, icon: Icon, label, desc }) => (
+    <div className="sticky top-[52px] z-30 border-b border-[#2a3347] bg-[#0a0f1a]/98 backdrop-blur-md">
+      <div className="max-w-[680px] mx-auto px-4 flex items-center gap-1 py-2 overflow-x-auto scrollbar-none">
+        <span className="text-[11px] text-gray-600 uppercase tracking-wider font-semibold mr-1 shrink-0">Blok:</span>
+        {BLOCK_OPTIONS.map(({ type, icon: Icon, label }) => (
+          <button
+            key={type}
+            onClick={() => onSelect(type)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#131c2e] hover:bg-[#1e2a3d] border border-[#2a3347] hover:border-brand-600/40 text-gray-300 hover:text-white text-xs font-medium transition-colors shrink-0 whitespace-nowrap"
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        ))}
         <button
-          key={type}
-          onMouseDown={() => onSelect(type)}
-          className="flex items-center gap-3 w-full px-2 py-2 rounded-xl hover:bg-[#1e2a3d] text-left transition-colors group"
+          onClick={onClose}
+          className="ml-2 w-7 h-7 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-300 hover:bg-[#1a2233] transition-colors shrink-0"
         >
-          <div className="w-8 h-8 rounded-lg bg-[#0d1117] flex items-center justify-center shrink-0">
-            <Icon className="w-4 h-4 text-brand-400" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-white">{label}</p>
-            <p className="text-xs text-gray-500 truncate">{desc}</p>
-          </div>
+          <X className="w-3.5 h-3.5" />
         </button>
-      ))}
+      </div>
     </div>
   )
 }
@@ -67,7 +50,7 @@ function SlashMenu({ filter, position, onSelect, onClose }: SlashMenuProps) {
 // ── Block placeholders ─────────────────────────────────────────────────────────
 
 const PLACEHOLDER: Record<BlockType, string> = {
-  p:       "Yazmaya başla, blok eklemek için '/' yaz...",
+  p:       'Yazmaya başla...',
   h1:      'Başlık 1',
   h2:      'Başlık 2',
   h3:      'Başlık 3',
@@ -207,11 +190,12 @@ export default function ArticleEditorPage() {
   const [savedAt,   setSavedAt]     = useState<string>('')
   const [showTags,  setShowTags]    = useState(false)
   const [tagInput,  setTagInput]    = useState('')
-  const [focusedId, setFocusedId]   = useState<string | null>(null)
-  const [hoverAdd,  setHoverAdd]    = useState<string | null>(null)
-  const [showFmtBar,  setShowFmtBar]  = useState(false)
-  const [fmtBarPos,   setFmtBarPos]   = useState({ top: 0, left: 0 })
-  const [slashMenu,   setSlashMenu]   = useState<{ blockId: string; position: { top: number; left: number }; filter: string } | null>(null)
+  const [focusedId,         setFocusedId]         = useState<string | null>(null)
+  const [hoverAdd,          setHoverAdd]          = useState<string | null>(null)
+  const [showFmtBar,        setShowFmtBar]        = useState(false)
+  const [fmtBarPos,         setFmtBarPos]         = useState({ top: 0, left: 0 })
+  const [blockToolbarOpen,  setBlockToolbarOpen]  = useState(false)
+  const [toolbarInsertId,   setToolbarInsertId]   = useState<string | null>(null)
 
   // Uncontrolled content refs
   const titleRef    = useRef<HTMLDivElement>(null)
@@ -310,14 +294,10 @@ export default function ArticleEditorPage() {
 
   const changeBlockType = useCallback((id: string, type: BlockType) => {
     const content = blockConts.current.get(id) ?? ''
-    // Strip the "/" command from content
-    const stripped = content.replace(/<[^>]+>/g, '').startsWith('/')
-      ? '' : content
-    blockConts.current.set(id, type === 'divider' ? '' : stripped)
+    blockConts.current.set(id, type === 'divider' ? '' : content)
     setBlocks(prev => prev.map(b =>
       b.id !== id ? b : { ...b, type, content: blockConts.current.get(id) ?? '' }
     ))
-    setSlashMenu(null)
     setTimeout(() => {
       const el = blockElems.current.get(id)
       if (el && type !== 'divider') { el.focus(); placeCursorAtStart(el) }
@@ -334,37 +314,21 @@ export default function ArticleEditorPage() {
 
   const handleBlockInput = useCallback((id: string, html: string) => {
     blockConts.current.set(id, html)
-    const text = html.replace(/<[^>]+>/g, '')
-    if (text === '/') {
-      const el = blockElems.current.get(id)
-      if (el) {
-        const rect = el.getBoundingClientRect()
-        setSlashMenu({ blockId: id, position: { top: rect.bottom + 4, left: rect.left }, filter: '' })
-      }
-    } else if (slashMenu?.blockId === id) {
-      if (text.startsWith('/')) setSlashMenu(s => s ? { ...s, filter: text.slice(1) } : null)
-      else setSlashMenu(null)
-    }
     scheduleAutoSave()
-  }, [slashMenu, scheduleAutoSave])
+  }, [scheduleAutoSave])
 
   const handleBlockKeyDown = useCallback((id: string, e: React.KeyboardEvent<HTMLElement>) => {
-    if (slashMenu) {
-      if (e.key === 'Escape') { e.preventDefault(); setSlashMenu(null) }
-      return
-    }
     if (e.key === 'Enter' && !e.shiftKey) {
       const block = blocks.find(b => b.id === id)
-      // In code block, allow default (newline)
       if (block?.type === 'code') return
       e.preventDefault()
       insertBlockAfter(id)
     } else if (e.key === 'Backspace') {
-      const html  = blockConts.current.get(id) ?? ''
-      const text  = html.replace(/<[^>]+>/g, '').trim()
-      if (!text)  { e.preventDefault(); deleteBlock(id) }
+      const html = blockConts.current.get(id) ?? ''
+      const text = html.replace(/<[^>]+>/g, '').trim()
+      if (!text) { e.preventDefault(); deleteBlock(id) }
     }
-  }, [slashMenu, blocks, insertBlockAfter, deleteBlock])
+  }, [blocks, insertBlockAfter, deleteBlock])
 
   const handleMouseUp = useCallback(() => {
     const sel = window.getSelection()
@@ -466,6 +430,17 @@ export default function ArticleEditorPage() {
         </div>
       </header>
 
+      {/* ── Block insert toolbar ── */}
+      {blockToolbarOpen && (
+        <BlockInsertToolbar
+          onSelect={type => {
+            if (toolbarInsertId) insertBlockAfter(toolbarInsertId, type)
+            setBlockToolbarOpen(false)
+          }}
+          onClose={() => setBlockToolbarOpen(false)}
+        />
+      )}
+
       {/* ── Tags bar ── */}
       {showTags && (
         <div className="border-b border-[#2a3347] px-6 py-2.5 flex items-center gap-2 flex-wrap bg-[#0d1117]">
@@ -520,12 +495,14 @@ export default function ArticleEditorPage() {
               onMouseEnter={() => setHoverAdd(block.id)}
               onMouseLeave={() => setHoverAdd(null)}
             >
-              {/* Left: add button */}
+              {/* + button — desktop: hover only, mobile: always visible */}
               <button
-                onClick={() => insertBlockAfter(block.id)}
-                className={`absolute -left-9 top-1 p-1 rounded-lg hover:bg-[#1e2535] text-gray-600 hover:text-gray-300 transition-all ${
-                  hoverAdd === block.id ? 'opacity-100' : 'opacity-0'
-                }`}
+                onClick={() => {
+                  setToolbarInsertId(block.id)
+                  setBlockToolbarOpen(true)
+                }}
+                className={`absolute -left-9 top-1 p-1 rounded-lg hover:bg-[#1e2535] text-gray-600 hover:text-gray-300 transition-all
+                  lg:opacity-0 lg:group-hover/block:opacity-100 opacity-100`}
                 title="Blok ekle"
               >
                 <Plus className="w-4 h-4" />
@@ -546,7 +523,10 @@ export default function ArticleEditorPage() {
 
         {/* Add block at end */}
         <button
-          onClick={() => insertBlockAfter(blocks[blocks.length - 1]?.id ?? '')}
+          onClick={() => {
+            setToolbarInsertId(blocks[blocks.length - 1]?.id ?? null)
+            setBlockToolbarOpen(true)
+          }}
           className="flex items-center gap-2 mt-6 text-gray-600 hover:text-gray-400 text-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -591,15 +571,6 @@ export default function ArticleEditorPage() {
         </div>
       )}
 
-      {/* ── Slash command menu ── */}
-      {slashMenu && (
-        <SlashMenu
-          filter={slashMenu.filter}
-          position={slashMenu.position}
-          onSelect={type => changeBlockType(slashMenu.blockId, type)}
-          onClose={() => setSlashMenu(null)}
-        />
-      )}
     </div>
   )
 }
