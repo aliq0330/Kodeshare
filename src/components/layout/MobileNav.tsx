@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Compass, Star, User, Code2 } from 'lucide-react'
+import { Home, Compass, Star, User, Code2, BookOpen } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 
@@ -36,15 +36,26 @@ export default function MobileNav() {
         </NavLink>
       ))}
       {isAuthenticated && (
-        <NavLink
-          to={`/profile/${user?.username}`}
-          className={({ isActive }) =>
-            cn('flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors', isActive ? 'text-brand-400' : 'text-gray-500')
-          }
-        >
-          <User className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Profil</span>
-        </NavLink>
+        <>
+          <NavLink
+            to="/articles"
+            className={({ isActive }) =>
+              cn('flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors', isActive ? 'text-brand-400' : 'text-gray-500')
+            }
+          >
+            <BookOpen className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Makale</span>
+          </NavLink>
+          <NavLink
+            to={`/profile/${user?.username}`}
+            className={({ isActive }) =>
+              cn('flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors', isActive ? 'text-brand-400' : 'text-gray-500')
+            }
+          >
+            <User className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Profil</span>
+          </NavLink>
+        </>
       )}
     </nav>
   )
