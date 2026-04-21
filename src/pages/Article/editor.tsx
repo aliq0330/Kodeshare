@@ -23,7 +23,7 @@ const BLOCK_OPTIONS: { type: BlockType; icon: React.ElementType; label: string }
 
 function BlockInsertToolbar({ onSelect, onClose }: { onSelect: (t: BlockType) => void; onClose: () => void }) {
   return (
-    <div className="absolute bottom-full left-0 right-0 z-50 mb-1 flex items-center gap-1 px-3 py-2 rounded-2xl border border-[#2a3347] bg-[#0a0f1a] shadow-2xl overflow-x-auto scrollbar-none">
+    <div className="flex items-center gap-1 px-3 py-2 mb-1 rounded-2xl border border-[#2a3347] bg-[#0a0f1a] overflow-x-auto scrollbar-none">
       {BLOCK_OPTIONS.map(({ type, icon: Icon, label }) => (
         <button
           key={type}
