@@ -939,16 +939,20 @@ export default function EditorPage() {
 
   // ── Editor column ─────────────────────────────────────────────────────────
 
+  const activeProjectForAdd = projects.find((p) => p.id === activeProjectId) ?? null
+
   const EditorColumn = files.length === 0 ? (
     <div className="flex flex-col flex-1 min-w-0 items-center justify-center gap-4 select-none" style={{ background: ui.pageBg }}>
-      <p className="text-sm font-medium" style={{ color: ui.textMuted }}>Proje Ekle</p>
+      <p className="text-sm font-medium" style={{ color: ui.textMuted }}>
+        {activeProjectForAdd ? 'Dosya Ekle' : 'Proje Ekle'}
+      </p>
       <button
-        onClick={handleAddProject}
+        onClick={activeProjectForAdd ? () => handleAddFile(activeProjectForAdd) : handleAddProject}
         className="w-20 h-20 rounded-2xl border-2 border-dashed flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         style={{ borderColor: ui.border, color: ui.textMuted }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#8aa8ff'; e.currentTarget.style.color = '#8aa8ff' }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = ui.border; e.currentTarget.style.color = ui.textMuted }}
-        title="Yeni proje oluştur"
+        title={activeProjectForAdd ? 'Yeni dosya ekle' : 'Yeni proje oluştur'}
       >
         <Plus className="w-10 h-10" />
       </button>
