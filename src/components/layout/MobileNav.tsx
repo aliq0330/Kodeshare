@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { Home, Compass, Star, User, Code2, FileText } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
