@@ -115,10 +115,13 @@ export const useArticleStore = create<ArticleState>()((set, get) => ({
   },
 
   updateBlock: (id, updates) =>
-    set((s) => ({
-      blocks: s.blocks.map((b) => (b.id === id ? { ...b, ...updates } : b)),
-      isDirty: true,
-    })),
+    set((s) => {
+      if (!s.blocks.some((b) => b.id === id)) return s
+      return {
+        blocks: s.blocks.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+        isDirty: true,
+      }
+    }),
 
   removeBlock: (id) =>
     set((s) => {

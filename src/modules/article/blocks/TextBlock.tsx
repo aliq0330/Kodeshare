@@ -49,8 +49,7 @@ export default function TextBlock({ block, onFocusNext, onFocusPrev }: Props) {
       e.preventDefault()
       const newId = addBlock(block.id, 'paragraph')
       requestAnimationFrame(() => {
-        const el = document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)
-        el?.focus()
+        document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
       })
     }
     if (e.key === 'Backspace' && !ref.current?.textContent?.trim()) {
@@ -58,8 +57,32 @@ export default function TextBlock({ block, onFocusNext, onFocusPrev }: Props) {
       removeBlock(block.id)
       onFocusPrev?.()
     }
-    if (e.key === 'ArrowDown') onFocusNext?.()
-    if (e.key === 'ArrowUp') onFocusPrev?.()
+    if (e.key === 'ArrowDown' && onFocusNext && ref.current) {
+      const sel = window.getSelection()
+      if (sel?.isCollapsed && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0)
+        const endRange = document.createRange()
+        endRange.selectNodeContents(ref.current)
+        endRange.collapse(false)
+        if (range.compareBoundaryPoints(Range.START_TO_START, endRange) >= 0) {
+          e.preventDefault()
+          onFocusNext()
+        }
+      }
+    }
+    if (e.key === 'ArrowUp' && onFocusPrev && ref.current) {
+      const sel = window.getSelection()
+      if (sel?.isCollapsed && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0)
+        const startRange = document.createRange()
+        startRange.selectNodeContents(ref.current)
+        startRange.collapse(true)
+        if (range.compareBoundaryPoints(Range.START_TO_START, startRange) <= 0) {
+          e.preventDefault()
+          onFocusPrev()
+        }
+      }
+    }
   }
 
   const isTextBlock = ['paragraph', 'heading1', 'heading2', 'heading3'].includes(block.type)
@@ -83,7 +106,7 @@ export default function TextBlock({ block, onFocusNext, onFocusPrev }: Props) {
       data-placeholder={PLACEHOLDER[block.type] ?? 'Yaz...'}
       onInput={sync}
       onFocus={() => setActiveBlock(block.id)}
-      onBlur={() => { sync(); setActiveBlock(null) }}
+      onBlur={() => setActiveBlock(null)}
       onKeyDown={handleKeyDown}
     />
   )
