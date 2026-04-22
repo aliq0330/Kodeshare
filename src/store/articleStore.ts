@@ -44,8 +44,13 @@ export function listArticles(): SavedArticleRecord[] {
   }
 }
 
-function writeArticles(records: SavedArticleRecord[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+function writeArticles(records: SavedArticleRecord[]): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+    return true
+  } catch {
+    return false
+  }
 }
 
 interface ArticleState {
@@ -148,21 +153,32 @@ export const useArticleStore = create<ArticleState>()((set, get) => ({
     const records = listArticles()
     const existingIdx = records.findIndex((r) => r.id === id)
     const now = new Date().toISOString()
-    const record: SavedArticleRecord = {
-      id,
-      title: title.trim() || 'Başlıksız Makale',
-      subtitle,
-      coverImage,
-      blocks,
-      savedAt: existingIdx >= 0 ? records[existingIdx].savedAt : now,
-      updatedAt: now,
+    const savedAt = existingIdx >= 0 ? records[existingIdx].savedAt : now
+
+    const upsert = (recs: SavedArticleRecord[], rec: SavedArticleRecord) => {
+      const next = [...recs]
+      if (existingIdx >= 0) next[existingIdx] = rec
+      else next.unshift(rec)
+      return next
     }
-    if (existingIdx >= 0) {
-      records[existingIdx] = record
-    } else {
-      records.unshift(record)
+
+    // 1. Görseller dahil kaydet
+    const fullRecord: SavedArticleRecord = {
+      id, title: title.trim() || 'Başlıksız Makale',
+      subtitle, coverImage, blocks, savedAt, updatedAt: now,
     }
-    writeArticles(records)
+    if (writeArticles(upsert(records, fullRecord))) {
+      set({ isDirty: false })
+      return
+    }
+
+    // 2. Kota aşıldıysa görseller olmadan kaydet
+    const lightRecord: SavedArticleRecord = {
+      ...fullRecord,
+      coverImage: null,
+      blocks: blocks.map((b) => (b.type === 'image' ? { ...b, src: undefined } : b)),
+    }
+    writeArticles(upsert(records, lightRecord))
     set({ isDirty: false })
   },
 

@@ -36,7 +36,7 @@ export default function ImageBlock({ block }: Props) {
           />
           <button
             onClick={() => updateBlock(block.id, { src: undefined })}
-            className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+            className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-black/80"
           >
             <X className="w-4 h-4" />
           </button>
