@@ -10,6 +10,7 @@ export type BlockType =
   | 'quote'
   | 'divider'
   | 'callout'
+  | 'post-embed'
 
 export interface ArticleBlock {
   id: string

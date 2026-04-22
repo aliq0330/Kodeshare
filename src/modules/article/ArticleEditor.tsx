@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import {
   ImagePlus, X, ChevronUp, ChevronDown, Trash2,
   Plus, Camera, Heading1, Heading2, Heading3, Code2, Quote, Lightbulb, Minus,
+  Newspaper, Loader2,
 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { BlockType } from '@store/articleStore'
+import { postService } from '@services/postService'
 import ArticleToolbar from './ArticleToolbar'
 import TextBlock from './blocks/TextBlock'
 import ImageBlock from './blocks/ImageBlock'
@@ -13,15 +15,17 @@ import CodeBlock from './blocks/CodeBlock'
 import QuoteBlock from './blocks/QuoteBlock'
 import DividerBlock from './blocks/DividerBlock'
 import CalloutBlock from './blocks/CalloutBlock'
+import PostEmbedBlock from './blocks/PostEmbedBlock'
 
 // Block types shown in the Medium-style circle menu
 const CIRCLE_BLOCKS: { type: BlockType; icon: React.ReactNode; label: string }[] = [
-  { type: 'image',   icon: <Camera   className="w-4 h-4" />, label: 'Görsel' },
-  { type: 'heading2',icon: <Heading2 className="w-4 h-4" />, label: 'Başlık' },
-  { type: 'code',    icon: <Code2    className="w-4 h-4" />, label: 'Kod Bloğu' },
-  { type: 'quote',   icon: <Quote    className="w-4 h-4" />, label: 'Alıntı' },
-  { type: 'callout', icon: <Lightbulb className="w-4 h-4" />, label: 'Çağrı Kutusu' },
-  { type: 'divider', icon: <Minus    className="w-4 h-4" />, label: 'Ayırıcı' },
+  { type: 'image',      icon: <Camera    className="w-4 h-4" />,   label: 'Görsel' },
+  { type: 'heading2',   icon: <Heading2  className="w-4 h-4" />,   label: 'Başlık' },
+  { type: 'code',       icon: <Code2     className="w-4 h-4" />,   label: 'Kod Bloğu' },
+  { type: 'quote',      icon: <Quote     className="w-4 h-4" />,   label: 'Alıntı' },
+  { type: 'callout',    icon: <Lightbulb className="w-4 h-4" />,   label: 'Çağrı Kutusu' },
+  { type: 'divider',    icon: <Minus     className="w-4 h-4" />,   label: 'Ayırıcı' },
+  { type: 'post-embed', icon: <Newspaper className="w-4 h-4" />,   label: 'Gönderi Postu' },
 ]
 
 function CircleBtn({
@@ -48,7 +52,13 @@ function CircleBtn({
   )
 }
 
-function BlockWrapper({ id, children }: { id: string; children: React.ReactNode }) {
+function BlockWrapper({
+  id, children, onAddPostEmbed,
+}: {
+  id: string
+  children: React.ReactNode
+  onAddPostEmbed: (afterId: string) => void
+}) {
   const { moveBlock, removeBlock, addBlock, blocks } = useArticleStore()
   const [hovered, setHovered] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -113,7 +123,11 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
               <CircleBtn
                 key={b.type}
                 title={b.label}
-                onClick={() => b.type === 'heading2' ? setSubmenu('heading') : handleAddBlock(b.type)}
+                onClick={() => {
+                  if (b.type === 'heading2') { setSubmenu('heading'); return }
+                  if (b.type === 'post-embed') { setMenuOpen(false); setSubmenu(null); onAddPostEmbed(id); return }
+                  handleAddBlock(b.type)
+                }}
               >
                 {b.icon}
               </CircleBtn>
@@ -201,6 +215,47 @@ export default function ArticleEditor() {
   const [addMenuOpen, setAddMenuOpen] = useState(false)
   const [addSubmenu, setAddSubmenu] = useState<'heading' | null>(null)
   const addMenuRef = useRef<HTMLDivElement>(null)
+
+  // Post-embed dialog state
+  const [postEmbedOpen, setPostEmbedOpen] = useState(false)
+  const [postEmbedAfterId, setPostEmbedAfterId] = useState<string | null>(null)
+  const [postEmbedUrl, setPostEmbedUrl] = useState('')
+  const [postEmbedLoading, setPostEmbedLoading] = useState(false)
+  const [postEmbedError, setPostEmbedError] = useState<string | null>(null)
+
+  const openPostEmbed = (afterId: string | null) => {
+    setPostEmbedAfterId(afterId)
+    setPostEmbedUrl('')
+    setPostEmbedError(null)
+    setPostEmbedOpen(true)
+  }
+
+  const closePostEmbed = () => {
+    setPostEmbedOpen(false)
+    setPostEmbedUrl('')
+    setPostEmbedError(null)
+    setPostEmbedLoading(false)
+  }
+
+  const handlePostEmbedSubmit = async () => {
+    const raw = postEmbedUrl.trim()
+    if (!raw) return
+    const match = raw.match(/\/post\/([a-zA-Z0-9_-]+)/)
+    const postId = match ? match[1] : raw
+    setPostEmbedLoading(true)
+    setPostEmbedError(null)
+    try {
+      await postService.getPost(postId)
+      const newId = addBlock(postEmbedAfterId, 'post-embed', { src: postId })
+      closePostEmbed()
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
+      })
+    } catch {
+      setPostEmbedError('Gönderi bulunamadı. URL veya ID\'yi kontrol edin.')
+      setPostEmbedLoading(false)
+    }
+  }
 
   // Close bottom circle menu on outside click
   useEffect(() => {
@@ -312,7 +367,11 @@ export default function ArticleEditor() {
             const nextId = idx < blocks.length - 1 ? blocks[idx + 1].id : null
 
             return (
-              <BlockWrapper key={block.id} id={block.id}>
+              <BlockWrapper
+                key={block.id}
+                id={block.id}
+                onAddPostEmbed={(afterId) => openPostEmbed(afterId)}
+              >
                 {TEXT_TYPES.includes(block.type) ? (
                   block.type === 'quote' ? (
                     <QuoteBlock block={block} />
@@ -331,6 +390,8 @@ export default function ArticleEditor() {
                   <CodeBlock block={block} />
                 ) : block.type === 'divider' ? (
                   <DividerBlock />
+                ) : block.type === 'post-embed' ? (
+                  <PostEmbedBlock block={block} />
                 ) : null}
               </BlockWrapper>
             )
@@ -377,6 +438,11 @@ export default function ArticleEditor() {
                     title={b.label}
                     onClick={() => {
                       if (b.type === 'heading2') { setAddSubmenu('heading'); return }
+                      if (b.type === 'post-embed') {
+                        setAddMenuOpen(false); setAddSubmenu(null)
+                        openPostEmbed(blocks[blocks.length - 1]?.id ?? null)
+                        return
+                      }
                       setAddMenuOpen(false)
                       const lastId = blocks[blocks.length - 1]?.id ?? null
                       const newId = addBlock(lastId, b.type)
@@ -416,6 +482,49 @@ export default function ArticleEditor() {
           </div>
         </div>
       </div>
+
+      {/* ── Post embed dialog ── */}
+      {postEmbedOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={closePostEmbed}>
+          <div
+            className="w-full max-w-md bg-surface-card border border-surface-border rounded-2xl shadow-2xl p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 className="text-base font-semibold text-white mb-1">Gönderi Postu Ekle</h2>
+            <p className="text-xs text-gray-500 mb-4">
+              Gönderi URL'sini veya ID'sini girin
+            </p>
+            <input
+              autoFocus
+              value={postEmbedUrl}
+              onChange={e => { setPostEmbedUrl(e.target.value); setPostEmbedError(null) }}
+              onKeyDown={e => { if (e.key === 'Enter') handlePostEmbedSubmit(); if (e.key === 'Escape') closePostEmbed() }}
+              placeholder="https://kodeshare.dev/post/... veya gönderi ID'si"
+              className="w-full bg-surface-raised rounded-lg px-3 py-2.5 text-sm text-white outline-none placeholder:text-gray-600 border border-surface-border focus:border-brand-500 transition-colors"
+            />
+            {postEmbedError && (
+              <p className="text-xs text-red-400 mt-2">{postEmbedError}</p>
+            )}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={closePostEmbed}
+                className="flex-1 py-2 rounded-lg border border-surface-border text-sm text-gray-400 hover:text-white hover:border-gray-400 transition-colors"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handlePostEmbedSubmit}
+                disabled={postEmbedLoading || !postEmbedUrl.trim()}
+                className="flex-1 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {postEmbedLoading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Yükleniyor...</>
+                ) : 'Ekle'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
