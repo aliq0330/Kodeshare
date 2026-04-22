@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Code2, Search, Bell, Mail, Plus, ShieldCheck } from 'lucide-react'
+import { Code2, Search, Bell, Mail, Plus, ShieldCheck, FileText } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Dropdown from '@components/ui/Dropdown'
@@ -49,6 +49,16 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/makale')}
+                className="hidden md:inline-flex"
+              >
+                <FileText className="w-4 h-4" />
+                Makale Yaz
+              </Button>
+
               <Button
                 variant="primary"
                 size="sm"

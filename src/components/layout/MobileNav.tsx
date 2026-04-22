@@ -1,13 +1,14 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Compass, Star, User, Code2 } from 'lucide-react'
+import { Home, Compass, Star, User, Code2, FileText } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 
 const items = [
-  { to: '/',         icon: Home,    label: 'Ana Sayfa', end: true },
-  { to: '/explore',  icon: Compass, label: 'Keşfet' },
-  { to: '/editor',   icon: Code2,   label: 'Editör' },
-  { to: '/featured', icon: Star,    label: 'Öne Çıkanlar' },
+  { to: '/',         icon: Home,     label: 'Ana Sayfa', end: true },
+  { to: '/explore',  icon: Compass,  label: 'Keşfet' },
+  { to: '/editor',   icon: Code2,    label: 'Editör' },
+  { to: '/makale',   icon: FileText, label: 'Makale', authOnly: true },
+  { to: '/featured', icon: Star,     label: 'Öne Çıkanlar' },
 ]
 
 export default function MobileNav() {
@@ -15,7 +16,7 @@ export default function MobileNav() {
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-surface-border h-16 flex items-center justify-around px-2">
-      {items.map(({ to, icon: Icon, label, end }) => (
+      {items.filter((item) => !item.authOnly || isAuthenticated).map(({ to, icon: Icon, label, end }) => (
         <NavLink
           key={to}
           to={to}

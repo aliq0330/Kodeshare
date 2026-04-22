@@ -17,6 +17,7 @@ import PostDetailPage from '@pages/PostDetail'
 import CollectionDetailPage from '@pages/CollectionDetail'
 import AdminPage from '@pages/Admin'
 import AdminUserDetailPage from '@pages/Admin/UserDetail'
+import ArticlePage from '@pages/Article'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
 import { useEditorStore } from '@store/editorStore'
@@ -63,6 +64,16 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
       </Route>
+
+      {/* Article editor — full screen, own layout */}
+      <Route
+        path="/makale"
+        element={
+          <ProtectedRoute>
+            <ArticlePage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Editor — full screen, own layout */}
       <Route
