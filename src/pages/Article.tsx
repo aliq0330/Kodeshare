@@ -125,13 +125,28 @@ export default function ArticlePage() {
 // ── Preview mode ──────────────────────────────────────────────────────────────
 function ArticlePreview() {
   const { title, subtitle, coverImage, blocks } = useArticleStore()
+  const navigate = useNavigate()
+
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+    const mention = (e.target as HTMLElement).closest<HTMLElement>('[data-mention]')
+    if (mention) {
+      e.preventDefault()
+      navigate(`/profile/${mention.dataset.mention}`)
+      return
+    }
+    const tag = (e.target as HTMLElement).closest<HTMLElement>('[data-tag]')
+    if (tag) {
+      e.preventDefault()
+      navigate(`/explore?tag=${tag.dataset.tag}`)
+    }
+  }
 
   return (
     <div className="min-h-full bg-surface">
       {coverImage && (
         <img src={coverImage} alt="" className="w-full h-64 sm:h-96 object-cover" />
       )}
-      <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10" onClick={handleClick}>
         {title && (
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white mb-4">
             {title}

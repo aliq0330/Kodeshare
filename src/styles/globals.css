@@ -85,6 +85,22 @@
     @apply badge bg-surface-raised text-gray-300 hover:bg-surface-border cursor-pointer transition-colors;
   }
 
+  .article-mention {
+    color: #818cf8;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .article-mention:hover { text-decoration: underline; }
+
+  .article-tag {
+    color: #34d399;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .article-tag:hover { text-decoration: underline; }
+
   .divider {
     @apply border-t border-surface-border;
   }
