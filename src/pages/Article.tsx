@@ -5,6 +5,7 @@ import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import ArticleEditor from '@modules/article/ArticleEditor'
 import CodeBlockPreview from '@modules/article/blocks/CodeBlockPreview'
+import PostEmbedBlock from '@modules/article/blocks/PostEmbedBlock'
 
 function SaveStatus({ isDirty }: { isDirty: boolean }) {
   const [saved, setSaved] = useState(false)
@@ -218,6 +219,9 @@ function ArticlePreview() {
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-600" />
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-600" />
               </div>
+            )
+            if (block.type === 'post-embed') return (
+              <PostEmbedBlock key={block.id} block={block} />
             )
             return null
           })}
