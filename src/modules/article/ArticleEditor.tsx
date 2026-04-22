@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   ImagePlus, X, ChevronUp, ChevronDown, Trash2,
-  Plus, Camera, Heading2, Code2, Quote, Lightbulb, Minus,
+  Plus, Camera, Heading1, Heading2, Heading3, Code2, Quote, Lightbulb, Minus,
 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
@@ -52,6 +52,7 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
   const { moveBlock, removeBlock, addBlock, blocks } = useArticleStore()
   const [hovered, setHovered] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [submenu, setSubmenu] = useState<'heading' | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const idx = blocks.findIndex((b) => b.id === id)
 
@@ -61,6 +62,7 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false)
+        setSubmenu(null)
       }
     }
     document.addEventListener('mousedown', handler)
@@ -69,6 +71,7 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
 
   const handleAddBlock = (type: BlockType) => {
     setMenuOpen(false)
+    setSubmenu(null)
     const newId = addBlock(id, type)
     requestAnimationFrame(() => {
       document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
@@ -84,17 +87,39 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
       {/* ── Desktop: left side controls ── */}
       <div ref={menuRef} className="absolute -left-10 top-1 hidden md:block z-20">
         {menuOpen ? (
-          // Medium-style circle menu
+          submenu === 'heading' ? (
+            // Heading sub-circles: H1 / H2 / H3
+            <div className="flex items-center gap-1 animate-circle-menu">
+              <CircleBtn onClick={() => setSubmenu(null)} title="Geri" className="border-gray-400 hover:border-gray-200">
+                <X className="w-3.5 h-3.5" />
+              </CircleBtn>
+              <CircleBtn onClick={() => handleAddBlock('heading1')} title="H1 – Büyük Başlık">
+                <Heading1 className="w-4 h-4" />
+              </CircleBtn>
+              <CircleBtn onClick={() => handleAddBlock('heading2')} title="H2 – Orta Başlık">
+                <Heading2 className="w-4 h-4" />
+              </CircleBtn>
+              <CircleBtn onClick={() => handleAddBlock('heading3')} title="H3 – Küçük Başlık">
+                <Heading3 className="w-4 h-4" />
+              </CircleBtn>
+            </div>
+          ) : (
+          // Main circle row
           <div className="flex items-center gap-1 animate-circle-menu">
-            <CircleBtn onClick={() => setMenuOpen(false)} title="Kapat" className="border-gray-400 hover:border-red-400 hover:text-red-400">
+            <CircleBtn onClick={() => { setMenuOpen(false); setSubmenu(null) }} title="Kapat" className="border-gray-400 hover:border-red-400 hover:text-red-400">
               <X className="w-3.5 h-3.5" />
             </CircleBtn>
             {CIRCLE_BLOCKS.map((b) => (
-              <CircleBtn key={b.type} onClick={() => handleAddBlock(b.type)} title={b.label}>
+              <CircleBtn
+                key={b.type}
+                title={b.label}
+                onClick={() => b.type === 'heading2' ? setSubmenu('heading') : handleAddBlock(b.type)}
+              >
                 {b.icon}
               </CircleBtn>
             ))}
           </div>
+          )
         ) : (
           // Compact controls on hover
           <div className={cn('flex flex-col gap-1 transition-opacity', hovered ? 'opacity-100' : 'opacity-0')}>
@@ -174,6 +199,7 @@ export default function ArticleEditor() {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const subtitleRef = useRef<HTMLTextAreaElement>(null)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const [addSubmenu, setAddSubmenu] = useState<'heading' | null>(null)
   const addMenuRef = useRef<HTMLDivElement>(null)
 
   // Close bottom circle menu on outside click
@@ -182,6 +208,7 @@ export default function ArticleEditor() {
     const handler = (e: MouseEvent) => {
       if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
         setAddMenuOpen(false)
+        setAddSubmenu(null)
       }
     }
     document.addEventListener('mousedown', handler)
@@ -312,9 +339,33 @@ export default function ArticleEditor() {
           {/* ── Add block at bottom (Medium-style circle menu) ── */}
           <div ref={addMenuRef} className="py-3 flex items-center gap-1.5">
             {addMenuOpen ? (
+              addSubmenu === 'heading' ? (
+                // Heading sub-circles for bottom menu
+                <div className="flex items-center gap-1 animate-circle-menu">
+                  <CircleBtn onClick={() => setAddSubmenu(null)} title="Geri" className="border-gray-400 hover:border-gray-200">
+                    <X className="w-3.5 h-3.5" />
+                  </CircleBtn>
+                  {(['heading1', 'heading2', 'heading3'] as BlockType[]).map((t, i) => (
+                    <CircleBtn
+                      key={t}
+                      title={['H1 – Büyük Başlık', 'H2 – Orta Başlık', 'H3 – Küçük Başlık'][i]}
+                      onClick={() => {
+                        setAddMenuOpen(false); setAddSubmenu(null)
+                        const lastId = blocks[blocks.length - 1]?.id ?? null
+                        const newId = addBlock(lastId, t)
+                        requestAnimationFrame(() => {
+                          document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
+                        })
+                      }}
+                    >
+                      {[<Heading1 className="w-4 h-4" />, <Heading2 className="w-4 h-4" />, <Heading3 className="w-4 h-4" />][i]}
+                    </CircleBtn>
+                  ))}
+                </div>
+              ) : (
               <div className="flex items-center gap-1 animate-circle-menu">
                 <CircleBtn
-                  onClick={() => setAddMenuOpen(false)}
+                  onClick={() => { setAddMenuOpen(false); setAddSubmenu(null) }}
                   title="Kapat"
                   className="border-gray-400 hover:border-red-400 hover:text-red-400"
                 >
@@ -325,6 +376,7 @@ export default function ArticleEditor() {
                     key={b.type}
                     title={b.label}
                     onClick={() => {
+                      if (b.type === 'heading2') { setAddSubmenu('heading'); return }
                       setAddMenuOpen(false)
                       const lastId = blocks[blocks.length - 1]?.id ?? null
                       const newId = addBlock(lastId, b.type)
@@ -337,6 +389,7 @@ export default function ArticleEditor() {
                   </CircleBtn>
                 ))}
               </div>
+              )
             ) : (
               <div className="flex items-center gap-3">
                 <button
