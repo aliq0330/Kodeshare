@@ -33,11 +33,18 @@ function SaveStatus({ isDirty }: { isDirty: boolean }) {
 
 export default function ArticlePage() {
   const navigate = useNavigate()
-  const { title, isDirty, reset } = useArticleStore()
+  const { title, isDirty, reset, saveArticle } = useArticleStore()
   const [showPreview, setShowPreview] = useState(false)
+  const [savedFlash, setSavedFlash] = useState(false)
 
   // Reset article store on unmount so a fresh article is created next visit
   useEffect(() => () => reset(), [reset])
+
+  const handleSaveDraft = () => {
+    saveArticle()
+    setSavedFlash(true)
+    setTimeout(() => setSavedFlash(false), 2000)
+  }
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
@@ -77,9 +84,17 @@ export default function ArticlePage() {
               <span className="hidden sm:inline">Önizle</span>
             </button>
 
-            <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-surface-border text-gray-300 hover:text-white hover:bg-surface-raised text-sm transition-colors">
-              <Save className="w-4 h-4" />
-              <span className="hidden sm:inline">Taslak</span>
+            <button
+              onClick={handleSaveDraft}
+              className={cn(
+                'flex items-center gap-1.5 px-3 h-8 rounded-lg border text-sm transition-colors',
+                savedFlash
+                  ? 'border-green-500/50 text-green-400 bg-green-500/10'
+                  : 'border-surface-border text-gray-300 hover:text-white hover:bg-surface-raised',
+              )}
+            >
+              {savedFlash ? <CheckCheck className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+              <span className="hidden sm:inline">{savedFlash ? 'Kaydedildi!' : 'Taslak'}</span>
             </button>
 
             <button className="flex items-center gap-1.5 px-4 h-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors">

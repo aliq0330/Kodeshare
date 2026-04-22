@@ -24,6 +24,30 @@ export interface ArticleBlock {
   calloutColor?: 'blue' | 'yellow' | 'green' | 'red' | 'purple'
 }
 
+export interface SavedArticleRecord {
+  id: string
+  title: string
+  subtitle: string
+  coverImage: string | null
+  blocks: ArticleBlock[]
+  savedAt: string
+  updatedAt: string
+}
+
+const STORAGE_KEY = 'kodeshare_articles'
+
+export function listArticles(): SavedArticleRecord[] {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+  } catch {
+    return []
+  }
+}
+
+function writeArticles(records: SavedArticleRecord[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+}
+
 interface ArticleState {
   id: string
   title: string
@@ -42,6 +66,10 @@ interface ArticleState {
   removeBlock: (id: string) => void
   moveBlock: (id: string, dir: 'up' | 'down') => void
   reset: () => void
+
+  saveArticle: () => void
+  loadArticle: (record: SavedArticleRecord) => void
+  deleteArticle: (id: string) => void
 }
 
 const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -50,7 +78,7 @@ const makeInitialBlocks = (): ArticleBlock[] => [
   { id: genId(), type: 'paragraph', content: '' },
 ]
 
-export const useArticleStore = create<ArticleState>()((set) => ({
+export const useArticleStore = create<ArticleState>()((set, get) => ({
   id: genId(),
   title: '',
   subtitle: '',
@@ -114,4 +142,42 @@ export const useArticleStore = create<ArticleState>()((set) => ({
       activeBlockId: null,
       isDirty: false,
     }),
+
+  saveArticle: () => {
+    const { id, title, subtitle, coverImage, blocks } = get()
+    const records = listArticles()
+    const existingIdx = records.findIndex((r) => r.id === id)
+    const now = new Date().toISOString()
+    const record: SavedArticleRecord = {
+      id,
+      title: title.trim() || 'Başlıksız Makale',
+      subtitle,
+      coverImage,
+      blocks,
+      savedAt: existingIdx >= 0 ? records[existingIdx].savedAt : now,
+      updatedAt: now,
+    }
+    if (existingIdx >= 0) {
+      records[existingIdx] = record
+    } else {
+      records.unshift(record)
+    }
+    writeArticles(records)
+    set({ isDirty: false })
+  },
+
+  loadArticle: (record) =>
+    set({
+      id: record.id,
+      title: record.title,
+      subtitle: record.subtitle,
+      coverImage: record.coverImage,
+      blocks: record.blocks,
+      activeBlockId: null,
+      isDirty: false,
+    }),
+
+  deleteArticle: (id) => {
+    writeArticles(listArticles().filter((r) => r.id !== id))
+  },
 }))

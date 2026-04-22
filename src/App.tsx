@@ -18,6 +18,7 @@ import CollectionDetailPage from '@pages/CollectionDetail'
 import AdminPage from '@pages/Admin'
 import AdminUserDetailPage from '@pages/Admin/UserDetail'
 import ArticlePage from '@pages/Article'
+import ArticlesPage from '@pages/Articles'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
 import { useEditorStore } from '@store/editorStore'
@@ -101,6 +102,7 @@ export default function App() {
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/post/:postId" element={<PostDetailPage />} />
         <Route path="/collection/:collectionId" element={<CollectionDetailPage />} />
+        <Route path="/makaleler" element={<ProtectedRoute><ArticlesPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
