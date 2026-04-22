@@ -167,7 +167,7 @@ export default function PostDetailPage() {
         Geri Dön
       </Link>
 
-      <div className="card p-5">
+      <div className="card p-5 rounded-none -mx-4 sm:mx-0">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h1 className="text-xl font-bold text-white mb-2">{post.title}</h1>
