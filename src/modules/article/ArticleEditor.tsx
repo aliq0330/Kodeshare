@@ -1,9 +1,12 @@
-import { useRef, useState } from 'react'
-import { ImagePlus, X, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import {
+  ImagePlus, X, ChevronUp, ChevronDown, Trash2,
+  Plus, Camera, Heading2, Code2, Quote, Lightbulb, Minus,
+} from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { BlockType } from '@store/articleStore'
-import ArticleToolbar, { ADD_BLOCKS } from './ArticleToolbar'
+import ArticleToolbar from './ArticleToolbar'
 import TextBlock from './blocks/TextBlock'
 import ImageBlock from './blocks/ImageBlock'
 import CodeBlock from './blocks/CodeBlock'
@@ -11,10 +14,66 @@ import QuoteBlock from './blocks/QuoteBlock'
 import DividerBlock from './blocks/DividerBlock'
 import CalloutBlock from './blocks/CalloutBlock'
 
+// Block types shown in the Medium-style circle menu
+const CIRCLE_BLOCKS: { type: BlockType; icon: React.ReactNode; label: string }[] = [
+  { type: 'image',   icon: <Camera   className="w-4 h-4" />, label: 'Görsel' },
+  { type: 'heading2',icon: <Heading2 className="w-4 h-4" />, label: 'Başlık' },
+  { type: 'code',    icon: <Code2    className="w-4 h-4" />, label: 'Kod Bloğu' },
+  { type: 'quote',   icon: <Quote    className="w-4 h-4" />, label: 'Alıntı' },
+  { type: 'callout', icon: <Lightbulb className="w-4 h-4" />, label: 'Çağrı Kutusu' },
+  { type: 'divider', icon: <Minus    className="w-4 h-4" />, label: 'Ayırıcı' },
+]
+
+function CircleBtn({
+  onClick, title, children, className,
+}: {
+  onClick: () => void
+  title?: string
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className={cn(
+        'w-9 h-9 rounded-full border border-gray-500 hover:border-gray-200',
+        'flex items-center justify-center text-gray-400 hover:text-white',
+        'bg-surface/90 backdrop-blur-sm transition-all shrink-0',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
 function BlockWrapper({ id, children }: { id: string; children: React.ReactNode }) {
-  const { moveBlock, removeBlock, blocks } = useArticleStore()
+  const { moveBlock, removeBlock, addBlock, blocks } = useArticleStore()
   const [hovered, setHovered] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const idx = blocks.findIndex((b) => b.id === id)
+
+  // Close circle menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
+
+  const handleAddBlock = (type: BlockType) => {
+    setMenuOpen(false)
+    const newId = addBlock(id, type)
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
+    })
+  }
 
   return (
     <div
@@ -22,43 +81,62 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Desktop: sol kenar kontrolleri (hover) */}
-      <div
-        className={cn(
-          'absolute -left-10 top-1 hidden md:flex flex-col gap-1 transition-opacity',
-          hovered ? 'opacity-100' : 'opacity-0',
-        )}
-      >
-        <button
-          onClick={() => moveBlock(id, 'up')}
-          disabled={idx === 0}
-          className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
-          title="Yukarı taşı"
-        >
-          <ChevronUp className="w-3.5 h-3.5" />
-        </button>
-        <button
-          onClick={() => moveBlock(id, 'down')}
-          disabled={idx === blocks.length - 1}
-          className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
-          title="Aşağı taşı"
-        >
-          <ChevronDown className="w-3.5 h-3.5" />
-        </button>
-        {blocks.length > 1 && (
-          <button
-            onClick={() => removeBlock(id)}
-            className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-            title="Bloğu sil"
-          >
-            <X className="w-3 h-3" />
-          </button>
+      {/* ── Desktop: left side controls ── */}
+      <div ref={menuRef} className="absolute -left-10 top-1 hidden md:block z-20">
+        {menuOpen ? (
+          // Medium-style circle menu
+          <div className="flex items-center gap-1 animate-circle-menu">
+            <CircleBtn onClick={() => setMenuOpen(false)} title="Kapat" className="border-gray-400 hover:border-red-400 hover:text-red-400">
+              <X className="w-3.5 h-3.5" />
+            </CircleBtn>
+            {CIRCLE_BLOCKS.map((b) => (
+              <CircleBtn key={b.type} onClick={() => handleAddBlock(b.type)} title={b.label}>
+                {b.icon}
+              </CircleBtn>
+            ))}
+          </div>
+        ) : (
+          // Compact controls on hover
+          <div className={cn('flex flex-col gap-1 transition-opacity', hovered ? 'opacity-100' : 'opacity-0')}>
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="w-7 h-7 rounded-full border border-gray-700 hover:border-brand-500 flex items-center justify-center text-gray-600 hover:text-brand-400 transition-all"
+              title="Blok ekle"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => moveBlock(id, 'up')}
+              disabled={idx === 0}
+              className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
+              title="Yukarı taşı"
+            >
+              <ChevronUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => moveBlock(id, 'down')}
+              disabled={idx === blocks.length - 1}
+              className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
+              title="Aşağı taşı"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+            {blocks.length > 1 && (
+              <button
+                onClick={() => removeBlock(id)}
+                className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                title="Bloğu sil"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         )}
       </div>
 
       {children}
 
-      {/* Mobil: alt satır kontrolleri */}
+      {/* ── Mobile: bottom controls ── */}
       <div className="flex md:hidden items-center justify-end gap-1 mt-1">
         <button
           onClick={() => moveBlock(id, 'up')}
@@ -95,7 +173,20 @@ export default function ArticleEditor() {
   const coverInputRef = useRef<HTMLInputElement>(null)
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const subtitleRef = useRef<HTMLTextAreaElement>(null)
-  const [addPanelOpen, setAddPanelOpen] = useState(false)
+  const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const addMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close bottom circle menu on outside click
+  useEffect(() => {
+    if (!addMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
+        setAddMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [addMenuOpen])
 
   const handleCoverFile = (file: File) => {
     if (!file.type.startsWith('image/')) return
@@ -218,65 +309,48 @@ export default function ArticleEditor() {
             )
           })}
 
-          {/* ── Add block at the bottom ── */}
-          <button
-            onClick={() => setAddPanelOpen(true)}
-            className="flex items-center gap-3 py-3 text-gray-700 hover:text-brand-400 text-sm transition-colors group"
-          >
-            <span className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-brand-500 group-hover:bg-brand-500/10 flex items-center justify-center text-2xl font-light transition-all leading-none select-none">
-              +
-            </span>
-            <span className="group-hover:text-brand-400 transition-colors">Yeni paragraf ekle</span>
-          </button>
+          {/* ── Add block at bottom (Medium-style circle menu) ── */}
+          <div ref={addMenuRef} className="py-3 flex items-center gap-1.5">
+            {addMenuOpen ? (
+              <div className="flex items-center gap-1 animate-circle-menu">
+                <CircleBtn
+                  onClick={() => setAddMenuOpen(false)}
+                  title="Kapat"
+                  className="border-gray-400 hover:border-red-400 hover:text-red-400"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </CircleBtn>
+                {CIRCLE_BLOCKS.map((b) => (
+                  <CircleBtn
+                    key={b.type}
+                    title={b.label}
+                    onClick={() => {
+                      setAddMenuOpen(false)
+                      const lastId = blocks[blocks.length - 1]?.id ?? null
+                      const newId = addBlock(lastId, b.type)
+                      requestAnimationFrame(() => {
+                        document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
+                      })
+                    }}
+                  >
+                    {b.icon}
+                  </CircleBtn>
+                ))}
+              </div>
+            ) : (
+              <button
+                onClick={() => setAddMenuOpen(true)}
+                className="flex items-center gap-3 text-gray-700 hover:text-brand-400 transition-colors group"
+              >
+                <span className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-brand-500 group-hover:bg-brand-500/10 flex items-center justify-center text-xl font-light transition-all leading-none select-none text-gray-600 group-hover:text-brand-400">
+                  +
+                </span>
+                <span className="text-sm">Yeni blok ekle</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* ── Add-block slide-in panel ── */}
-      {addPanelOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-40 bg-black/40 animate-fade-in-overlay"
-            onClick={() => setAddPanelOpen(false)}
-          />
-          {/* Panel */}
-          <div className="fixed right-0 top-0 h-full z-50 w-72 bg-surface-card border-l border-surface-border shadow-2xl flex flex-col animate-slide-in-right">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border shrink-0">
-              <span className="text-sm font-semibold text-white">Blok Ekle</span>
-              <button
-                onClick={() => setAddPanelOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-2">
-              {ADD_BLOCKS.map((b) => (
-                <button
-                  key={b.type}
-                  onClick={() => {
-                    setAddPanelOpen(false)
-                    const lastId = blocks[blocks.length - 1]?.id ?? null
-                    const newId = addBlock(lastId, b.type)
-                    requestAnimationFrame(() => {
-                      document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
-                    })
-                  }}
-                  className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-raised transition-colors text-left"
-                >
-                  <span className="shrink-0 mt-0.5 p-1.5 rounded-md bg-surface-raised text-gray-400">
-                    {b.icon}
-                  </span>
-                  <span>
-                    <span className="block text-sm font-medium text-gray-200">{b.label}</span>
-                    <span className="block text-xs text-gray-500 mt-0.5">{b.desc}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }

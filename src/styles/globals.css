@@ -148,3 +148,12 @@
 .animate-fade-in-overlay {
   animation: fade-in-overlay 0.15s ease-out;
 }
+
+@keyframes circle-menu-in {
+  from { transform: translateX(-6px) scale(0.9); opacity: 0; }
+  to   { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+.animate-circle-menu {
+  animation: circle-menu-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
