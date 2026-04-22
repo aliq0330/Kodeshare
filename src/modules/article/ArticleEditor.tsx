@@ -338,15 +338,27 @@ export default function ArticleEditor() {
                 ))}
               </div>
             ) : (
-              <button
-                onClick={() => setAddMenuOpen(true)}
-                className="flex items-center gap-3 text-gray-700 hover:text-brand-400 transition-colors group"
-              >
-                <span className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-brand-500 group-hover:bg-brand-500/10 flex items-center justify-center text-xl font-light transition-all leading-none select-none text-gray-600 group-hover:text-brand-400">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAddMenuOpen(true)}
+                  className="w-9 h-9 rounded-full border-2 border-gray-700 hover:border-brand-500 hover:bg-brand-500/10 flex items-center justify-center text-xl font-light transition-all leading-none select-none text-gray-600 hover:text-brand-400 shrink-0"
+                  title="Blok türü seç"
+                >
                   +
-                </span>
-                <span className="text-sm">Yeni blok ekle</span>
-              </button>
+                </button>
+                <button
+                  onClick={() => {
+                    const lastId = blocks[blocks.length - 1]?.id ?? null
+                    const newId = addBlock(lastId, 'paragraph')
+                    requestAnimationFrame(() => {
+                      document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
+                    })
+                  }}
+                  className="text-sm text-gray-700 hover:text-gray-400 transition-colors"
+                >
+                  Yeni blok ekle
+                </button>
+              </div>
             )}
           </div>
         </div>
