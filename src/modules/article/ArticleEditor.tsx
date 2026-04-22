@@ -3,7 +3,7 @@ import { ImagePlus, X, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { BlockType } from '@store/articleStore'
-import ArticleToolbar from './ArticleToolbar'
+import ArticleToolbar, { ADD_BLOCKS } from './ArticleToolbar'
 import TextBlock from './blocks/TextBlock'
 import ImageBlock from './blocks/ImageBlock'
 import CodeBlock from './blocks/CodeBlock'
@@ -95,6 +95,7 @@ export default function ArticleEditor() {
   const coverInputRef = useRef<HTMLInputElement>(null)
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const subtitleRef = useRef<HTMLTextAreaElement>(null)
+  const [addPanelOpen, setAddPanelOpen] = useState(false)
 
   const handleCoverFile = (file: File) => {
     if (!file.type.startsWith('image/')) return
@@ -219,23 +220,63 @@ export default function ArticleEditor() {
 
           {/* ── Add block at the bottom ── */}
           <button
-            onClick={() => {
-              const lastId = blocks[blocks.length - 1]?.id ?? null
-              const newId = addBlock(lastId, 'paragraph')
-              requestAnimationFrame(() => {
-                const el = document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)
-                el?.focus()
-              })
-            }}
-            className="flex items-center gap-2 py-3 text-gray-700 hover:text-gray-500 text-sm transition-colors group"
+            onClick={() => setAddPanelOpen(true)}
+            className="flex items-center gap-3 py-3 text-gray-700 hover:text-brand-400 text-sm transition-colors group"
           >
-            <span className="w-5 h-5 rounded-full border border-gray-700 group-hover:border-gray-500 flex items-center justify-center text-xs transition-colors">
+            <span className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-brand-500 group-hover:bg-brand-500/10 flex items-center justify-center text-2xl font-light transition-all leading-none select-none">
               +
             </span>
-            Yeni paragraf ekle
+            <span className="group-hover:text-brand-400 transition-colors">Yeni paragraf ekle</span>
           </button>
         </div>
       </div>
+
+      {/* ── Add-block slide-in panel ── */}
+      {addPanelOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 animate-fade-in-overlay"
+            onClick={() => setAddPanelOpen(false)}
+          />
+          {/* Panel */}
+          <div className="fixed right-0 top-0 h-full z-50 w-72 bg-surface-card border-l border-surface-border shadow-2xl flex flex-col animate-slide-in-right">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border shrink-0">
+              <span className="text-sm font-semibold text-white">Blok Ekle</span>
+              <button
+                onClick={() => setAddPanelOpen(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2">
+              {ADD_BLOCKS.map((b) => (
+                <button
+                  key={b.type}
+                  onClick={() => {
+                    setAddPanelOpen(false)
+                    const lastId = blocks[blocks.length - 1]?.id ?? null
+                    const newId = addBlock(lastId, b.type)
+                    requestAnimationFrame(() => {
+                      document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
+                    })
+                  }}
+                  className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-raised transition-colors text-left"
+                >
+                  <span className="shrink-0 mt-0.5 p-1.5 rounded-md bg-surface-raised text-gray-400">
+                    {b.icon}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-medium text-gray-200">{b.label}</span>
+                    <span className="block text-xs text-gray-500 mt-0.5">{b.desc}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

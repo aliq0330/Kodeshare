@@ -11,7 +11,7 @@ import type { BlockType } from '@store/articleStore'
 import { userService } from '@services/userService'
 import type { User } from '@/types'
 
-const ADD_BLOCKS: { type: BlockType; label: string; icon: React.ReactNode; desc: string }[] = [
+export const ADD_BLOCKS: { type: BlockType; label: string; icon: React.ReactNode; desc: string }[] = [
   { type: 'paragraph',  label: 'Paragraf',      icon: <AlignLeft className="w-4 h-4" />,   desc: 'Düz metin paragrafı' },
   { type: 'heading1',   label: 'Büyük Başlık',  icon: <Heading1 className="w-4 h-4" />,    desc: 'H1 — Ana başlık' },
   { type: 'heading2',   label: 'Orta Başlık',   icon: <Heading2 className="w-4 h-4" />,    desc: 'H2 — Alt başlık' },
