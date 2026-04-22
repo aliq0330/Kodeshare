@@ -54,8 +54,27 @@ export default function ArticleToolbar() {
   const spacerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [keyboardOpen, setKeyboardOpen] = useState(false)
+  const [fmt, setFmt] = useState({ bold: false, italic: false, underline: false, strikeThrough: false })
 
   const activeBlock = blocks.find((b) => b.id === activeBlockId)
+
+  // Track active inline formatting via selectionchange
+  useEffect(() => {
+    const update = () => {
+      try {
+        setFmt({
+          bold: document.queryCommandState('bold'),
+          italic: document.queryCommandState('italic'),
+          underline: document.queryCommandState('underline'),
+          strikeThrough: document.queryCommandState('strikeThrough'),
+        })
+      } catch {
+        // queryCommandState may throw in some browsers — ignore
+      }
+    }
+    document.addEventListener('selectionchange', update)
+    return () => document.removeEventListener('selectionchange', update)
+  }, [])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -145,16 +164,16 @@ export default function ArticleToolbar() {
         {/* Format buttons — horizontal scroll; overflow-x:auto here is what was clipping the dropdown */}
         <div className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-hide min-w-0">
           {/* ── Inline formatting ── */}
-          <FormatBtn label="Kalın (⌘B)" onClick={() => execFormat('bold')}>
+          <FormatBtn label="Kalın (⌘B)" active={fmt.bold} onClick={() => execFormat('bold')}>
             <Bold className="w-4 h-4" />
           </FormatBtn>
-          <FormatBtn label="İtalik (⌘I)" onClick={() => execFormat('italic')}>
+          <FormatBtn label="İtalik (⌘I)" active={fmt.italic} onClick={() => execFormat('italic')}>
             <Italic className="w-4 h-4" />
           </FormatBtn>
-          <FormatBtn label="Altı Çizili (⌘U)" onClick={() => execFormat('underline')}>
+          <FormatBtn label="Altı Çizili (⌘U)" active={fmt.underline} onClick={() => execFormat('underline')}>
             <Underline className="w-4 h-4" />
           </FormatBtn>
-          <FormatBtn label="Üstü Çizili" onClick={() => execFormat('strikeThrough')}>
+          <FormatBtn label="Üstü Çizili" active={fmt.strikeThrough} onClick={() => execFormat('strikeThrough')}>
             <Strikethrough className="w-4 h-4" />
           </FormatBtn>
 
