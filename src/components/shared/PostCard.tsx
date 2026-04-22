@@ -95,7 +95,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   if (deleted) return null
 
   return (
-    <article className="card p-4 rounded-none border-0 -mx-4 sm:mx-0 hover:border-surface-raised transition-colors group">
+    <article className="card p-4 rounded-none -mx-4 sm:mx-0 hover:border-surface-raised transition-colors group">
       {/* Repost indicator */}
       {localPost.type === 'repost' && localPost.repostedFrom && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
