@@ -45,13 +45,6 @@ export default function TextBlock({ block, onFocusNext, onFocusPrev }: Props) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && block.type === 'paragraph') {
-      e.preventDefault()
-      const newId = addBlock(block.id, 'paragraph')
-      requestAnimationFrame(() => {
-        document.querySelector<HTMLElement>(`[data-block-id="${newId}"]`)?.focus()
-      })
-    }
     if (e.key === 'Backspace' && !ref.current?.textContent?.trim()) {
       e.preventDefault()
       removeBlock(block.id)
