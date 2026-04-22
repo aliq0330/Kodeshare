@@ -192,6 +192,8 @@ export default function ArticleEditorPage() {
   const [showFmtBar,        setShowFmtBar]        = useState(false)
   const [fmtBarPos,         setFmtBarPos]         = useState({ top: 0, left: 0 })
   const [blockToolbarId, setBlockToolbarId] = useState<string | null>(null)
+  const [isMobile,          setIsMobile]          = useState(false)
+  const [showMobileBlocks,  setShowMobileBlocks]  = useState(false)
 
   // Uncontrolled content refs
   const titleRef    = useRef<HTMLDivElement>(null)
@@ -221,6 +223,19 @@ export default function ArticleEditorPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Mobile detection
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // Collapse block picker when editor loses focus
+  useEffect(() => {
+    if (!focusedId) setShowMobileBlocks(false)
+  }, [focusedId])
 
   // Set title/subtitle on first load
   useEffect(() => {
@@ -327,13 +342,14 @@ export default function ArticleEditorPage() {
   }, [blocks, insertBlockAfter, deleteBlock])
 
   const handleMouseUp = useCallback(() => {
+    if (isMobile) return
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed || !sel.toString().trim()) { setShowFmtBar(false); return }
     const range = sel.getRangeAt(0)
     const rect  = range.getBoundingClientRect()
     setFmtBarPos({ top: rect.top - 52, left: rect.left + rect.width / 2 })
     setShowFmtBar(true)
-  }, [])
+  }, [isMobile])
 
   const execFmt = useCallback((cmd: string, value?: string) => {
     document.execCommand(cmd, false, value)
@@ -448,7 +464,7 @@ export default function ArticleEditorPage() {
       )}
 
       {/* ── Main content ── */}
-      <main className="max-w-[680px] mx-auto pl-10 pr-6 lg:pl-10 py-14">
+      <main className="max-w-[680px] mx-auto px-5 sm:pl-10 sm:pr-6 pt-10 sm:pt-14 pb-32 sm:pb-14">
 
         {/* Title */}
         <div
@@ -481,10 +497,10 @@ export default function ArticleEditorPage() {
               onMouseEnter={() => setHoverAdd(block.id)}
               onMouseLeave={() => setHoverAdd(null)}
             >
-              {/* + button */}
+              {/* + button — desktop only */}
               <button
                 onClick={() => setBlockToolbarId(id => id === block.id ? null : block.id)}
-                className="absolute -left-8 top-0.5 w-6 h-6 rounded-md flex items-center justify-center hover:bg-[#1e2535] text-gray-600 hover:text-gray-300 transition-all opacity-0 group-hover/block:opacity-100"
+                className="absolute -left-8 top-0.5 w-6 h-6 rounded-md hidden sm:flex items-center justify-center hover:bg-[#1e2535] text-gray-600 hover:text-gray-300 transition-all opacity-0 group-hover/block:opacity-100"
                 title="Blok ekle"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -532,14 +548,13 @@ export default function ArticleEditorPage() {
         </div>
       </main>
 
-      {/* ── Floating format toolbar ── */}
+      {/* ── Floating format toolbar — desktop only ── */}
       {showFmtBar && (
         <div
-          className="fixed z-50 flex items-center gap-0.5 bg-[#131c2e] border border-[#2a3347] rounded-xl px-2 py-1.5 shadow-2xl pointer-events-auto"
+          className="fixed z-50 hidden sm:flex items-center gap-0.5 bg-[#131c2e] border border-[#2a3347] rounded-xl px-2 py-1.5 shadow-2xl pointer-events-auto"
           style={{ top: fmtBarPos.top, left: fmtBarPos.left, transform: 'translateX(-50%)' }}
           onMouseDown={e => e.preventDefault()}
         >
-          {/* Arrow tip */}
           <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#131c2e] border-r border-b border-[#2a3347] rotate-45" />
           <FmtBtn onClick={() => execFmt('bold')}   title="Kalın (Ctrl+B)"><Bold className="w-3.5 h-3.5" /></FmtBtn>
           <FmtBtn onClick={() => execFmt('italic')} title="İtalik (Ctrl+I)"><Italic className="w-3.5 h-3.5" /></FmtBtn>
@@ -548,13 +563,7 @@ export default function ArticleEditorPage() {
           <FmtBtn onClick={() => execFmt('formatBlock', 'h3')} title="Başlık 3"><Heading3 className="w-3.5 h-3.5" /></FmtBtn>
           <FmtBtn onClick={() => execFmt('formatBlock', 'blockquote')} title="Alıntı"><QuoteIcon className="w-3.5 h-3.5" /></FmtBtn>
           <div className="w-px h-4 bg-[#2a3347] mx-1" />
-          <FmtBtn
-            onClick={() => {
-              const url = prompt('Bağlantı URL:')
-              if (url) execFmt('createLink', url)
-            }}
-            title="Bağlantı"
-          >
+          <FmtBtn onClick={() => { const url = prompt('Bağlantı URL:'); if (url) execFmt('createLink', url) }} title="Bağlantı">
             <Link2 className="w-3.5 h-3.5" />
           </FmtBtn>
           <FmtBtn
@@ -569,6 +578,59 @@ export default function ArticleEditorPage() {
         </div>
       )}
 
+      {/* ── Mobile bottom toolbar ── */}
+      {focusedId && (
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0d1117] border-t border-[#2a3347] shadow-2xl">
+
+          {/* Block type picker — slides up when "+" is tapped */}
+          {showMobileBlocks && (
+            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#2a3347] overflow-x-auto scrollbar-none">
+              {BLOCK_OPTIONS.map(({ type, icon: Icon, label }) => (
+                <button
+                  key={type}
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={() => {
+                    insertBlockAfter(focusedId, type)
+                    setShowMobileBlocks(false)
+                  }}
+                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-[#131c2e] border border-[#2a3347] text-gray-300 active:bg-[#1e2a3d] text-[11px] shrink-0"
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Format row */}
+          <div className="flex items-center gap-0.5 px-2 py-1.5 overflow-x-auto scrollbar-none">
+            <button
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => setShowMobileBlocks(s => !s)}
+              className={`p-2.5 rounded-lg transition-colors shrink-0 ${showMobileBlocks ? 'bg-brand-600/20 text-brand-400' : 'text-gray-400 active:text-white active:bg-[#1e2535]'}`}
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <div className="w-px h-4 bg-[#2a3347] mx-1 shrink-0" />
+            <MobileFmtBtn onClick={() => execFmt('bold')}><Bold className="w-4 h-4" /></MobileFmtBtn>
+            <MobileFmtBtn onClick={() => execFmt('italic')}><Italic className="w-4 h-4" /></MobileFmtBtn>
+            <MobileFmtBtn onClick={() => execFmt('formatBlock', 'h2')}><Heading2 className="w-4 h-4" /></MobileFmtBtn>
+            <MobileFmtBtn onClick={() => execFmt('formatBlock', 'h3')}><Heading3 className="w-4 h-4" /></MobileFmtBtn>
+            <MobileFmtBtn onClick={() => execFmt('formatBlock', 'blockquote')}><QuoteIcon className="w-4 h-4" /></MobileFmtBtn>
+            <div className="w-px h-4 bg-[#2a3347] mx-1 shrink-0" />
+            <MobileFmtBtn onClick={() => { const url = prompt('Bağlantı URL:'); if (url) execFmt('createLink', url) }}>
+              <Link2 className="w-4 h-4" />
+            </MobileFmtBtn>
+            <MobileFmtBtn onClick={() => {
+              const sel = window.getSelection()?.toString()
+              if (sel) execFmt('insertHTML', `<code style="background:#0d1117;padding:2px 6px;border-radius:4px;font-family:monospace;color:#86efac;font-size:0.875em">${sel}</code>`)
+            }}>
+              <Code className="w-4 h-4" />
+            </MobileFmtBtn>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
@@ -579,6 +641,18 @@ function FmtBtn({ onClick, title, children }: { onClick: () => void; title: stri
       onMouseDown={e => { e.preventDefault(); onClick() }}
       title={title}
       className="p-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-[#1e2a3d] transition-colors"
+    >
+      {children}
+    </button>
+  )
+}
+
+function MobileFmtBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onMouseDown={e => e.preventDefault()}
+      onClick={onClick}
+      className="p-2.5 rounded-lg text-gray-400 active:text-white active:bg-[#1e2535] transition-colors shrink-0"
     >
       {children}
     </button>
