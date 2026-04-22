@@ -7,6 +7,7 @@ import { useArticleStore } from '@store/articleStore'
 import type { ArticleBlock } from '@store/articleStore'
 import { postService } from '@services/postService'
 import { timeAgo, compactNumber } from '@utils/formatters'
+import BlockView from '@modules/post/BlockView'
 import type { Post } from '@/types'
 
 export default function PostEmbedBlock({ block }: { block: ArticleBlock }) {
@@ -100,7 +101,18 @@ export default function PostEmbedBlock({ block }: { block: ArticleBlock }) {
 
         {/* Description */}
         {post.description && (
-          <p className="text-sm text-gray-400 line-clamp-2 mb-3">{post.description}</p>
+          <p className="text-sm text-gray-400 line-clamp-2 mb-4">{post.description}</p>
+        )}
+
+        {/* ── Post blocks (snippet, image, video, link, project, article) ── */}
+        {post.blocks.length > 0 && (
+          <div className="mb-4 border-t border-surface-border pt-4">
+            <BlockView
+              blocks={post.blocks}
+              compact
+              postTitle={post.title}
+            />
+          </div>
         )}
 
         {/* Tags */}
