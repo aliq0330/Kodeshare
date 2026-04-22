@@ -47,7 +47,7 @@ export default function ArticlePage() {
   }
 
   return (
-    <div className="h-screen bg-surface flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-surface flex flex-col">
       {/* ── Fixed top header ── */}
       <header className="fixed top-0 left-0 right-0 z-40 h-14 bg-surface/95 backdrop-blur-md border-b border-surface-border">
         <div className="flex items-center justify-between h-full px-3 sm:px-5 max-w-[1200px] mx-auto gap-3">

@@ -51,9 +51,7 @@ export default function ArticleToolbar() {
   const { activeBlockId, blocks, addBlock, updateBlock } = useArticleStore()
   const [addOpen, setAddOpen] = useState(false)
   const toolbarRef = useRef<HTMLDivElement>(null)
-  const spacerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [keyboardOpen, setKeyboardOpen] = useState(false)
   const [fmt, setFmt] = useState({ bold: false, italic: false, underline: false, strikeThrough: false })
 
   const activeBlock = blocks.find((b) => b.id === activeBlockId)
@@ -87,7 +85,7 @@ export default function ArticleToolbar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // iOS visualViewport: switch to fixed+pin when keyboard opens so toolbar never disappears
+  // iOS visualViewport: reposition toolbar above keyboard when it opens
   useEffect(() => {
     const toolbar = toolbarRef.current
     if (!toolbar || !window.visualViewport) return
@@ -95,17 +93,12 @@ export default function ArticleToolbar() {
     const update = () => {
       const vv = window.visualViewport!
       const kbOpen = window.innerHeight - vv.height > 100
-
-      setKeyboardOpen(kbOpen)
-
       if (kbOpen) {
-        toolbar.style.position = 'fixed'
         toolbar.style.top = `${vv.offsetTop}px`
         toolbar.style.left = `${vv.offsetLeft}px`
         toolbar.style.width = `${vv.width}px`
         toolbar.style.zIndex = '50'
       } else {
-        toolbar.style.position = ''
         toolbar.style.top = ''
         toolbar.style.left = ''
         toolbar.style.width = ''
@@ -123,7 +116,6 @@ export default function ArticleToolbar() {
 
   const execFormat = (cmd: string, value?: string) => {
     document.execCommand(cmd, false, value)
-    // Sync content back to store
     requestAnimationFrame(() => {
       if (!activeBlockId) return
       const el = document.querySelector<HTMLElement>(`[data-block-id="${activeBlockId}"]`)
@@ -153,136 +145,136 @@ export default function ArticleToolbar() {
 
   return (
     <>
-      {/* Spacer: prevents layout jump when toolbar switches to fixed on iOS keyboard open */}
-      {keyboardOpen && <div ref={spacerRef} className="h-12 shrink-0" />}
-    <div
-      ref={toolbarRef}
-      className="sticky top-14 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
-    >
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center h-12 gap-1">
-        {/* Format buttons — horizontal scroll; overflow-x:auto here is what was clipping the dropdown */}
-        <div className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-hide min-w-0">
-          {/* ── Inline formatting ── */}
-          <FormatBtn label="Kalın (⌘B)" active={fmt.bold} onClick={() => execFormat('bold')}>
-            <Bold className="w-4 h-4" />
-          </FormatBtn>
-          <FormatBtn label="İtalik (⌘I)" active={fmt.italic} onClick={() => execFormat('italic')}>
-            <Italic className="w-4 h-4" />
-          </FormatBtn>
-          <FormatBtn label="Altı Çizili (⌘U)" active={fmt.underline} onClick={() => execFormat('underline')}>
-            <Underline className="w-4 h-4" />
-          </FormatBtn>
-          <FormatBtn label="Üstü Çizili" active={fmt.strikeThrough} onClick={() => execFormat('strikeThrough')}>
-            <Strikethrough className="w-4 h-4" />
-          </FormatBtn>
+      {/* Spacer in normal flow — holds the exact height of the fixed toolbar */}
+      <div className="h-12 shrink-0" />
 
-          <div className="w-px h-5 bg-surface-border mx-1 shrink-0" />
+      <div
+        ref={toolbarRef}
+        className="fixed top-14 left-0 right-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
+      >
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center h-12 gap-1">
+            {/* Format buttons — horizontal scroll */}
+            <div className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-hide min-w-0">
+              {/* ── Inline formatting ── */}
+              <FormatBtn label="Kalın (⌘B)" active={fmt.bold} onClick={() => execFormat('bold')}>
+                <Bold className="w-4 h-4" />
+              </FormatBtn>
+              <FormatBtn label="İtalik (⌘I)" active={fmt.italic} onClick={() => execFormat('italic')}>
+                <Italic className="w-4 h-4" />
+              </FormatBtn>
+              <FormatBtn label="Altı Çizili (⌘U)" active={fmt.underline} onClick={() => execFormat('underline')}>
+                <Underline className="w-4 h-4" />
+              </FormatBtn>
+              <FormatBtn label="Üstü Çizili" active={fmt.strikeThrough} onClick={() => execFormat('strikeThrough')}>
+                <Strikethrough className="w-4 h-4" />
+              </FormatBtn>
 
-          {/* ── Heading shortcuts ── */}
-          <FormatBtn
-            label="H1"
-            active={activeBlock?.type === 'heading1'}
-            onClick={() => setBlockType('heading1')}
-            className="text-[11px] font-bold w-9"
-          >
-            H1
-          </FormatBtn>
-          <FormatBtn
-            label="H2"
-            active={activeBlock?.type === 'heading2'}
-            onClick={() => setBlockType('heading2')}
-            className="text-[11px] font-bold w-9"
-          >
-            H2
-          </FormatBtn>
-          <FormatBtn
-            label="H3"
-            active={activeBlock?.type === 'heading3'}
-            onClick={() => setBlockType('heading3')}
-            className="text-[11px] font-bold w-9"
-          >
-            H3
-          </FormatBtn>
-          {isTextActive && (
-            <FormatBtn
-              label="Paragraf"
-              active={activeBlock?.type === 'paragraph'}
-              onClick={() => setBlockType('paragraph')}
-              className="text-[11px] font-medium w-9"
-            >
-              P
-            </FormatBtn>
-          )}
+              <div className="w-px h-5 bg-surface-border mx-1 shrink-0" />
 
-          <div className="w-px h-5 bg-surface-border mx-1 shrink-0" />
-
-          {/* ── Insert link ── */}
-          <FormatBtn
-            label="Link ekle"
-            onClick={() => {
-              const url = window.prompt('URL girin:')
-              if (url) execFormat('createLink', url)
-            }}
-          >
-            <span className="text-[11px] font-medium">URL</span>
-          </FormatBtn>
-
-          {/* ── Code inline ── */}
-          <FormatBtn label="Satır içi kod" onClick={() => {
-            const sel = window.getSelection()
-            if (!sel || sel.isCollapsed) return
-            const text = sel.toString()
-            document.execCommand('insertHTML', false, `<code style="font-family:monospace;background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px">${text}</code>`)
-            if (activeBlockId) {
-              const el = document.querySelector<HTMLElement>(`[data-block-id="${activeBlockId}"]`)
-              if (el) updateBlock(activeBlockId, { content: el.innerHTML })
-            }
-          }}>
-            <Code2 className="w-4 h-4" />
-          </FormatBtn>
-
-        </div>{/* end scrollable format buttons */}
-
-          {/* ── Add block button — outside overflow-x:auto so dropdown isn't clipped ── */}
-          <div ref={dropdownRef} className="relative shrink-0">
-            <button
-              onMouseDown={(e) => { e.preventDefault(); setAddOpen((v) => !v) }}
-              className={cn(
-                'flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium transition-colors',
-                'bg-brand-500 hover:bg-brand-600 text-white',
+              {/* ── Heading shortcuts ── */}
+              <FormatBtn
+                label="H1"
+                active={activeBlock?.type === 'heading1'}
+                onClick={() => setBlockType('heading1')}
+                className="text-[11px] font-bold w-9"
+              >
+                H1
+              </FormatBtn>
+              <FormatBtn
+                label="H2"
+                active={activeBlock?.type === 'heading2'}
+                onClick={() => setBlockType('heading2')}
+                className="text-[11px] font-bold w-9"
+              >
+                H2
+              </FormatBtn>
+              <FormatBtn
+                label="H3"
+                active={activeBlock?.type === 'heading3'}
+                onClick={() => setBlockType('heading3')}
+                className="text-[11px] font-bold w-9"
+              >
+                H3
+              </FormatBtn>
+              {isTextActive && (
+                <FormatBtn
+                  label="Paragraf"
+                  active={activeBlock?.type === 'paragraph'}
+                  onClick={() => setBlockType('paragraph')}
+                  className="text-[11px] font-medium w-9"
+                >
+                  P
+                </FormatBtn>
               )}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Blok Ekle</span>
-              <ChevronDown className={cn('w-3 h-3 transition-transform', addOpen && 'rotate-180')} />
-            </button>
 
-            {addOpen && (
-              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-y-auto max-h-[70vh]">
-                <div className="p-1.5">
-                  {ADD_BLOCKS.map((b) => (
-                    <button
-                      key={b.type}
-                      onMouseDown={(e) => { e.preventDefault(); handleAddBlock(b.type) }}
-                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-raised transition-colors text-left"
-                    >
-                      <span className="shrink-0 mt-0.5 p-1.5 rounded-md bg-surface-raised text-gray-400">
-                        {b.icon}
-                      </span>
-                      <span>
-                        <span className="block text-sm font-medium text-gray-200">{b.label}</span>
-                        <span className="block text-xs text-gray-500 mt-0.5">{b.desc}</span>
-                      </span>
-                    </button>
-                  ))}
+              <div className="w-px h-5 bg-surface-border mx-1 shrink-0" />
+
+              {/* ── Insert link ── */}
+              <FormatBtn
+                label="Link ekle"
+                onClick={() => {
+                  const url = window.prompt('URL girin:')
+                  if (url) execFormat('createLink', url)
+                }}
+              >
+                <span className="text-[11px] font-medium">URL</span>
+              </FormatBtn>
+
+              {/* ── Code inline ── */}
+              <FormatBtn label="Satır içi kod" onClick={() => {
+                const sel = window.getSelection()
+                if (!sel || sel.isCollapsed) return
+                const text = sel.toString()
+                document.execCommand('insertHTML', false, `<code style="font-family:monospace;background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px">${text}</code>`)
+                if (activeBlockId) {
+                  const el = document.querySelector<HTMLElement>(`[data-block-id="${activeBlockId}"]`)
+                  if (el) updateBlock(activeBlockId, { content: el.innerHTML })
+                }
+              }}>
+                <Code2 className="w-4 h-4" />
+              </FormatBtn>
+            </div>
+
+            {/* ── Add block button — outside overflow-x:auto so dropdown isn't clipped ── */}
+            <div ref={dropdownRef} className="relative shrink-0">
+              <button
+                onMouseDown={(e) => { e.preventDefault(); setAddOpen((v) => !v) }}
+                className={cn(
+                  'flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium transition-colors',
+                  'bg-brand-500 hover:bg-brand-600 text-white',
+                )}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Blok Ekle</span>
+                <ChevronDown className={cn('w-3 h-3 transition-transform', addOpen && 'rotate-180')} />
+              </button>
+
+              {addOpen && (
+                <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-y-auto max-h-[70vh]">
+                  <div className="p-1.5">
+                    {ADD_BLOCKS.map((b) => (
+                      <button
+                        key={b.type}
+                        onMouseDown={(e) => { e.preventDefault(); handleAddBlock(b.type) }}
+                        className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-raised transition-colors text-left"
+                      >
+                        <span className="shrink-0 mt-0.5 p-1.5 rounded-md bg-surface-raised text-gray-400">
+                          {b.icon}
+                        </span>
+                        <span>
+                          <span className="block text-sm font-medium text-gray-200">{b.label}</span>
+                          <span className="block text-xs text-gray-500 mt-0.5">{b.desc}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>{/* end flex items-center h-12 */}
+        </div>
       </div>
-    </div>
     </>
   )
 }
