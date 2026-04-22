@@ -50,7 +50,6 @@ function FormatBtn({ label, active, onClick, children, className }: FormatBtnPro
 export default function ArticleToolbar() {
   const { activeBlockId, blocks, addBlock, updateBlock } = useArticleStore()
   const [addOpen, setAddOpen] = useState(false)
-  const toolbarRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [fmt, setFmt] = useState({ bold: false, italic: false, underline: false, strikeThrough: false })
 
@@ -85,34 +84,6 @@ export default function ArticleToolbar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // iOS visualViewport: reposition toolbar above keyboard when it opens
-  useEffect(() => {
-    const toolbar = toolbarRef.current
-    if (!toolbar || !window.visualViewport) return
-
-    const update = () => {
-      const vv = window.visualViewport!
-      const kbOpen = window.innerHeight - vv.height > 100
-      if (kbOpen) {
-        toolbar.style.top = `${vv.offsetTop}px`
-        toolbar.style.left = `${vv.offsetLeft}px`
-        toolbar.style.width = `${vv.width}px`
-        toolbar.style.zIndex = '50'
-      } else {
-        toolbar.style.top = ''
-        toolbar.style.left = ''
-        toolbar.style.width = ''
-        toolbar.style.zIndex = ''
-      }
-    }
-
-    window.visualViewport.addEventListener('resize', update)
-    window.visualViewport.addEventListener('scroll', update)
-    return () => {
-      window.visualViewport!.removeEventListener('resize', update)
-      window.visualViewport!.removeEventListener('scroll', update)
-    }
-  }, [])
 
   const execFormat = (cmd: string, value?: string) => {
     document.execCommand(cmd, false, value)
@@ -148,10 +119,7 @@ export default function ArticleToolbar() {
       {/* Spacer in normal flow — holds the exact height of the fixed toolbar */}
       <div className="h-12 shrink-0" />
 
-      <div
-        ref={toolbarRef}
-        className="fixed top-14 left-0 right-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
-      >
+      <div className="fixed top-14 left-0 right-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex items-center h-12 gap-1">
             {/* Format buttons — horizontal scroll */}
