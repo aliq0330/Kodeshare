@@ -110,7 +110,7 @@ export default function ArticlePage() {
       </header>
 
       {/* ── Scrollable content ── */}
-      <main className="flex-1 pt-14 overflow-y-auto">
+      <main className="flex-1 pt-14">
         {showPreview ? (
           <ArticlePreview />
         ) : (

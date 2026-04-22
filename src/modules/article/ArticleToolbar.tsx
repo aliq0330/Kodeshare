@@ -116,10 +116,7 @@ export default function ArticleToolbar() {
 
   return (
     <>
-      {/* Spacer in normal flow — holds the exact height of the fixed toolbar */}
-      <div className="h-12 shrink-0" />
-
-      <div className="fixed top-14 left-0 right-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border">
+      <div className="sticky top-14 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex items-center h-12 gap-1">
             {/* Format buttons — horizontal scroll */}
