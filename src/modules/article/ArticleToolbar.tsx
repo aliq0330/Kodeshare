@@ -141,7 +141,9 @@ export default function ArticleToolbar() {
       className="sticky top-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
     >
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center gap-0.5 h-12 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center h-12 gap-1">
+        {/* Format buttons — horizontal scroll; overflow-x:auto here is what was clipping the dropdown */}
+        <div className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-hide min-w-0">
           {/* ── Inline formatting ── */}
           <FormatBtn label="Kalın (⌘B)" onClick={() => execFormat('bold')}>
             <Bold className="w-4 h-4" />
@@ -221,9 +223,9 @@ export default function ArticleToolbar() {
             <Code2 className="w-4 h-4" />
           </FormatBtn>
 
-          <div className="flex-1" />
+        </div>{/* end scrollable format buttons */}
 
-          {/* ── Add block button ── */}
+          {/* ── Add block button — outside overflow-x:auto so dropdown isn't clipped ── */}
           <div ref={dropdownRef} className="relative shrink-0">
             <button
               onMouseDown={(e) => { e.preventDefault(); setAddOpen((v) => !v) }}
@@ -238,7 +240,7 @@ export default function ArticleToolbar() {
             </button>
 
             {addOpen && (
-              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-hidden">
+              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-y-auto max-h-[70vh]">
                 <div className="p-1.5">
                   {ADD_BLOCKS.map((b) => (
                     <button
@@ -259,7 +261,7 @@ export default function ArticleToolbar() {
               </div>
             )}
           </div>
-        </div>
+        </div>{/* end flex items-center h-12 */}
       </div>
     </div>
     </>
