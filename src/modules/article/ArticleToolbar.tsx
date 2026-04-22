@@ -51,7 +51,9 @@ export default function ArticleToolbar() {
   const { activeBlockId, blocks, addBlock, updateBlock } = useArticleStore()
   const [addOpen, setAddOpen] = useState(false)
   const toolbarRef = useRef<HTMLDivElement>(null)
+  const spacerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
 
   const activeBlock = blocks.find((b) => b.id === activeBlockId)
 
@@ -66,14 +68,30 @@ export default function ArticleToolbar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // iOS visualViewport: keep toolbar visible when keyboard opens
+  // iOS visualViewport: switch to fixed+pin when keyboard opens so toolbar never disappears
   useEffect(() => {
     const toolbar = toolbarRef.current
     if (!toolbar || !window.visualViewport) return
 
     const update = () => {
       const vv = window.visualViewport!
-      toolbar.style.top = `${vv.offsetTop}px`
+      const kbOpen = window.innerHeight - vv.height > 100
+
+      setKeyboardOpen(kbOpen)
+
+      if (kbOpen) {
+        toolbar.style.position = 'fixed'
+        toolbar.style.top = `${vv.offsetTop}px`
+        toolbar.style.left = `${vv.offsetLeft}px`
+        toolbar.style.width = `${vv.width}px`
+        toolbar.style.zIndex = '50'
+      } else {
+        toolbar.style.position = ''
+        toolbar.style.top = ''
+        toolbar.style.left = ''
+        toolbar.style.width = ''
+        toolbar.style.zIndex = ''
+      }
     }
 
     window.visualViewport.addEventListener('resize', update)
@@ -115,14 +133,12 @@ export default function ArticleToolbar() {
   const isTextActive = activeBlock && ['paragraph', 'heading1', 'heading2', 'heading3'].includes(activeBlock.type)
 
   return (
+    <>
+      {/* Spacer: prevents layout jump when toolbar switches to fixed on iOS keyboard open */}
+      {keyboardOpen && <div ref={spacerRef} className="h-12 shrink-0" />}
     <div
       ref={toolbarRef}
-      className={cn(
-        'sticky z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border',
-        // top value is overridden by visualViewport JS on iOS
-        'top-0',
-      )}
-      style={{ top: 0 }}
+      className="sticky top-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
     >
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="flex items-center gap-0.5 h-12 overflow-x-auto scrollbar-hide">
@@ -246,5 +262,6 @@ export default function ArticleToolbar() {
         </div>
       </div>
     </div>
+    </>
   )
 }
