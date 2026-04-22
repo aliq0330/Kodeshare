@@ -138,7 +138,7 @@ export default function ArticleToolbar() {
       {keyboardOpen && <div ref={spacerRef} className="h-12 shrink-0" />}
     <div
       ref={toolbarRef}
-      className="sticky top-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
+      className="sticky top-14 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
     >
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="flex items-center h-12 gap-1">
