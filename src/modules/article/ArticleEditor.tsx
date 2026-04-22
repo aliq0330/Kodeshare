@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { ImagePlus, X } from 'lucide-react'
+import { ImagePlus, X, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { BlockType } from '@store/articleStore'
@@ -22,7 +22,7 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Block controls — visible on hover, desktop only */}
+      {/* Desktop: sol kenar kontrolleri (hover) */}
       <div
         className={cn(
           'absolute -left-10 top-1 hidden md:flex flex-col gap-1 transition-opacity',
@@ -32,18 +32,18 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
         <button
           onClick={() => moveBlock(id, 'up')}
           disabled={idx === 0}
-          className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20 text-xs"
+          className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
           title="Yukarı taşı"
         >
-          ↑
+          <ChevronUp className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => moveBlock(id, 'down')}
           disabled={idx === blocks.length - 1}
-          className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20 text-xs"
+          className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
           title="Aşağı taşı"
         >
-          ↓
+          <ChevronDown className="w-3.5 h-3.5" />
         </button>
         {blocks.length > 1 && (
           <button
@@ -55,7 +55,34 @@ function BlockWrapper({ id, children }: { id: string; children: React.ReactNode 
           </button>
         )}
       </div>
+
       {children}
+
+      {/* Mobil: alt satır kontrolleri */}
+      <div className="flex md:hidden items-center justify-end gap-1 mt-1">
+        <button
+          onClick={() => moveBlock(id, 'up')}
+          disabled={idx === 0}
+          className="w-7 h-7 flex items-center justify-center rounded-md text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
+        >
+          <ChevronUp className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={() => moveBlock(id, 'down')}
+          disabled={idx === blocks.length - 1}
+          className="w-7 h-7 flex items-center justify-center rounded-md text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+        {blocks.length > 1 && (
+          <button
+            onClick={() => removeBlock(id)}
+            className="w-7 h-7 flex items-center justify-center rounded-md text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }

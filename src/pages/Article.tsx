@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Send, Clock, CheckCheck, MoreHorizontal, Eye } from 'l
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import ArticleEditor from '@modules/article/ArticleEditor'
+import CodeBlockPreview from '@modules/article/blocks/CodeBlockPreview'
 
 function SaveStatus({ isDirty }: { isDirty: boolean }) {
   const [saved, setSaved] = useState(false)
@@ -194,15 +195,7 @@ function ArticlePreview() {
               </figure>
             )
             if (block.type === 'code') return (
-              <div key={block.id} className="rounded-xl overflow-hidden border border-white/10 bg-[#282c34] my-2">
-                <div className="flex items-center justify-between px-4 py-2 bg-black/20 border-b border-white/5">
-                  <span className="text-xs text-gray-400 font-mono">{block.language ?? 'code'}</span>
-                  {block.filename && <span className="text-xs text-gray-500">{block.filename}</span>}
-                </div>
-                <pre className="p-4 overflow-x-auto text-[13.5px] font-mono leading-[1.65] text-gray-200">
-                  <code>{block.code}</code>
-                </pre>
-              </div>
+              <CodeBlockPreview key={block.id} block={block} />
             )
             if (block.type === 'divider') return (
               <div key={block.id} className="flex items-center justify-center gap-4 py-2">
