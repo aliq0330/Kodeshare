@@ -50,9 +50,7 @@ function FormatBtn({ label, active, onClick, children, className }: FormatBtnPro
 export default function ArticleToolbar() {
   const { activeBlockId, blocks, addBlock, updateBlock } = useArticleStore()
   const [addOpen, setAddOpen] = useState(false)
-  const toolbarRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [keyboardOpen, setKeyboardOpen] = useState(false)
   const [fmt, setFmt] = useState({ bold: false, italic: false, underline: false, strikeThrough: false })
 
   const activeBlock = blocks.find((b) => b.id === activeBlockId)
@@ -84,36 +82,6 @@ export default function ArticleToolbar() {
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  // Mobil klavye açılınca toolbar'ı fixed yap — sadece resize dinle (scroll = titreme)
-  useEffect(() => {
-    const toolbar = toolbarRef.current
-    const vv = window.visualViewport
-    if (!toolbar || !vv) return
-
-    const update = () => {
-      // iOS: innerHeight sabit kalır, vv.height küçülür
-      // Android: ikisi de küçülür ama fark yine anlamlı
-      const kbOpen = window.innerHeight - vv.height > 100
-      setKeyboardOpen(kbOpen)
-      if (kbOpen) {
-        toolbar.style.position = 'fixed'
-        toolbar.style.top = '56px'   // = h-14
-        toolbar.style.left = '0'
-        toolbar.style.width = '100%'
-        toolbar.style.zIndex = '30'
-      } else {
-        toolbar.style.position = ''
-        toolbar.style.top = ''
-        toolbar.style.left = ''
-        toolbar.style.width = ''
-        toolbar.style.zIndex = ''
-      }
-    }
-
-    vv.addEventListener('resize', update)
-    return () => vv.removeEventListener('resize', update)
   }, [])
 
 
@@ -148,12 +116,7 @@ export default function ArticleToolbar() {
 
   return (
     <>
-      {/* Spacer: toolbar fixed'a geçince yerini tutar */}
-      {keyboardOpen && <div className="h-12 shrink-0" />}
-      <div
-        ref={toolbarRef}
-        className="sticky top-14 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border"
-      >
+      <div className="sticky top-14 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex items-center h-12 gap-1">
             {/* Format buttons — horizontal scroll */}
