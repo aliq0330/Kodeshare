@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Save, Send, Clock, CheckCheck, MoreHorizontal, Eye, Link2, Globe, EyeOff, Copy } from 'lucide-react'
 import { cn } from '@utils/cn'
-import { useArticleStore } from '@store/articleStore'
+import { useArticleStore, type ArticleBlock } from '@store/articleStore'
 import ArticleEditor from '@modules/article/ArticleEditor'
 import CodeBlockPreview from '@modules/article/blocks/CodeBlockPreview'
 import PostEmbedBlock from '@modules/article/blocks/PostEmbedBlock'
@@ -254,7 +254,7 @@ function ArticlePreview() {
 }
 
 // ── Blok render motoru (hem önizleme hem public sayfa kullanır) ────────────────
-export function ArticleBlocksRenderer({ blocks }: { blocks: import('@store/articleStore').ArticleBlock[] }) {
+export function ArticleBlocksRenderer({ blocks }: { blocks: ArticleBlock[] }) {
   const navigate = useNavigate()
 
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
@@ -323,8 +323,4 @@ export function ArticleBlocksRenderer({ blocks }: { blocks: import('@store/artic
       })}
     </div>
   )
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ')
 }

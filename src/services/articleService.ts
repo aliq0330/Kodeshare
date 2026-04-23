@@ -61,7 +61,7 @@ export const articleService = {
       .eq('author_id', userId)
       .order('updated_at', { ascending: false })
     if (error) throw new Error(error.message)
-    return (data ?? []).map((r) => mapArticle(r as Record<string, unknown>))
+    return (data ?? []).map((r) => mapArticle(r as unknown as Record<string, unknown>))
   },
 
   async get(id: string): Promise<ArticleRecord> {
@@ -71,7 +71,7 @@ export const articleService = {
       .eq('id', id)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>)
   },
 
   async save(article: {
@@ -97,7 +97,7 @@ export const articleService = {
         .select(ARTICLE_SELECT)
         .single()
       if (error) throw new Error(error.message)
-      return mapArticle(data as Record<string, unknown>)
+      return mapArticle(data as unknown as Record<string, unknown>)
     }
 
     const { data, error } = await supabase
@@ -113,7 +113,7 @@ export const articleService = {
       .select(ARTICLE_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>)
   },
 
   async publish(id: string): Promise<ArticleRecord> {
@@ -126,7 +126,7 @@ export const articleService = {
       .select(ARTICLE_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>)
   },
 
   async unpublish(id: string): Promise<ArticleRecord> {
@@ -139,7 +139,7 @@ export const articleService = {
       .select(ARTICLE_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>)
   },
 
   async delete(id: string): Promise<void> {
