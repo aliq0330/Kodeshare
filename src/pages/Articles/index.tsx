@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FilePen, Trash2, Clock, Plus, BookOpen } from 'lucide-react'
+import { FilePen, Trash2, Clock, Plus, BookOpen, Globe, Link2, EyeOff } from 'lucide-react'
 import { cn } from '@utils/cn'
-import { useArticleStore, listArticles } from '@store/articleStore'
-import type { SavedArticleRecord } from '@store/articleStore'
+import { useArticleStore } from '@store/articleStore'
+import { articleService } from '@services/articleService'
+import type { ArticleRecord } from '@services/articleService'
+import Spinner from '@components/ui/Spinner'
+import toast from 'react-hot-toast'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('tr-TR', {
@@ -11,21 +14,25 @@ function formatDate(iso: string) {
   })
 }
 
-function wordCount(record: SavedArticleRecord) {
+function wordCount(record: ArticleRecord) {
   const text = record.blocks
     .map((b) => b.content?.replace(/<[^>]*>/g, '') ?? b.code ?? '')
     .join(' ')
-  const words = text.trim().split(/\s+/).filter(Boolean).length
-  return words
+  return text.trim().split(/\s+/).filter(Boolean).length
 }
 
 export default function ArticlesPage() {
-  const navigate = useNavigate()
-  const { reset, loadArticle, deleteArticle } = useArticleStore()
-  const [articles, setArticles] = useState<SavedArticleRecord[]>([])
+  const navigate    = useNavigate()
+  const { reset, loadArticle } = useArticleStore()
+
+  const [articles, setArticles] = useState<ArticleRecord[]>([])
+  const [loading,  setLoading]  = useState(true)
 
   useEffect(() => {
-    setArticles(listArticles())
+    articleService.list()
+      .then(setArticles)
+      .catch(() => toast.error('Makaleler yüklenemedi'))
+      .finally(() => setLoading(false))
   }, [])
 
   const handleNew = () => {
@@ -33,27 +40,54 @@ export default function ArticlesPage() {
     navigate('/makale')
   }
 
-  const handleOpen = (record: SavedArticleRecord) => {
+  const handleOpen = (record: ArticleRecord) => {
     loadArticle(record)
     navigate('/makale')
   }
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    deleteArticle(id)
-    setArticles((prev) => prev.filter((a) => a.id !== id))
+    if (!confirm('Bu makaleyi silmek istediğine emin misin?')) return
+    try {
+      await articleService.delete(id)
+      setArticles((prev) => prev.filter((a) => a.id !== id))
+      toast.success('Makale silindi')
+    } catch {
+      toast.error('Silinemedi')
+    }
+  }
+
+  const handleCopyLink = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = `${window.location.origin}/makale/${id}`
+    navigator.clipboard.writeText(url).then(() => toast.success('Link kopyalandı!'))
+  }
+
+  const handleUnpublish = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      await articleService.unpublish(id)
+      setArticles((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, isPublished: false } : a)),
+      )
+      toast.success('Yayından kaldırıldı')
+    } catch {
+      toast.error('İşlem başarısız')
+    }
   }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      {/* Header */}
+      {/* Başlık */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Makalelerim</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {articles.length > 0
-              ? `${articles.length} taslak kaydedildi`
-              : 'Henüz kaydedilmiş makale yok'}
+            {loading
+              ? 'Yükleniyor...'
+              : articles.length > 0
+                ? `${articles.length} makale`
+                : 'Henüz makale yok'}
           </p>
         </div>
         <button
@@ -65,13 +99,20 @@ export default function ArticlesPage() {
         </button>
       </div>
 
-      {/* Empty state */}
-      {articles.length === 0 && (
+      {/* Yükleniyor */}
+      {loading && (
+        <div className="flex justify-center py-20">
+          <Spinner />
+        </div>
+      )}
+
+      {/* Boş durum */}
+      {!loading && articles.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-16 h-16 rounded-2xl bg-surface-raised flex items-center justify-center mb-4">
             <BookOpen className="w-8 h-8 text-gray-600" />
           </div>
-          <p className="text-gray-400 font-medium">Kaydedilmiş makale yok</p>
+          <p className="text-gray-400 font-medium">Henüz makale yok</p>
           <p className="text-gray-600 text-sm mt-1 mb-6">
             Yeni bir makale oluştur ve "Taslak" butonuyla kaydet.
           </p>
@@ -85,8 +126,8 @@ export default function ArticlesPage() {
         </div>
       )}
 
-      {/* Article list */}
-      {articles.length > 0 && (
+      {/* Makale listesi */}
+      {!loading && articles.length > 0 && (
         <div className="flex flex-col gap-3">
           {articles.map((article) => (
             <div
@@ -98,7 +139,7 @@ export default function ArticlesPage() {
                 'cursor-pointer transition-all',
               )}
             >
-              {/* Cover thumbnail */}
+              {/* Kapak görseli */}
               {article.coverImage ? (
                 <img
                   src={article.coverImage}
@@ -111,11 +152,19 @@ export default function ArticlesPage() {
                 </div>
               )}
 
-              {/* Content */}
+              {/* İçerik */}
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-semibold text-white truncate group-hover:text-brand-300 transition-colors">
-                  {article.title}
-                </h2>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h2 className="text-base font-semibold text-white truncate group-hover:text-brand-300 transition-colors">
+                    {article.title}
+                  </h2>
+                  {article.isPublished && (
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 text-[10px] font-semibold uppercase tracking-wider shrink-0">
+                      <Globe className="w-2.5 h-2.5" />
+                      Yayında
+                    </span>
+                  )}
+                </div>
                 {article.subtitle && (
                   <p className="text-sm text-gray-500 truncate mt-0.5">{article.subtitle}</p>
                 )}
@@ -129,8 +178,26 @@ export default function ArticlesPage() {
                 </div>
               </div>
 
-              {/* Actions */}
+              {/* Eylemler */}
               <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                {article.isPublished && (
+                  <>
+                    <button
+                      onClick={(e) => handleCopyLink(article.id, e)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
+                      title="Linki kopyala"
+                    >
+                      <Link2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleUnpublish(article.id, e)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-yellow-400 hover:bg-surface-raised transition-colors"
+                      title="Yayından kaldır"
+                    >
+                      <EyeOff className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={(e) => { e.stopPropagation(); handleOpen(article) }}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"

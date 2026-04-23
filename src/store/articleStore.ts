@@ -1,4 +1,8 @@
 import { create } from 'zustand'
+import { articleService } from '@services/articleService'
+import type { ArticleRecord } from '@services/articleService'
+
+export type { ArticleRecord }
 
 export type BlockType =
   | 'paragraph'
@@ -25,43 +29,20 @@ export interface ArticleBlock {
   calloutColor?: 'blue' | 'yellow' | 'green' | 'red' | 'purple'
 }
 
-export interface SavedArticleRecord {
-  id: string
-  title: string
-  subtitle: string
-  coverImage: string | null
-  blocks: ArticleBlock[]
-  savedAt: string
-  updatedAt: string
-}
-
-const STORAGE_KEY = 'kodeshare_articles'
-
-export function listArticles(): SavedArticleRecord[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-  } catch {
-    return []
-  }
-}
-
-function writeArticles(records: SavedArticleRecord[]): boolean {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
-    return true
-  } catch {
-    return false
-  }
-}
+// Backward compat alias
+export type SavedArticleRecord = ArticleRecord
 
 interface ArticleState {
-  id: string
-  title: string
-  subtitle: string
-  coverImage: string | null
-  blocks: ArticleBlock[]
+  supabaseId:  string | null
+  isPublished: boolean
+  isSaving:    boolean
+
+  title:         string
+  subtitle:      string
+  coverImage:    string | null
+  blocks:        ArticleBlock[]
   activeBlockId: string | null
-  isDirty: boolean
+  isDirty:       boolean
 
   setTitle: (t: string) => void
   setSubtitle: (t: string) => void
@@ -73,9 +54,10 @@ interface ArticleState {
   moveBlock: (id: string, dir: 'up' | 'down') => void
   reset: () => void
 
-  saveArticle: () => void
-  loadArticle: (record: SavedArticleRecord) => void
-  deleteArticle: (id: string) => void
+  saveArticle: () => Promise<void>
+  publishArticle: () => Promise<void>
+  unpublishArticle: () => Promise<void>
+  loadArticle: (record: ArticleRecord) => void
 }
 
 const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -85,26 +67,28 @@ const makeInitialBlocks = (): ArticleBlock[] => [
 ]
 
 export const useArticleStore = create<ArticleState>()((set, get) => ({
-  id: genId(),
-  title: '',
-  subtitle: '',
-  coverImage: null,
-  blocks: makeInitialBlocks(),
-  activeBlockId: null,
-  isDirty: false,
+  supabaseId:    null,
+  isPublished:   false,
+  isSaving:      false,
 
-  setTitle: (t) => set({ title: t, isDirty: true }),
-  setSubtitle: (t) => set({ subtitle: t, isDirty: true }),
-  setCoverImage: (src) => set({ coverImage: src, isDirty: true }),
-  setActiveBlock: (id) => set({ activeBlockId: id }),
+  title:         '',
+  subtitle:      '',
+  coverImage:    null,
+  blocks:        makeInitialBlocks(),
+  activeBlockId: null,
+  isDirty:       false,
+
+  setTitle:       (t)   => set({ title: t,       isDirty: true }),
+  setSubtitle:    (t)   => set({ subtitle: t,    isDirty: true }),
+  setCoverImage:  (src) => set({ coverImage: src, isDirty: true }),
+  setActiveBlock: (id)  => set({ activeBlockId: id }),
 
   addBlock: (afterId, type, partial = {}) => {
     const id = genId()
     const defaults: Partial<ArticleBlock> = {}
-    if (type === 'code') { defaults.language = 'javascript'; defaults.code = '' }
+    if (type === 'code')    { defaults.language = 'javascript'; defaults.code = '' }
     if (type === 'callout') { defaults.emoji = '💡'; defaults.calloutColor = 'blue' }
     const block: ArticleBlock = { id, type, content: '', ...defaults, ...partial }
-
     set((s) => {
       if (!afterId) return { blocks: [...s.blocks, block], isDirty: true }
       const idx = s.blocks.findIndex((b) => b.id === afterId)
@@ -119,7 +103,7 @@ export const useArticleStore = create<ArticleState>()((set, get) => ({
     set((s) => {
       if (!s.blocks.some((b) => b.id === id)) return s
       return {
-        blocks: s.blocks.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+        blocks:  s.blocks.map((b) => (b.id === id ? { ...b, ...updates } : b)),
         isDirty: true,
       }
     }),
@@ -135,69 +119,86 @@ export const useArticleStore = create<ArticleState>()((set, get) => ({
       const idx = s.blocks.findIndex((b) => b.id === id)
       if (idx === -1) return {}
       const next = [...s.blocks]
-      if (dir === 'up' && idx > 0) [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
-      if (dir === 'down' && idx < next.length - 1)
-        [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
+      if (dir === 'up'   && idx > 0)               [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
+      if (dir === 'down' && idx < next.length - 1)  [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
       return { blocks: next, isDirty: true }
     }),
 
   reset: () =>
     set({
-      id: genId(),
-      title: '',
-      subtitle: '',
-      coverImage: null,
-      blocks: makeInitialBlocks(),
+      supabaseId:    null,
+      isPublished:   false,
+      isSaving:      false,
+      title:         '',
+      subtitle:      '',
+      coverImage:    null,
+      blocks:        makeInitialBlocks(),
       activeBlockId: null,
-      isDirty: false,
+      isDirty:       false,
     }),
 
-  saveArticle: () => {
-    const { id, title, subtitle, coverImage, blocks } = get()
-    const records = listArticles()
-    const existingIdx = records.findIndex((r) => r.id === id)
-    const now = new Date().toISOString()
-    const savedAt = existingIdx >= 0 ? records[existingIdx].savedAt : now
+  saveArticle: async () => {
+    const { supabaseId, title, subtitle, coverImage, blocks } = get()
+    set({ isSaving: true })
+    try {
+      const record = await articleService.save({
+        id:         supabaseId,
+        title:      title.trim() || 'Başlıksız Makale',
+        subtitle,
+        coverImage,
+        blocks,
+      })
+      set({ supabaseId: record.id, isDirty: false })
+    } finally {
+      set({ isSaving: false })
+    }
+  },
 
-    const upsert = (recs: SavedArticleRecord[], rec: SavedArticleRecord) => {
-      const next = [...recs]
-      if (existingIdx >= 0) next[existingIdx] = rec
-      else next.unshift(rec)
-      return next
+  publishArticle: async () => {
+    const { supabaseId, title, subtitle, coverImage, blocks, isDirty } = get()
+    set({ isSaving: true })
+    try {
+      let id = supabaseId
+      if (!id || isDirty) {
+        const saved = await articleService.save({
+          id,
+          title: title.trim() || 'Başlıksız Makale',
+          subtitle,
+          coverImage,
+          blocks,
+        })
+        id = saved.id
+        set({ supabaseId: id, isDirty: false })
+      }
+      await articleService.publish(id!)
+      set({ isPublished: true })
+    } finally {
+      set({ isSaving: false })
     }
+  },
 
-    // 1. Görseller dahil kaydet
-    const fullRecord: SavedArticleRecord = {
-      id, title: title.trim() || 'Başlıksız Makale',
-      subtitle, coverImage, blocks, savedAt, updatedAt: now,
+  unpublishArticle: async () => {
+    const { supabaseId } = get()
+    if (!supabaseId) return
+    set({ isSaving: true })
+    try {
+      await articleService.unpublish(supabaseId)
+      set({ isPublished: false })
+    } finally {
+      set({ isSaving: false })
     }
-    if (writeArticles(upsert(records, fullRecord))) {
-      set({ isDirty: false })
-      return
-    }
-
-    // 2. Kota aşıldıysa görseller olmadan kaydet
-    const lightRecord: SavedArticleRecord = {
-      ...fullRecord,
-      coverImage: null,
-      blocks: blocks.map((b) => (b.type === 'image' ? { ...b, src: undefined } : b)),
-    }
-    writeArticles(upsert(records, lightRecord))
-    set({ isDirty: false })
   },
 
   loadArticle: (record) =>
     set({
-      id: record.id,
-      title: record.title,
-      subtitle: record.subtitle,
-      coverImage: record.coverImage,
-      blocks: record.blocks,
+      supabaseId:    record.id,
+      isPublished:   record.isPublished,
+      isSaving:      false,
+      title:         record.title,
+      subtitle:      record.subtitle,
+      coverImage:    record.coverImage,
+      blocks:        record.blocks.length ? record.blocks : makeInitialBlocks(),
       activeBlockId: null,
-      isDirty: false,
+      isDirty:       false,
     }),
-
-  deleteArticle: (id) => {
-    writeArticles(listArticles().filter((r) => r.id !== id))
-  },
 }))

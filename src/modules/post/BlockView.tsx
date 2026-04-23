@@ -198,17 +198,27 @@ function VideoBlockView({ block, compact }: { block: PostBlock; compact?: boolea
 }
 
 function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: boolean }) {
-  const content = (block.data.content as string) ?? ''
-  const title   = (block.data.title   as string) ?? ''
+  const content   = (block.data.content   as string) ?? ''
+  const title     = (block.data.title     as string) ?? ''
+  const articleId = (block.data.articleId as string) ?? ''
   if (!content && !title) return null
+  const articleUrl = articleId ? `/makale/${articleId}` : null
   return (
     <div className={`rounded-xl border border-surface-border overflow-hidden mb-${compact ? '3' : '5'}`}>
-      {title && (
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
-          <FileText className="w-4 h-4 text-brand-400 shrink-0" />
-          <span className="text-sm font-medium text-white truncate">{title}</span>
-        </div>
-      )}
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
+        <FileText className="w-4 h-4 text-brand-400 shrink-0" />
+        <span className="text-sm font-medium text-white truncate flex-1">{title || 'Makale'}</span>
+        {articleUrl && (
+          <a
+            href={articleUrl}
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1 text-xs text-brand-400 hover:text-brand-300 transition-colors shrink-0"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Oku
+          </a>
+        )}
+      </div>
       {content && (
         <p className={`px-3 py-2.5 text-sm text-gray-300 whitespace-pre-wrap ${compact ? 'line-clamp-4' : ''}`}>
           {content}

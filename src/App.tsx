@@ -19,6 +19,7 @@ import AdminPage from '@pages/Admin'
 import AdminUserDetailPage from '@pages/Admin/UserDetail'
 import ArticlePage from '@pages/Article'
 import ArticlesPage from '@pages/Articles'
+import ArticleViewPage from '@pages/ArticleView'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
 import { useEditorStore } from '@store/editorStore'
@@ -103,6 +104,7 @@ export default function App() {
         <Route path="/post/:postId" element={<PostDetailPage />} />
         <Route path="/collection/:collectionId" element={<CollectionDetailPage />} />
         <Route path="/makaleler" element={<ProtectedRoute><ArticlesPage /></ProtectedRoute>} />
+        <Route path="/makale/:id" element={<ArticleViewPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

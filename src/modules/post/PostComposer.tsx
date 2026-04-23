@@ -12,7 +12,8 @@ import { useAuthStore } from '@store/authStore'
 import { usePostStore } from '@store/postStore'
 import { useComposerStore } from '@store/composerStore'
 import { projectService, type SavedProject } from '@services/projectService'
-import { listArticles, type SavedArticleRecord } from '@store/articleStore'
+import { articleService } from '@services/articleService'
+import type { ArticleRecord } from '@services/articleService'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import toast from 'react-hot-toast'
 import type { PostBlockType } from '@/types'
@@ -79,10 +80,11 @@ const BLOCK_OPTIONS: { type: PostBlockType; label: string; icon: React.ReactNode
   { type: 'video',   label: 'Video',   icon: <Video className="w-4 h-4" /> },
 ]
 
-function extractArticleContent(article: SavedArticleRecord): string {
+function extractArticleContent(article: ArticleRecord): string {
   return article.blocks
     .map((b) => {
-      if (['paragraph', 'heading1', 'heading2', 'heading3', 'quote', 'callout'].includes(b.type)) return b.content ?? ''
+      if (['paragraph', 'heading1', 'heading2', 'heading3', 'quote', 'callout'].includes(b.type))
+        return (b.content ?? '').replace(/<[^>]*>/g, '')
       if (b.type === 'code') return b.code ?? ''
       return ''
     })
@@ -90,9 +92,9 @@ function extractArticleContent(article: SavedArticleRecord): string {
     .join('\n\n')
 }
 
-function articleWordCount(article: SavedArticleRecord): number {
+function articleWordCount(article: ArticleRecord): number {
   return article.blocks
-    .map((b) => b.content ?? b.code ?? '')
+    .map((b) => (b.content ?? '').replace(/<[^>]*>/g, '') + ' ' + (b.code ?? ''))
     .join(' ')
     .split(/\s+/)
     .filter(Boolean).length
@@ -116,7 +118,7 @@ function blockToPayload(b: ComposerBlock, position: number) {
     case 'image':   return { type: 'image'   as const, position, data: { url: b.url } }
     case 'link':    return { type: 'link'    as const, position, data: { url: b.url, title: b.title } }
     case 'video':   return { type: 'video'   as const, position, data: { url: b.url } }
-    case 'article': return { type: 'article' as const, position, data: { content: b.content, title: b.articleTitle } }
+    case 'article': return { type: 'article' as const, position, data: { content: b.content, title: b.articleTitle, articleId: b.articleId } }
   }
 }
 
@@ -149,7 +151,8 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
   // Article picker state (per article block)
   const [articlePickerBlockId, setArticlePickerBlockId] = useState<string | null>(null)
-  const [pickerArticles, setPickerArticles]             = useState<SavedArticleRecord[]>([])
+  const [pickerArticles, setPickerArticles]             = useState<ArticleRecord[]>([])
+  const [articlePickerLoading, setArticlePickerLoading] = useState(false)
   const articlePickerRef = useRef<HTMLDivElement>(null)
 
   // Restore draft / prefilled content
@@ -245,8 +248,15 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     }
   }, [])
 
-  const loadPickerArticles = useCallback(() => {
-    setPickerArticles(listArticles())
+  const loadPickerArticles = useCallback(async () => {
+    setArticlePickerLoading(true)
+    try {
+      setPickerArticles(await articleService.list())
+    } catch {
+      toast.error('Makaleler yüklenemedi')
+    } finally {
+      setArticlePickerLoading(false)
+    }
   }, [])
 
   const addBlock = (type: PostBlockType) => {
@@ -482,7 +492,9 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                         </button>
                         {articlePickerBlockId === block.localId && (
                           <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-52 overflow-y-auto">
-                            {pickerArticles.length === 0 ? (
+                            {articlePickerLoading ? (
+                              <div className="flex justify-center py-5"><Spinner /></div>
+                            ) : pickerArticles.length === 0 ? (
                               <p className="text-sm text-gray-500 text-center py-5">Kayıtlı makale yok</p>
                             ) : (
                               pickerArticles.map((a) => (
