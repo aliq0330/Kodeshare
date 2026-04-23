@@ -52,7 +52,7 @@ type ComposerBlock =
   | { localId: string; type: 'image'; url: string }
   | { localId: string; type: 'link'; url: string; title: string }
   | { localId: string; type: 'video'; url: string }
-  | { localId: string; type: 'article'; articleId: string | null; articleTitle: string; content: string }
+  | { localId: string; type: 'article'; articleId: string | null; articleTitle: string; coverImage: string | null; content: string }
 
 interface Draft {
   title: string
@@ -107,7 +107,7 @@ function makeBlock(type: PostBlockType): ComposerBlock {
     case 'image':   return { localId: newId(), type: 'image',   url: '' }
     case 'link':    return { localId: newId(), type: 'link',    url: '', title: '' }
     case 'video':   return { localId: newId(), type: 'video',   url: '' }
-    case 'article': return { localId: newId(), type: 'article', articleId: null, articleTitle: '', content: '' }
+    case 'article': return { localId: newId(), type: 'article', articleId: null, articleTitle: '', coverImage: null, content: '' }
   }
 }
 
@@ -118,7 +118,7 @@ function blockToPayload(b: ComposerBlock, position: number) {
     case 'image':   return { type: 'image'   as const, position, data: { url: b.url } }
     case 'link':    return { type: 'link'    as const, position, data: { url: b.url, title: b.title } }
     case 'video':   return { type: 'video'   as const, position, data: { url: b.url } }
-    case 'article': return { type: 'article' as const, position, data: { content: b.content, title: b.articleTitle, articleId: b.articleId } }
+    case 'article': return { type: 'article' as const, position, data: { content: b.content, title: b.articleTitle, articleId: b.articleId, coverImage: b.coverImage } }
   }
 }
 
@@ -466,7 +466,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                           <FileText className="w-4 h-4 text-brand-400 shrink-0" />
                           <span className="text-sm font-medium text-white truncate flex-1">{block.articleTitle}</span>
                           <button
-                            onClick={() => updateBlock(block.localId, { articleId: null, articleTitle: '', content: '' } as Partial<ComposerBlock>)}
+                            onClick={() => updateBlock(block.localId, { articleId: null, articleTitle: '', coverImage: null, content: '' } as Partial<ComposerBlock>)}
                             className="ml-1 p-1 rounded hover:bg-surface-raised text-gray-500 hover:text-gray-300 transition-colors"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -505,6 +505,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                                     updateBlock(block.localId, {
                                       articleId: a.id,
                                       articleTitle: a.title,
+                                      coverImage: a.coverImage,
                                       content: extractArticleContent(a),
                                     } as Partial<ComposerBlock>)
                                     setArticlePickerBlockId(null)

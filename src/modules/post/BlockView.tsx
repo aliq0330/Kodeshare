@@ -198,34 +198,64 @@ function VideoBlockView({ block, compact }: { block: PostBlock; compact?: boolea
 }
 
 function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: boolean }) {
-  const content   = (block.data.content   as string) ?? ''
-  const title     = (block.data.title     as string) ?? ''
-  const articleId = (block.data.articleId as string) ?? ''
-  if (!content && !title) return null
+  const content    = (block.data.content    as string) ?? ''
+  const title      = (block.data.title      as string) ?? ''
+  const articleId  = (block.data.articleId  as string) ?? ''
+  const coverImage = (block.data.coverImage as string) ?? ''
+  if (!title && !content) return null
+
   const articleUrl = articleId ? `${import.meta.env.BASE_URL}makale/${articleId}` : null
-  return (
-    <div className={`rounded-xl border border-surface-border overflow-hidden mb-${compact ? '3' : '5'}`}>
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
-        <FileText className="w-4 h-4 text-brand-400 shrink-0" />
-        <span className="text-sm font-medium text-white truncate flex-1">{title || 'Makale'}</span>
+
+  const inner = (
+    <div className={`rounded-xl border border-surface-border overflow-hidden mb-${compact ? '3' : '5'} bg-surface-card/40 hover:border-brand-700/50 transition-colors`}>
+      {/* Kapak görseli */}
+      {coverImage && (
+        <img
+          src={coverImage}
+          alt=""
+          className={`w-full object-cover ${compact ? 'h-28' : 'h-40'}`}
+        />
+      )}
+
+      <div className="p-3 flex flex-col gap-1.5">
+        {/* Üst: ikon + etiket */}
+        <div className="flex items-center gap-1.5">
+          <FileText className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-400">Makale</span>
+        </div>
+
+        {/* Başlık */}
+        {title && (
+          <p className="text-sm font-semibold text-white leading-snug line-clamp-1">
+            {title}
+          </p>
+        )}
+
+        {/* İçerik özeti */}
+        {content && (
+          <p className={`text-xs text-gray-400 leading-relaxed ${compact ? 'line-clamp-2' : 'line-clamp-3'}`}>
+            {content}
+          </p>
+        )}
+
+        {/* Oku linki */}
         {articleUrl && (
-          <a
-            href={articleUrl}
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1 text-xs text-brand-400 hover:text-brand-300 transition-colors shrink-0"
-          >
-            <ExternalLink className="w-3 h-3" />
-            Oku
-          </a>
+          <span className="text-xs text-brand-400 font-medium mt-0.5">
+            Devamını oku →
+          </span>
         )}
       </div>
-      {content && (
-        <p className={`px-3 py-2.5 text-sm text-gray-300 whitespace-pre-wrap ${compact ? 'line-clamp-4' : ''}`}>
-          {content}
-        </p>
-      )}
     </div>
   )
+
+  if (articleUrl) {
+    return (
+      <a href={articleUrl} onClick={(e) => e.stopPropagation()} className="block no-underline">
+        {inner}
+      </a>
+    )
+  }
+  return inner
 }
 
 interface BlockViewProps {
