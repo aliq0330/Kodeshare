@@ -59,7 +59,7 @@ export default function ArticlesPage() {
 
   const handleCopyLink = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    const url = `${window.location.origin}/makale/${id}`
+    const url = `${window.location.origin}${import.meta.env.BASE_URL}makale/${id}`
     navigator.clipboard.writeText(url).then(() => toast.success('Link kopyalandı!'))
   }
 

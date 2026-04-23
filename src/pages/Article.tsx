@@ -47,7 +47,7 @@ export default function ArticlePage() {
 
   useEffect(() => () => reset(), [reset])
 
-  const articleUrl = supabaseId ? `${window.location.origin}/makale/${supabaseId}` : null
+  const articleUrl = supabaseId ? `${window.location.origin}${import.meta.env.BASE_URL}makale/${supabaseId}` : null
 
   const handleSaveDraft = async () => {
     try {

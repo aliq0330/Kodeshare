@@ -202,7 +202,7 @@ function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: bool
   const title     = (block.data.title     as string) ?? ''
   const articleId = (block.data.articleId as string) ?? ''
   if (!content && !title) return null
-  const articleUrl = articleId ? `/makale/${articleId}` : null
+  const articleUrl = articleId ? `${import.meta.env.BASE_URL}makale/${articleId}` : null
   return (
     <div className={`rounded-xl border border-surface-border overflow-hidden mb-${compact ? '3' : '5'}`}>
       <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
