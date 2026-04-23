@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Copy, Check, FolderOpen, FileCode, FileText, ExternalLink, Play } from 'lucide-react'
 import CMHighlight from '@components/shared/CMHighlight'
 import { LANGUAGE_COLORS } from '@utils/constants'
+import { articleService } from '@services/articleService'
+import type { ArticleRecord } from '@services/articleService'
 import type { PostBlock } from '@/types'
 
 function buildProjectSrcdoc(files: { language: string; content: string }[]): string {
@@ -198,10 +200,30 @@ function VideoBlockView({ block, compact }: { block: PostBlock; compact?: boolea
 }
 
 function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: boolean }) {
-  const content    = (block.data.content    as string) ?? ''
-  const title      = (block.data.title      as string) ?? ''
-  const articleId  = (block.data.articleId  as string) ?? ''
-  const coverImage = (block.data.coverImage as string) ?? ''
+  const articleId = (block.data.articleId as string) ?? ''
+
+  // Snapshot veriler (anlık gösterim için)
+  const [title,      setTitle]      = useState((block.data.title      as string) ?? '')
+  const [content,    setContent]    = useState((block.data.content    as string) ?? '')
+  const [coverImage, setCoverImage] = useState((block.data.coverImage as string) ?? '')
+
+  // Supabase'den güncel makale verisini çek
+  useEffect(() => {
+    if (!articleId) return
+    articleService.get(articleId)
+      .then((rec: ArticleRecord) => {
+        setTitle(rec.title)
+        if (rec.coverImage) setCoverImage(rec.coverImage)
+        // İçeriği bloklardan düz metne çevir
+        const text = rec.blocks
+          .map((b) => (b.content ?? '').replace(/<[^>]*>/g, '') || b.code || '')
+          .filter(Boolean)
+          .join(' ')
+        setContent(text)
+      })
+      .catch(() => { /* snapshot verisiyle devam et */ })
+  }, [articleId])
+
   if (!title && !content) return null
 
   const articleUrl = articleId ? `${import.meta.env.BASE_URL}makale/${articleId}` : null
@@ -224,7 +246,7 @@ function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: bool
           <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-400">Makale</span>
         </div>
 
-        {/* Başlık */}
+        {/* Başlık — tek satır */}
         {title && (
           <p className="text-sm font-semibold text-white leading-snug line-clamp-1">
             {title}
@@ -238,7 +260,7 @@ function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: bool
           </p>
         )}
 
-        {/* Oku linki */}
+        {/* Devamını oku */}
         {articleUrl && (
           <span className="text-xs text-brand-400 font-medium mt-0.5">
             Devamını oku →

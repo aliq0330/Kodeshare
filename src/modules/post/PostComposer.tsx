@@ -55,7 +55,6 @@ type ComposerBlock =
   | { localId: string; type: 'article'; articleId: string | null; articleTitle: string; coverImage: string | null; content: string }
 
 interface Draft {
-  title: string
   description: string
   tags: string
   blocks: ComposerBlock[]
@@ -132,7 +131,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { createPost } = usePostStore()
   const { open, prefilledProject, prefilledSnippet, openComposer, closeComposer } = useComposerStore()
 
-  const [title, setTitle]             = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags]               = useState('')
   const [blocks, setBlocks]           = useState<ComposerBlock[]>([])
@@ -167,12 +165,10 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     if (prefilledProject) {
       const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
       setBlocks([b])
-      setTitle(prefilledProject.title)
       return
     }
     const d = loadDraft()
     if (!d) return
-    if (d.title)       setTitle(d.title)
     if (d.description) setDescription(d.description)
     if (d.tags)        setTags(d.tags)
     if (d.blocks?.length) setBlocks(d.blocks)
@@ -188,16 +184,15 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     if (!open || !prefilledProject) return
     const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
     setBlocks([b])
-    setTitle(prefilledProject.title)
   }, [prefilledProject, open])
 
   // Auto-save draft
   useEffect(() => {
     if (!open) return
-    const hasContent = title || description || tags || blocks.length > 0
+    const hasContent = description || tags || blocks.length > 0
     if (!hasContent) return
-    saveDraft({ title, description, tags, blocks })
-  }, [open, title, description, tags, blocks])
+    saveDraft({ description, tags, blocks })
+  }, [open, description, tags, blocks])
 
   // ESC closes expanded editor
   useEffect(() => {
@@ -288,7 +283,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   }
 
   const reset = () => {
-    setTitle(''); setDescription(''); setTags(''); setBlocks([])
+    setDescription(''); setTags(''); setBlocks([])
     setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null); setAddMenuOpen(false)
     hydratedRef.current = false
   }
@@ -301,8 +296,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   }
 
   const handleSubmit = async () => {
-    const t = title.trim()
-    if (!t) { toast.error('Başlık gerekli'); return }
     setLoading(true)
     try {
       const validBlocks = blocks
@@ -317,10 +310,17 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         })
         .map((b, i) => blockToPayload(b, i))
 
+      // Başlık: description'ın ilk satırı ya da ilk bloğun adı
+      const desc = description.trim()
+      const autoTitle = desc.split('\n')[0].slice(0, 100) ||
+        (blocks[0]?.type === 'article' && (blocks[0] as { articleTitle: string }).articleTitle) ||
+        (blocks[0]?.type === 'project' && (blocks[0] as { project: { title: string } | null }).project?.title) ||
+        'Gönderi'
+
       await createPost({
         type: 'post',
-        title: t,
-        description: description.trim() || undefined,
+        title: autoTitle,
+        description: desc || undefined,
         tags: tags.split(',').map((x) => x.trim()).filter(Boolean),
         blocks: validBlocks,
       })
@@ -352,12 +352,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
       <Modal open={open} onClose={handleClose} title="Yeni Gönderi" size="lg">
         <div className="flex flex-col gap-4">
-          <Input
-            label="Başlık"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Gönderi başlığı... (Boş bırakılamaz)"
-          />
           <Textarea
             label="Açıklama"
             value={description}
@@ -588,7 +582,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             </Button>
             <div className="flex justify-end gap-2 ml-auto">
               <Button variant="ghost" onClick={handleClose}>İptal</Button>
-              <Button variant="primary" onClick={handleSubmit} loading={loading} disabled={!title.trim()}>Paylaş</Button>
+              <Button variant="primary" onClick={handleSubmit} loading={loading}>Paylaş</Button>
             </div>
           </div>
         </div>
