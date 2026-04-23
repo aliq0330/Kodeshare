@@ -12,6 +12,7 @@ import { useAuthStore } from '@store/authStore'
 import { usePostStore } from '@store/postStore'
 import { useComposerStore } from '@store/composerStore'
 import { projectService, type SavedProject } from '@services/projectService'
+import { listArticles, type SavedArticleRecord } from '@store/articleStore'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import toast from 'react-hot-toast'
 import type { PostBlockType } from '@/types'
@@ -50,7 +51,7 @@ type ComposerBlock =
   | { localId: string; type: 'image'; url: string }
   | { localId: string; type: 'link'; url: string; title: string }
   | { localId: string; type: 'video'; url: string }
-  | { localId: string; type: 'article'; content: string }
+  | { localId: string; type: 'article'; articleId: string | null; articleTitle: string; content: string }
 
 interface Draft {
   title: string
@@ -78,6 +79,25 @@ const BLOCK_OPTIONS: { type: PostBlockType; label: string; icon: React.ReactNode
   { type: 'video',   label: 'Video',   icon: <Video className="w-4 h-4" /> },
 ]
 
+function extractArticleContent(article: SavedArticleRecord): string {
+  return article.blocks
+    .map((b) => {
+      if (['paragraph', 'heading1', 'heading2', 'heading3', 'quote', 'callout'].includes(b.type)) return b.content ?? ''
+      if (b.type === 'code') return b.code ?? ''
+      return ''
+    })
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+function articleWordCount(article: SavedArticleRecord): number {
+  return article.blocks
+    .map((b) => b.content ?? b.code ?? '')
+    .join(' ')
+    .split(/\s+/)
+    .filter(Boolean).length
+}
+
 function makeBlock(type: PostBlockType): ComposerBlock {
   switch (type) {
     case 'snippet': return { localId: newId(), type: 'snippet', code: '', language: DEFAULT_LANG, manual: false }
@@ -85,7 +105,7 @@ function makeBlock(type: PostBlockType): ComposerBlock {
     case 'image':   return { localId: newId(), type: 'image',   url: '' }
     case 'link':    return { localId: newId(), type: 'link',    url: '', title: '' }
     case 'video':   return { localId: newId(), type: 'video',   url: '' }
-    case 'article': return { localId: newId(), type: 'article', content: '' }
+    case 'article': return { localId: newId(), type: 'article', articleId: null, articleTitle: '', content: '' }
   }
 }
 
@@ -96,7 +116,7 @@ function blockToPayload(b: ComposerBlock, position: number) {
     case 'image':   return { type: 'image'   as const, position, data: { url: b.url } }
     case 'link':    return { type: 'link'    as const, position, data: { url: b.url, title: b.title } }
     case 'video':   return { type: 'video'   as const, position, data: { url: b.url } }
-    case 'article': return { type: 'article' as const, position, data: { content: b.content } }
+    case 'article': return { type: 'article' as const, position, data: { content: b.content, title: b.articleTitle } }
   }
 }
 
@@ -126,6 +146,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const [pickerProjects, setPickerProjects]     = useState<SavedProject[]>([])
   const [pickerLoading, setPickerLoading]       = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
+
+  // Article picker state (per article block)
+  const [articlePickerBlockId, setArticlePickerBlockId] = useState<string | null>(null)
+  const [pickerArticles, setPickerArticles]             = useState<SavedArticleRecord[]>([])
+  const articlePickerRef = useRef<HTMLDivElement>(null)
 
   // Restore draft / prefilled content
   useEffect(() => {
@@ -199,6 +224,16 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     return () => document.removeEventListener('mousedown', h)
   }, [pickerBlockId])
 
+  // Close article picker on outside click
+  useEffect(() => {
+    if (!articlePickerBlockId) return
+    const h = (e: MouseEvent) => {
+      if (articlePickerRef.current && !articlePickerRef.current.contains(e.target as Node)) setArticlePickerBlockId(null)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [articlePickerBlockId])
+
   const loadPickerProjects = useCallback(async () => {
     setPickerLoading(true)
     try {
@@ -210,6 +245,10 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     }
   }, [])
 
+  const loadPickerArticles = useCallback(() => {
+    setPickerArticles(listArticles())
+  }, [])
+
   const addBlock = (type: PostBlockType) => {
     setBlocks((bs) => [...bs, makeBlock(type)])
     setAddMenuOpen(false)
@@ -219,6 +258,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     setBlocks((bs) => bs.filter((b) => b.localId !== localId))
     if (expandedId === localId) setExpandedId(null)
     if (pickerBlockId === localId) setPickerBlockId(null)
+    if (articlePickerBlockId === localId) setArticlePickerBlockId(null)
   }
 
   const updateBlock = <T extends ComposerBlock>(localId: string, patch: Partial<T>) => {
@@ -239,7 +279,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
   const reset = () => {
     setTitle(''); setDescription(''); setTags(''); setBlocks([])
-    setExpandedId(null); setPickerBlockId(null); setAddMenuOpen(false)
+    setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null); setAddMenuOpen(false)
     hydratedRef.current = false
   }
 
@@ -262,7 +302,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           if (b.type === 'image')    return b.url.trim()
           if (b.type === 'link')     return b.url.trim()
           if (b.type === 'video')    return b.url.trim()
-          if (b.type === 'article')  return b.content.trim()
+          if (b.type === 'article')  return !!b.articleId
           return false
         })
         .map((b, i) => blockToPayload(b, i))
@@ -408,14 +448,67 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                     )
                   )}
 
-                  {/* Article */}
+                  {/* Article picker */}
                   {block.type === 'article' && (
-                    <Textarea
-                      value={block.content}
-                      onChange={(e) => updateBlock(block.localId, { content: e.target.value })}
-                      placeholder="Makale içeriğini yaz..."
-                      rows={5}
-                    />
+                    block.articleId ? (
+                      <div className="rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
+                        <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
+                          <FileText className="w-4 h-4 text-brand-400 shrink-0" />
+                          <span className="text-sm font-medium text-white truncate flex-1">{block.articleTitle}</span>
+                          <button
+                            onClick={() => updateBlock(block.localId, { articleId: null, articleTitle: '', content: '' } as Partial<ComposerBlock>)}
+                            className="ml-1 p-1 rounded hover:bg-surface-raised text-gray-500 hover:text-gray-300 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                        {block.content && (
+                          <p className="px-3 py-2 text-xs text-gray-500 line-clamp-3 whitespace-pre-wrap">{block.content}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="relative" ref={articlePickerBlockId === block.localId ? articlePickerRef : undefined}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setArticlePickerBlockId(block.localId)
+                            loadPickerArticles()
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
+                        >
+                          <FileText className="w-4 h-4" />
+                          Makale Seç
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                        {articlePickerBlockId === block.localId && (
+                          <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-52 overflow-y-auto">
+                            {pickerArticles.length === 0 ? (
+                              <p className="text-sm text-gray-500 text-center py-5">Kayıtlı makale yok</p>
+                            ) : (
+                              pickerArticles.map((a) => (
+                                <button
+                                  key={a.id}
+                                  type="button"
+                                  onClick={() => {
+                                    updateBlock(block.localId, {
+                                      articleId: a.id,
+                                      articleTitle: a.title,
+                                      content: extractArticleContent(a),
+                                    } as Partial<ComposerBlock>)
+                                    setArticlePickerBlockId(null)
+                                  }}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-surface-raised transition-colors"
+                                >
+                                  <FileText className="w-4 h-4 text-brand-400 shrink-0" />
+                                  <span className="text-white flex-1 truncate">{a.title}</span>
+                                  <span className="text-xs text-gray-500">{articleWordCount(a)} kelime</span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
                   )}
 
                   {/* Image */}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, Check, FolderOpen, FileCode, ExternalLink, Play } from 'lucide-react'
+import { Copy, Check, FolderOpen, FileCode, FileText, ExternalLink, Play } from 'lucide-react'
 import CMHighlight from '@components/shared/CMHighlight'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import type { PostBlock } from '@/types'
@@ -199,10 +199,21 @@ function VideoBlockView({ block, compact }: { block: PostBlock; compact?: boolea
 
 function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: boolean }) {
   const content = (block.data.content as string) ?? ''
-  if (!content) return null
+  const title   = (block.data.title   as string) ?? ''
+  if (!content && !title) return null
   return (
-    <div className={`text-sm text-gray-300 whitespace-pre-wrap mb-${compact ? '3' : '5'} ${compact ? 'line-clamp-4' : ''}`}>
-      {content}
+    <div className={`rounded-xl border border-surface-border overflow-hidden mb-${compact ? '3' : '5'}`}>
+      {title && (
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
+          <FileText className="w-4 h-4 text-brand-400 shrink-0" />
+          <span className="text-sm font-medium text-white truncate">{title}</span>
+        </div>
+      )}
+      {content && (
+        <p className={`px-3 py-2.5 text-sm text-gray-300 whitespace-pre-wrap ${compact ? 'line-clamp-4' : ''}`}>
+          {content}
+        </p>
+      )}
     </div>
   )
 }
