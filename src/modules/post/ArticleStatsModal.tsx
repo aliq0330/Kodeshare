@@ -29,7 +29,7 @@ async function fetchLikers(articleId: string): Promise<UserRow[]> {
     .select('user:profiles!article_likes_user_id_fkey(id, username, display_name, avatar_url)')
     .eq('article_id', articleId)
   if (error) throw new Error(error.message)
-  return ((data ?? []) as Array<{ user: Record<string, unknown> | null }>)
+  return ((data ?? []) as unknown as Array<{ user: Record<string, unknown> | null }>)
     .map((row) => row.user)
     .filter((u): u is Record<string, unknown> => u !== null)
     .map((u) => ({
@@ -46,7 +46,7 @@ async function fetchSavers(articleId: string): Promise<UserRow[]> {
     .select('user:profiles!article_saves_user_id_fkey(id, username, display_name, avatar_url)')
     .eq('article_id', articleId)
   if (error) throw new Error(error.message)
-  return ((data ?? []) as Array<{ user: Record<string, unknown> | null }>)
+  return ((data ?? []) as unknown as Array<{ user: Record<string, unknown> | null }>)
     .map((row) => row.user)
     .filter((u): u is Record<string, unknown> => u !== null)
     .map((u) => ({
