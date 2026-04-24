@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
   const tabs = [
     { id: 'posts',       label: 'Gönderiler' },
-    { id: 'articles',    label: 'Makalelerim' },
+    { id: 'articles',    label: 'Makaleler' },
     { id: 'collections', label: 'Koleksiyonlar' },
     ...(showLikesTab ? [{ id: 'likes', label: 'Beğenilenler' }] : []),
     ...(isOwn ? [{ id: 'saved', label: 'Kaydedilenler' }] : []),
