@@ -13,6 +13,7 @@ import BlockView from '@modules/post/BlockView'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
 import { postService } from '@services/postService'
+import { articleService } from '@services/articleService'
 import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
@@ -48,6 +49,15 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     return null
   }
 
+  interface ArticleStats {
+    likesCount: number
+    savesCount: number
+    commentsCount: number
+    isLiked: boolean
+    isSaved: boolean
+  }
+  const [articleStats, setArticleStats] = useState<ArticleStats | null>(null)
+
   useEffect(() => {
     if (!menuOpen) return
     const h = (e: MouseEvent) => {
@@ -56,6 +66,44 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [menuOpen])
+
+  const displayArticleIdForFetch = getArticleId(
+    localPost.type === 'repost' && localPost.repostedFrom ? localPost.repostedFrom : localPost
+  )
+  useEffect(() => {
+    if (!displayArticleIdForFetch) return
+    articleService.get(displayArticleIdForFetch).then((rec) => {
+      setArticleStats({
+        likesCount:    rec.likesCount,
+        savesCount:    rec.savesCount,
+        commentsCount: rec.commentsCount,
+        isLiked:       rec.isLiked,
+        isSaved:       rec.isSaved,
+      })
+    }).catch(() => {})
+  }, [displayArticleIdForFetch])
+
+  const handleArticleLike = async () => {
+    if (!displayArticleIdForFetch || !isAuthenticated) return
+    if (articleStats?.isLiked) {
+      await articleService.unlike(displayArticleIdForFetch)
+      setArticleStats((s) => s ? { ...s, isLiked: false, likesCount: s.likesCount - 1 } : s)
+    } else {
+      await articleService.like(displayArticleIdForFetch)
+      setArticleStats((s) => s ? { ...s, isLiked: true, likesCount: s.likesCount + 1 } : s)
+    }
+  }
+
+  const handleArticleSave = async () => {
+    if (!displayArticleIdForFetch || !isAuthenticated) return
+    if (articleStats?.isSaved) {
+      await articleService.unsaveArticle(displayArticleIdForFetch)
+      setArticleStats((s) => s ? { ...s, isSaved: false, savesCount: s.savesCount - 1 } : s)
+    } else {
+      await articleService.saveArticle(displayArticleIdForFetch)
+      setArticleStats((s) => s ? { ...s, isSaved: true, savesCount: s.savesCount + 1 } : s)
+    }
+  }
 
   const handleDelete = async () => {
     setMenuOpen(false)
@@ -207,15 +255,17 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </div>
       </div>
 
-      {/* Title & description */}
-      <Link to={primaryLink} className="block mb-3">
-        <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2 mb-1">
-          {display.title}
-        </h3>
-        {display.description && (
-          <p className="text-sm text-gray-400 line-clamp-2">{display.description}</p>
-        )}
-      </Link>
+      {/* Title & description — makale postlarında ArticleBlockView zaten başlık gösteriyor */}
+      {!displayArticleId && (
+        <Link to={primaryLink} className="block mb-3">
+          <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2 mb-1">
+            {display.title}
+          </h3>
+          {display.description && (
+            <p className="text-sm text-gray-400 line-clamp-2">{display.description}</p>
+          )}
+        </Link>
+      )}
 
       {/* Blocks (compact mode) */}
       {display.blocks.length > 0 && (
@@ -298,22 +348,35 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-1 pt-3 border-t border-surface-border">
-        <button
-          onClick={() => onLike?.(display.id)}
-          className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-            display.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
-          }`}
-        >
-          <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
-          <span className="text-sm">{compactNumber(display.likesCount)}</span>
-        </button>
+        {displayArticleId ? (
+          // Makale aksiyonları — articleService kullanır
+          <button
+            onClick={handleArticleLike}
+            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              articleStats?.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+            }`}
+          >
+            <Heart className={`w-[18px] h-[18px] ${articleStats?.isLiked ? 'fill-current' : ''}`} />
+            <span className="text-sm">{compactNumber(articleStats?.likesCount ?? 0)}</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => onLike?.(display.id)}
+            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              display.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+            }`}
+          >
+            <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
+            <span className="text-sm">{compactNumber(display.likesCount)}</span>
+          </button>
+        )}
 
         <Link
           to={commentLink}
           className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
         >
           <MessageCircle className="w-[18px] h-[18px]" />
-          <span className="text-sm">{compactNumber(display.commentsCount)}</span>
+          <span className="text-sm">{compactNumber(displayArticleId ? (articleStats?.commentsCount ?? 0) : display.commentsCount)}</span>
         </Link>
 
         {isAuthenticated ? (
@@ -329,19 +392,31 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           </span>
         )}
 
-        <button
-          onClick={() => onSave?.(display.id)}
-          className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-            display.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
-          }`}
-        >
-          <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
-        </button>
+        {displayArticleId ? (
+          <button
+            onClick={handleArticleSave}
+            className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              articleStats?.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+            }`}
+          >
+            <Bookmark className={`w-[18px] h-[18px] ${articleStats?.isSaved ? 'fill-current' : ''}`} />
+          </button>
+        ) : (
+          <button
+            onClick={() => onSave?.(display.id)}
+            className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              display.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+            }`}
+          >
+            <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
+          </button>
+        )}
       </div>
 
       {isAuthenticated && (
         <AddToCollectionModal
-          postId={display.id}
+          postId={displayArticleId ? undefined : display.id}
+          articleId={displayArticleId ?? undefined}
           open={collectModalOpen}
           onClose={() => setCollectModalOpen(false)}
         />

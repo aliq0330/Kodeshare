@@ -62,6 +62,7 @@ export interface ArticleRecord {
   viewsCount: number
   likesCount: number
   savesCount: number
+  commentsCount: number
   isLiked: boolean
   isSaved: boolean
   createdAt: string
@@ -106,25 +107,26 @@ const ARTICLE_SELECT = [
   'saves:article_saves(user_id)',
 ].join(', ')
 
-function mapArticle(row: Record<string, unknown>, currentUid?: string): ArticleRecord {
+function mapArticle(row: Record<string, unknown>, currentUid?: string, commentsCount = 0): ArticleRecord {
   const a = row.author as Record<string, unknown> | null
   const likes = (row.likes as Array<{ user_id: string }>) ?? []
   const saves = (row.saves as Array<{ user_id: string }>) ?? []
   return {
-    id:          row.id as string,
-    authorId:    row.author_id as string,
-    title:       row.title as string,
-    subtitle:    (row.subtitle as string) ?? '',
-    coverImage:  (row.cover_image as string) ?? null,
-    blocks:      (row.blocks as ArticleBlock[]) ?? [],
-    isPublished: row.is_published as boolean,
-    viewsCount:  (row.views_count as number) ?? 0,
-    likesCount:  likes.length,
-    savesCount:  saves.length,
-    isLiked:     currentUid ? likes.some((l) => l.user_id === currentUid) : false,
-    isSaved:     currentUid ? saves.some((s) => s.user_id === currentUid) : false,
-    createdAt:   row.created_at as string,
-    updatedAt:   row.updated_at as string,
+    id:            row.id as string,
+    authorId:      row.author_id as string,
+    title:         row.title as string,
+    subtitle:      (row.subtitle as string) ?? '',
+    coverImage:    (row.cover_image as string) ?? null,
+    blocks:        (row.blocks as ArticleBlock[]) ?? [],
+    isPublished:   row.is_published as boolean,
+    viewsCount:    (row.views_count as number) ?? 0,
+    likesCount:    likes.length,
+    savesCount:    saves.length,
+    commentsCount,
+    isLiked:       currentUid ? likes.some((l) => l.user_id === currentUid) : false,
+    isSaved:       currentUid ? saves.some((s) => s.user_id === currentUid) : false,
+    createdAt:     row.created_at as string,
+    updatedAt:     row.updated_at as string,
     author: a ? {
       username:    a.username as string,
       displayName: a.display_name as string,
@@ -165,13 +167,12 @@ export const articleService = {
 
   async get(id: string): Promise<ArticleRecord> {
     const uid = await optionalUserId()
-    const { data, error } = await supabase
-      .from('articles')
-      .select(ARTICLE_SELECT)
-      .eq('id', id)
-      .single()
+    const [{ data, error }, { count }] = await Promise.all([
+      supabase.from('articles').select(ARTICLE_SELECT).eq('id', id).single(),
+      supabase.from('article_comments').select('id', { count: 'exact', head: true }).eq('article_id', id),
+    ])
     if (error) throw new Error(error.message)
-    return mapArticle(data as unknown as Record<string, unknown>, uid)
+    return mapArticle(data as unknown as Record<string, unknown>, uid, count ?? 0)
   },
 
   async save(article: {
