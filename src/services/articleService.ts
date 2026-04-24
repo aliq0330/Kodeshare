@@ -45,6 +45,7 @@ async function createArticleFeedPost(article: {
     data: {
       articleId:  article.id,
       title:      article.title,
+      subtitle:   article.subtitle,
       content:    textContent,
       coverImage: article.coverImage ?? '',
     },

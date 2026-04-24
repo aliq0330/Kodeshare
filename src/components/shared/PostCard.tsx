@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Repeat2, FolderPlus, Repeat, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Repeat2, FolderPlus, Repeat, MoreHorizontal, Trash2, BarChart2, Pencil, Clock, BookOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
@@ -26,6 +26,17 @@ interface PostCardProps {
   onSave?: (postId: string) => void
 }
 
+interface ArticleData {
+  subtitle: string
+  coverImage: string | null
+  readMins: number
+  likesCount: number
+  savesCount: number
+  commentsCount: number
+  isLiked: boolean
+  isSaved: boolean
+}
+
 export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const { isAuthenticated, user } = useAuth()
   const repostPost = usePostStore((s) => s.repostPost)
@@ -38,25 +49,16 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleted, setDeleted] = useState(false)
   const [localPost, setLocalPost] = useState(post)
+  const [articleData, setArticleData] = useState<ArticleData | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const isOwner = !!user && user.id === post.author.id
 
-  // Makale postunu tespit et (tek blok, article tipinde)
   const getArticleId = (p: Post): string | null => {
     if (p.blocks.length === 1 && p.blocks[0].type === 'article')
       return (p.blocks[0].data.articleId as string) ?? null
     return null
   }
-
-  interface ArticleStats {
-    likesCount: number
-    savesCount: number
-    commentsCount: number
-    isLiked: boolean
-    isSaved: boolean
-  }
-  const [articleStats, setArticleStats] = useState<ArticleStats | null>(null)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -67,13 +69,29 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     return () => document.removeEventListener('mousedown', h)
   }, [menuOpen])
 
-  const displayArticleIdForFetch = getArticleId(
-    localPost.type === 'repost' && localPost.repostedFrom ? localPost.repostedFrom : localPost
-  )
+  // For a plain repost, render the original post's content in the card body
+  const display: Post = localPost.type === 'repost' && localPost.repostedFrom
+    ? localPost.repostedFrom
+    : localPost
+
+  const isQuote = localPost.type === 'post' && !!localPost.repostedFrom
+  const displayArticleId = getArticleId(display)
+  const primaryLink = displayArticleId ? `/makale/${displayArticleId}` : `/post/${display.id}`
+  const commentLink = displayArticleId ? `/makale/${displayArticleId}#comments` : `/post/${display.id}#comments`
+  const mainTag = display.tags[0]
+  const isOwnerPost = localPost.type !== 'repost' || !localPost.repostedFrom
+
+  // Makale verilerini çek
   useEffect(() => {
-    if (!displayArticleIdForFetch) return
-    articleService.get(displayArticleIdForFetch).then((rec) => {
-      setArticleStats({
+    if (!displayArticleId) return
+    articleService.get(displayArticleId).then((rec) => {
+      const words = rec.blocks
+        .map((b) => ((b as Record<string, unknown>).content as string ?? '').replace(/<[^>]*>/g, '') || (b as Record<string, unknown>).code as string || '')
+        .join(' ').split(/\s+/).filter(Boolean).length
+      setArticleData({
+        subtitle:      rec.subtitle,
+        coverImage:    rec.coverImage,
+        readMins:      Math.max(1, Math.round(words / 200)),
         likesCount:    rec.likesCount,
         savesCount:    rec.savesCount,
         commentsCount: rec.commentsCount,
@@ -81,27 +99,27 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         isSaved:       rec.isSaved,
       })
     }).catch(() => {})
-  }, [displayArticleIdForFetch])
+  }, [displayArticleId])
 
   const handleArticleLike = async () => {
-    if (!displayArticleIdForFetch || !isAuthenticated) return
-    if (articleStats?.isLiked) {
-      await articleService.unlike(displayArticleIdForFetch)
-      setArticleStats((s) => s ? { ...s, isLiked: false, likesCount: s.likesCount - 1 } : s)
+    if (!displayArticleId || !isAuthenticated) return
+    if (articleData?.isLiked) {
+      await articleService.unlike(displayArticleId)
+      setArticleData((s) => s ? { ...s, isLiked: false, likesCount: s.likesCount - 1 } : s)
     } else {
-      await articleService.like(displayArticleIdForFetch)
-      setArticleStats((s) => s ? { ...s, isLiked: true, likesCount: s.likesCount + 1 } : s)
+      await articleService.like(displayArticleId)
+      setArticleData((s) => s ? { ...s, isLiked: true, likesCount: s.likesCount + 1 } : s)
     }
   }
 
   const handleArticleSave = async () => {
-    if (!displayArticleIdForFetch || !isAuthenticated) return
-    if (articleStats?.isSaved) {
-      await articleService.unsaveArticle(displayArticleIdForFetch)
-      setArticleStats((s) => s ? { ...s, isSaved: false, savesCount: s.savesCount - 1 } : s)
+    if (!displayArticleId || !isAuthenticated) return
+    if (articleData?.isSaved) {
+      await articleService.unsaveArticle(displayArticleId)
+      setArticleData((s) => s ? { ...s, isSaved: false, savesCount: s.savesCount - 1 } : s)
     } else {
-      await articleService.saveArticle(displayArticleIdForFetch)
-      setArticleStats((s) => s ? { ...s, isSaved: true, savesCount: s.savesCount + 1 } : s)
+      await articleService.saveArticle(displayArticleId)
+      setArticleData((s) => s ? { ...s, isSaved: true, savesCount: s.savesCount + 1 } : s)
     }
   }
 
@@ -121,21 +139,6 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     setLocalPost((p) => ({ ...p, ...updated, isEdited: true }))
   }
 
-  // For a plain repost, render the original post's content in the card body
-  const display: Post = localPost.type === 'repost' && localPost.repostedFrom
-    ? localPost.repostedFrom
-    : localPost
-
-  // Quote post: type='post' with repostedFrom set
-  const isQuote = localPost.type === 'post' && !!localPost.repostedFrom
-
-  const displayArticleId = getArticleId(display)
-  const primaryLink = displayArticleId ? `/makale/${displayArticleId}` : `/post/${display.id}`
-  const commentLink = displayArticleId ? `/makale/${displayArticleId}#comments` : `/post/${display.id}#comments`
-
-  const mainTag = display.tags[0]
-  const isOwnerPost = localPost.type !== 'repost' || !localPost.repostedFrom
-
   const handleRepost = () => {
     if (!isAuthenticated) return
     const targetId = localPost.type === 'repost' && localPost.repostedFrom ? localPost.repostedFrom.id : localPost.id
@@ -153,6 +156,231 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
   if (deleted) return null
 
+  // ── Paylaşılan makale menüsü (her iki layout için ortak) ──────────────────
+  const menuDropdown = isAuthenticated && (
+    <div className="relative shrink-0" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setMenuOpen((v) => !v)}
+        className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+        title="Daha fazla"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
+      {menuOpen && (
+        <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+          <button
+            type="button"
+            onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+          >
+            <BarChart2 className="w-4 h-4 text-purple-400" />
+            <span className="text-white">İstatistikler</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+          >
+            <Share2 className="w-4 h-4 text-sky-400" />
+            <span className="text-white">Paylaş</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+          >
+            <FolderPlus className="w-4 h-4 text-brand-400" />
+            <span className="text-white">Koleksiyona ekle</span>
+          </button>
+          {isOwner && isOwnerPost && !displayArticleId && (
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+            >
+              <Pencil className="w-4 h-4 text-amber-400" />
+              <span className="text-white">Düzenle</span>
+            </button>
+          )}
+          {isOwner && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+            >
+              <Trash2 className="w-4 h-4 text-red-400" />
+              <span className="text-white">Sil</span>
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+
+  // ── Ortak modaller ────────────────────────────────────────────────────────
+  const modals = (
+    <>
+      {isAuthenticated && (
+        <AddToCollectionModal
+          postId={displayArticleId ? undefined : display.id}
+          articleId={displayArticleId ?? undefined}
+          open={collectModalOpen}
+          onClose={() => setCollectModalOpen(false)}
+        />
+      )}
+      <ShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        post={display}
+        onRepost={() => repostPost(display.id)}
+      />
+      <PostStatsModal
+        open={statsOpen}
+        onClose={() => setStatsOpen(false)}
+        postId={display.id}
+        likesCount={displayArticleId ? (articleData?.likesCount ?? 0) : display.likesCount}
+        repostCount={display.repostCount}
+      />
+      {isAuthenticated && (
+        <QuoteComposer
+          open={quoteOpen}
+          onClose={() => setQuoteOpen(false)}
+          post={repostTarget}
+        />
+      )}
+      {isOwner && isOwnerPost && !displayArticleId && (
+        <EditPostModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          post={localPost}
+          onSaved={handleEditSaved}
+        />
+      )}
+      {isOwnerPost && !displayArticleId && (
+        <PostEditHistoryModal
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          post={localPost}
+        />
+      )}
+    </>
+  )
+
+  // ── Makale postu layout'u (ArticleCard stili) ─────────────────────────────
+  if (displayArticleId) {
+    // Block datasından anlık değerler (fetch tamamlanana kadar)
+    const blockData = display.blocks[0]?.data ?? {}
+    const coverImage = articleData?.coverImage ?? (blockData.coverImage as string) || null
+    const title      = (blockData.title as string) || display.title
+    const subtitle   = articleData?.subtitle ?? (blockData.subtitle as string) ?? display.description ?? ''
+
+    return (
+      <article className="card overflow-hidden hover:border-surface-raised transition-colors group">
+        {/* Repost göstergesi */}
+        {localPost.type === 'repost' && localPost.repostedFrom && (
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 px-4 pt-3">
+            <Repeat className="w-3.5 h-3.5" />
+            <Link to={`/profile/${localPost.author.username}`} className="hover:text-gray-300">
+              {localPost.author.displayName}
+            </Link>
+            tarafından yeniden gönderildi
+          </div>
+        )}
+
+        {/* Kapak görseli — kenara tam dayalı */}
+        {coverImage && (
+          <Link to={primaryLink} className="block">
+            <img src={coverImage} alt="" className="w-full h-36 object-cover" />
+          </Link>
+        )}
+
+        <div className="p-4">
+          {/* Yazar satırı */}
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <Link to={`/profile/${display.author.username}`} className="flex items-center gap-2.5 min-w-0">
+              <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" online={display.author.isOnline} />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white truncate">{display.author.displayName}</p>
+                <p className="text-xs text-gray-500">@{display.author.username} · {timeAgo(display.createdAt)}</p>
+              </div>
+            </Link>
+            {menuDropdown}
+          </div>
+
+          {/* Başlık + altyazı */}
+          <Link to={primaryLink} className="block mb-3">
+            <div className="flex items-start gap-2.5">
+              {!coverImage && (
+                <div className="w-8 h-8 rounded-lg bg-surface-raised flex items-center justify-center shrink-0 mt-0.5">
+                  <BookOpen className="w-4 h-4 text-gray-600" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2">
+                  {title}
+                </h3>
+                {subtitle && (
+                  <p className="text-sm text-gray-400 line-clamp-2 mt-0.5">{subtitle}</p>
+                )}
+              </div>
+            </div>
+          </Link>
+
+          {/* Okuma süresi */}
+          {articleData?.readMins && (
+            <p className="flex items-center gap-1 text-xs text-gray-600 mb-3">
+              <Clock className="w-3 h-3" />
+              {articleData.readMins} dk okuma
+            </p>
+          )}
+
+          {/* Aksiyon çubuğu */}
+          <div className="flex items-center gap-1 pt-3 border-t border-surface-border">
+            <button
+              onClick={handleArticleLike}
+              className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+                articleData?.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+              }`}
+            >
+              <Heart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
+              <span className="text-sm">{compactNumber(articleData?.likesCount ?? 0)}</span>
+            </button>
+
+            <Link
+              to={commentLink}
+              className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
+            >
+              <MessageCircle className="w-[18px] h-[18px]" />
+              <span className="text-sm">{compactNumber(articleData?.commentsCount ?? 0)}</span>
+            </Link>
+
+            {isAuthenticated ? (
+              <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
+            ) : (
+              <span className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm text-gray-400">
+                <Repeat2 className="w-[18px] h-[18px]" />
+                {compactNumber(repostTarget.repostCount)}
+              </span>
+            )}
+
+            <button
+              onClick={handleArticleSave}
+              className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+                articleData?.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+              }`}
+            >
+              <Bookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {modals}
+      </article>
+    )
+  }
+
+  // ── Normal post layout ────────────────────────────────────────────────────
   return (
     <article className="card p-4 hover:border-surface-raised transition-colors group">
       {/* Repost indicator */}
@@ -192,80 +420,19 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           {mainTag && (
             <Badge variant="brand" className="shrink-0">#{mainTag}</Badge>
           )}
-          {isAuthenticated && (
-            <div className="relative" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
-                title="Daha fazla"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
-                  <button
-                    type="button"
-                    onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                  >
-                    <BarChart2 className="w-4 h-4 text-purple-400" />
-                    <span className="text-white">İstatistikler</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                  >
-                    <Share2 className="w-4 h-4 text-sky-400" />
-                    <span className="text-white">Paylaş</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                  >
-                    <FolderPlus className="w-4 h-4 text-brand-400" />
-                    <span className="text-white">Koleksiyona ekle</span>
-                  </button>
-                  {isOwner && isOwnerPost && (
-                    <button
-                      type="button"
-                      onClick={() => { setMenuOpen(false); setEditOpen(true) }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                    >
-                      <Pencil className="w-4 h-4 text-amber-400" />
-                      <span className="text-white">Düzenle</span>
-                    </button>
-                  )}
-                  {isOwner && (
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                      <span className="text-white">Sil</span>
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          {menuDropdown}
         </div>
       </div>
 
-      {/* Title & description — makale postlarında ArticleBlockView zaten başlık gösteriyor */}
-      {!displayArticleId && (
-        <Link to={primaryLink} className="block mb-3">
-          <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2 mb-1">
-            {display.title}
-          </h3>
-          {display.description && (
-            <p className="text-sm text-gray-400 line-clamp-2">{display.description}</p>
-          )}
-        </Link>
-      )}
+      {/* Title & description */}
+      <Link to={primaryLink} className="block mb-3">
+        <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2 mb-1">
+          {display.title}
+        </h3>
+        {display.description && (
+          <p className="text-sm text-gray-400 line-clamp-2">{display.description}</p>
+        )}
+      </Link>
 
       {/* Blocks (compact mode) */}
       {display.blocks.length > 0 && (
@@ -281,7 +448,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </Link>
       )}
 
-      {/* Quote embed — original post shown inside */}
+      {/* Quote embed */}
       {isQuote && localPost.repostedFrom && (
         <div className="mb-3 rounded-xl border border-surface-border bg-surface-raised/30 p-3">
           <div className="flex items-center gap-2 mb-2">
@@ -348,43 +515,26 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-1 pt-3 border-t border-surface-border">
-        {displayArticleId ? (
-          // Makale aksiyonları — articleService kullanır
-          <button
-            onClick={handleArticleLike}
-            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-              articleStats?.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
-            }`}
-          >
-            <Heart className={`w-[18px] h-[18px] ${articleStats?.isLiked ? 'fill-current' : ''}`} />
-            <span className="text-sm">{compactNumber(articleStats?.likesCount ?? 0)}</span>
-          </button>
-        ) : (
-          <button
-            onClick={() => onLike?.(display.id)}
-            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-              display.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
-            }`}
-          >
-            <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
-            <span className="text-sm">{compactNumber(display.likesCount)}</span>
-          </button>
-        )}
+        <button
+          onClick={() => onLike?.(display.id)}
+          className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+            display.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+          }`}
+        >
+          <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
+          <span className="text-sm">{compactNumber(display.likesCount)}</span>
+        </button>
 
         <Link
           to={commentLink}
           className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
         >
           <MessageCircle className="w-[18px] h-[18px]" />
-          <span className="text-sm">{compactNumber(displayArticleId ? (articleStats?.commentsCount ?? 0) : display.commentsCount)}</span>
+          <span className="text-sm">{compactNumber(display.commentsCount)}</span>
         </Link>
 
         {isAuthenticated ? (
-          <RepostMenu
-            post={repostTarget}
-            onRepost={handleRepost}
-            onQuote={handleQuote}
-          />
+          <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
         ) : (
           <span className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm text-gray-400">
             <Repeat2 className="w-[18px] h-[18px]" />
@@ -392,70 +542,17 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           </span>
         )}
 
-        {displayArticleId ? (
-          <button
-            onClick={handleArticleSave}
-            className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-              articleStats?.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
-            }`}
-          >
-            <Bookmark className={`w-[18px] h-[18px] ${articleStats?.isSaved ? 'fill-current' : ''}`} />
-          </button>
-        ) : (
-          <button
-            onClick={() => onSave?.(display.id)}
-            className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-              display.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
-            }`}
-          >
-            <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
-          </button>
-        )}
+        <button
+          onClick={() => onSave?.(display.id)}
+          className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+            display.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+          }`}
+        >
+          <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
+        </button>
       </div>
 
-      {isAuthenticated && (
-        <AddToCollectionModal
-          postId={displayArticleId ? undefined : display.id}
-          articleId={displayArticleId ?? undefined}
-          open={collectModalOpen}
-          onClose={() => setCollectModalOpen(false)}
-        />
-      )}
-      <ShareModal
-        open={shareModalOpen}
-        onClose={() => setShareModalOpen(false)}
-        post={display}
-        onRepost={() => repostPost(display.id)}
-      />
-      <PostStatsModal
-        open={statsOpen}
-        onClose={() => setStatsOpen(false)}
-        postId={display.id}
-        likesCount={display.likesCount}
-        repostCount={display.repostCount}
-      />
-      {isAuthenticated && (
-        <QuoteComposer
-          open={quoteOpen}
-          onClose={() => setQuoteOpen(false)}
-          post={repostTarget}
-        />
-      )}
-      {isOwner && isOwnerPost && (
-        <EditPostModal
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          post={localPost}
-          onSaved={handleEditSaved}
-        />
-      )}
-      {isOwnerPost && (
-        <PostEditHistoryModal
-          open={historyOpen}
-          onClose={() => setHistoryOpen(false)}
-          post={localPost}
-        />
-      )}
+      {modals}
     </article>
   )
 }
