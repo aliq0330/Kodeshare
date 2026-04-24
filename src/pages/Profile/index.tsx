@@ -4,6 +4,7 @@ import { Lock } from 'lucide-react'
 import Tabs from '@components/ui/Tabs'
 import ProfileHeader from './components/ProfileHeader'
 import PostsTab from './components/PostsTab'
+import ArticlesTab from './components/ArticlesTab'
 import CollectionsTab from './components/CollectionsTab'
 import LikesTab from './components/LikesTab'
 import SavedTab from './components/SavedTab'
@@ -26,6 +27,7 @@ export default function ProfilePage() {
 
   const tabs = [
     { id: 'posts',       label: 'Gönderiler' },
+    { id: 'articles',    label: 'Makalelerim' },
     { id: 'collections', label: 'Koleksiyonlar' },
     ...(showLikesTab ? [{ id: 'likes', label: 'Beğenilenler' }] : []),
     ...(isOwn ? [{ id: 'saved', label: 'Kaydedilenler' }] : []),
@@ -58,6 +60,7 @@ export default function ProfilePage() {
             className="sticky top-16 z-10 bg-surface"
           />
           {activeTab === 'posts'       && <PostsTab username={username} />}
+          {activeTab === 'articles'    && <ArticlesTab username={username} />}
           {activeTab === 'collections' && <CollectionsTab username={username} isOwn={isOwn} />}
           {activeTab === 'likes'       && <LikesTab username={username} />}
           {activeTab === 'saved'       && isOwn && <SavedTab />}

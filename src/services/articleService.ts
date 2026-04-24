@@ -151,4 +151,21 @@ export const articleService = {
       .eq('author_id', userId)
     if (error) throw new Error(error.message)
   },
+
+  async listPublishedByUsername(username: string): Promise<ArticleRecord[]> {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .single()
+    if (!profile) return []
+    const { data, error } = await supabase
+      .from('articles')
+      .select(ARTICLE_SELECT)
+      .eq('author_id', (profile as unknown as Record<string, unknown>).id as string)
+      .eq('is_published', true)
+      .order('updated_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return (data ?? []).map((r) => mapArticle(r as unknown as Record<string, unknown>))
+  },
 }

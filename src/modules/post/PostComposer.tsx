@@ -129,7 +129,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const { createPost } = usePostStore()
-  const { open, prefilledProject, prefilledSnippet, openComposer, closeComposer } = useComposerStore()
+  const { open, prefilledProject, prefilledSnippet, prefilledArticle, openComposer, closeComposer } = useComposerStore()
 
   const [description, setDescription] = useState('')
   const [tags, setTags]               = useState('')
@@ -167,12 +167,17 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       setBlocks([b])
       return
     }
+    if (prefilledArticle) {
+      const b: ComposerBlock = { localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }
+      setBlocks([b])
+      return
+    }
     const d = loadDraft()
     if (!d) return
     if (d.description) setDescription(d.description)
     if (d.tags)        setTags(d.tags)
     if (d.blocks?.length) setBlocks(d.blocks)
-  }, [open, prefilledProject, prefilledSnippet])
+  }, [open, prefilledProject, prefilledSnippet, prefilledArticle])
 
   useEffect(() => {
     if (!open || !prefilledSnippet) return
@@ -185,6 +190,12 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
     setBlocks([b])
   }, [prefilledProject, open])
+
+  useEffect(() => {
+    if (!open || !prefilledArticle) return
+    const b: ComposerBlock = { localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }
+    setBlocks([b])
+  }, [prefilledArticle, open])
 
   // Auto-save draft
   useEffect(() => {

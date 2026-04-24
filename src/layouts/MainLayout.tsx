@@ -3,6 +3,7 @@ import Navbar from '@components/layout/Navbar'
 import Sidebar from '@components/layout/Sidebar'
 import RightPanel from '@components/layout/RightPanel'
 import MobileNav from '@components/layout/MobileNav'
+import PostComposer from '@modules/post/PostComposer'
 
 export default function MainLayout() {
   return (
@@ -23,6 +24,7 @@ export default function MainLayout() {
       </div>
 
       <MobileNav />
+      <PostComposer hideCard />
     </div>
   )
 }
