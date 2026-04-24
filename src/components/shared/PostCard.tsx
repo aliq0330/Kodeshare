@@ -87,7 +87,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     articleService.get(displayArticleId).then((rec) => {
       const words = rec.blocks
         .map((b) => {
-          const rb = b as Record<string, unknown>
+          const rb = b as unknown as Record<string, unknown>
           return (((rb.content as string) ?? '').replace(/<[^>]*>/g, '') || (rb.code as string) || '')
         })
         .join(' ').split(/\s+/).filter(Boolean).length
