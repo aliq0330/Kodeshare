@@ -64,7 +64,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
     <div id={`comment-${comment.id}`} className={cn('flex gap-3', depth > 0 && 'ml-8 pl-3 border-l border-surface-border')}>
       <Avatar src={comment.author.avatarUrl} alt={comment.author.displayName} size="sm" className="mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="bg-surface-raised rounded-xl px-3 py-2.5">
+        <div className="bg-surface-raised border border-surface-border rounded-xl px-3 py-2.5">
           <div className="flex items-center gap-2 mb-1">
             <Link to={`/profile/${comment.author.username}`} className="text-sm font-medium text-white hover:text-brand-300">
               {comment.author.displayName}
@@ -104,19 +104,34 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
 
         {showReplyBox && (
           <form onSubmit={handleReply} className="mt-2 flex gap-2">
-            <input
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder={`@${comment.author.username} yanıtla...`}
-              className="flex-1 bg-surface-raised border border-surface-border rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-            />
-            <button
-              type="submit"
-              disabled={!replyText.trim() || submitting}
-              className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-medium disabled:opacity-40 transition-colors flex items-center gap-1"
-            >
-              <Send className="w-3 h-3" />
-            </button>
+            <div className="flex-1 flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder={`@${comment.author.username} yanıtla...`}
+                rows={1}
+                className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
+                style={{ minHeight: '24px', maxHeight: '80px' }}
+                onInput={(e) => {
+                  const t = e.target as HTMLTextAreaElement
+                  t.style.height = 'auto'
+                  t.style.height = t.scrollHeight + 'px'
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleReply(e as unknown as React.FormEvent)
+                  }
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!replyText.trim() || submitting}
+                className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </form>
         )}
 

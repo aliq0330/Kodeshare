@@ -274,23 +274,23 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-4 pt-3 border-t border-surface-border">
+      <div className="flex items-center gap-1 pt-3 border-t border-surface-border">
         <button
           onClick={() => onLike?.(display.id)}
-          className={`flex items-center gap-1.5 text-sm transition-colors ${
-            display.isLiked ? 'text-red-400' : 'text-gray-500 hover:text-red-400'
+          className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+            display.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
           }`}
         >
-          <Heart className={`w-4 h-4 ${display.isLiked ? 'fill-current' : ''}`} />
-          {compactNumber(display.likesCount)}
+          <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
+          <span className="text-sm">{compactNumber(display.likesCount)}</span>
         </button>
 
         <Link
           to={`/post/${display.id}#comments`}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-400 transition-colors"
+          className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
         >
-          <MessageCircle className="w-4 h-4" />
-          {compactNumber(display.commentsCount)}
+          <MessageCircle className="w-[18px] h-[18px]" />
+          <span className="text-sm">{compactNumber(display.commentsCount)}</span>
         </Link>
 
         {isAuthenticated ? (
@@ -300,19 +300,19 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             onQuote={handleQuote}
           />
         ) : (
-          <span className="flex items-center gap-1.5 text-sm text-gray-500">
-            <Repeat2 className="w-4 h-4" />
+          <span className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm text-gray-400">
+            <Repeat2 className="w-[18px] h-[18px]" />
             {compactNumber(repostTarget.repostCount)}
           </span>
         )}
 
         <button
           onClick={() => onSave?.(display.id)}
-          className={`ml-auto flex items-center gap-1.5 text-sm transition-colors ${
-            display.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
+          className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+            display.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
           }`}
         >
-          <Bookmark className={`w-4 h-4 ${display.isSaved ? 'fill-current' : ''}`} />
+          <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
         </button>
       </div>
 

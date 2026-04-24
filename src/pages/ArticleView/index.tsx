@@ -205,10 +205,11 @@ export default function ArticleViewPage() {
     )
     try {
       await (wasLiked ? articleService.unlike(article.id) : articleService.like(article.id))
-    } catch {
+    } catch (err) {
       setArticle((a) =>
         a ? { ...a, isLiked: wasLiked, likesCount: Math.max(0, a.likesCount + (wasLiked ? 1 : -1)) } : a,
       )
+      toast.error((err as Error).message || 'Bir hata oluştu')
     }
   }
 
@@ -221,10 +222,12 @@ export default function ArticleViewPage() {
     )
     try {
       await (wasSaved ? articleService.unsaveArticle(article.id) : articleService.saveArticle(article.id))
-    } catch {
+      toast.success(wasSaved ? 'Kaydedilenlerden kaldırıldı' : 'Makale kaydedildi!')
+    } catch (err) {
       setArticle((a) =>
         a ? { ...a, isSaved: wasSaved, savesCount: Math.max(0, a.savesCount + (wasSaved ? 1 : -1)) } : a,
       )
+      toast.error((err as Error).message || 'Bir hata oluştu')
     }
   }
 

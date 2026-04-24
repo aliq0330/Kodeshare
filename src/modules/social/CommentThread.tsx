@@ -68,9 +68,9 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
             <button
               type="submit"
               disabled={!text.trim() || submitting}
-              className="p-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-40 transition-colors shrink-0"
+              className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
             >
-              <Send className="w-3.5 h-3.5" />
+              {submitting ? <Spinner className="w-3.5 h-3.5" /> : <Send className="w-3.5 h-3.5" />}
             </button>
           </div>
         </form>

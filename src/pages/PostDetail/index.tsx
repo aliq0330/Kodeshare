@@ -311,15 +311,15 @@ export default function PostDetailPage() {
           </div>
         )}
 
-        <div className="flex items-center gap-4 pt-4 border-t border-surface-border">
+        <div className="flex items-center gap-1 pt-4 border-t border-surface-border">
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1.5 text-sm transition-colors ${
-              post.isLiked ? 'text-red-400' : 'text-gray-500 hover:text-red-400'
+            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              post.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
             }`}
           >
-            <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
-            {compactNumber(post.likesCount)}
+            <Heart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
+            <span className="text-sm">{compactNumber(post.likesCount)}</span>
           </button>
           {isAuthenticated ? (
             <RepostMenu
@@ -328,19 +328,19 @@ export default function PostDetailPage() {
               onQuote={() => setQuoteOpen(true)}
             />
           ) : (
-            <span className="flex items-center gap-1.5 text-sm text-gray-500">
-              <Repeat2 className="w-4 h-4" />
+            <span className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm text-gray-400">
+              <Repeat2 className="w-[18px] h-[18px]" />
               {compactNumber(post.repostCount)}
             </span>
           )}
           <button
             onClick={handleSave}
-            className={`ml-auto flex items-center gap-1.5 text-sm transition-colors ${
-              post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400'
+            className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              post.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
             }`}
           >
-            <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
-            {post.isSaved ? 'Kaydedildi' : 'Kaydet'}
+            <Bookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
+            <span className="text-sm">{post.isSaved ? 'Kaydedildi' : 'Kaydet'}</span>
           </button>
         </div>
       </div>
