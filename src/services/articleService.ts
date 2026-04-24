@@ -283,4 +283,49 @@ export const articleService = {
     const { error } = await supabase.from('article_comments').delete().eq('id', commentId).eq('author_id', userId)
     if (error) throw new Error(error.message)
   },
+
+  async getSavedArticles(): Promise<ArticleRecord[]> {
+    const uid = await optionalUserId()
+    if (!uid) return []
+    const { data, error } = await supabase
+      .from('article_saves')
+      .select(`article:articles!article_saves_article_id_fkey(${ARTICLE_SELECT})`)
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return ((data ?? []) as unknown as Array<{ article: Record<string, unknown> | null }>)
+      .map((r) => r.article)
+      .filter((a): a is Record<string, unknown> => a !== null)
+      .map((a) => mapArticle(a, uid))
+  },
+
+  async getLikedArticles(username: string): Promise<ArticleRecord[]> {
+    const { data: profile } = await supabase.from('profiles').select('id').eq('username', username).single()
+    if (!profile) return []
+    const uid = await optionalUserId()
+    const { data, error } = await supabase
+      .from('article_likes')
+      .select(`article:articles!article_likes_article_id_fkey(${ARTICLE_SELECT})`)
+      .eq('user_id', (profile as { id: string }).id)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return ((data ?? []) as unknown as Array<{ article: Record<string, unknown> | null }>)
+      .map((r) => r.article)
+      .filter((a): a is Record<string, unknown> => a !== null)
+      .map((a) => mapArticle(a, uid))
+  },
+
+  async getCollectionArticles(collectionId: string): Promise<ArticleRecord[]> {
+    const uid = await optionalUserId()
+    const { data, error } = await supabase
+      .from('collection_articles')
+      .select(`article:articles!collection_articles_article_id_fkey(${ARTICLE_SELECT})`)
+      .eq('collection_id', collectionId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return ((data ?? []) as unknown as Array<{ article: Record<string, unknown> | null }>)
+      .map((r) => r.article)
+      .filter((a): a is Record<string, unknown> => a !== null)
+      .map((a) => mapArticle(a, uid))
+  },
 }

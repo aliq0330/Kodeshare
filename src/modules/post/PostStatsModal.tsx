@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { X, Heart, Repeat2, BadgeCheck } from 'lucide-react'
+import { X, Heart, Repeat2, Bookmark, FolderPlus, BadgeCheck } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import FollowButton from '@modules/social/FollowButton'
@@ -17,13 +17,15 @@ interface PostStatsModalProps {
   repostCount: number
 }
 
-type Tab = 'likes' | 'reposts'
+type Tab = 'likes' | 'reposts' | 'saves' | 'collections'
 
 export default function PostStatsModal({ open, onClose, postId, likesCount, repostCount }: PostStatsModalProps) {
   const { user: me } = useAuthStore()
   const [tab, setTab] = useState<Tab>('likes')
-  const [likers, setLikers] = useState<User[]>([])
-  const [reposters, setReposters] = useState<User[]>([])
+  const [likers, setLikers]         = useState<User[]>([])
+  const [reposters, setReposters]   = useState<User[]>([])
+  const [savers, setSavers]         = useState<User[]>([])
+  const [collectors, setCollectors] = useState<User[]>([])
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
 
@@ -33,11 +35,15 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
     Promise.all([
       postService.getPostLikers(postId),
       postService.getPostReposters(postId),
+      postService.getPostSavers(postId),
+      postService.getPostCollectors(postId),
       me ? userService.getFollowingIds() : Promise.resolve(new Set<string>()),
     ])
-      .then(([l, r, ids]) => {
+      .then(([l, r, s, c, ids]) => {
         setLikers(l as User[])
         setReposters(r as User[])
+        setSavers(s as User[])
+        setCollectors(c as User[])
         setFollowingIds(ids)
       })
       .catch(() => {})
@@ -46,7 +52,31 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
 
   if (!open) return null
 
-  const list = tab === 'likes' ? likers : reposters
+  const lists: Record<Tab, User[]> = {
+    likes: likers, reposts: reposters, saves: savers, collections: collectors,
+  }
+  const list = lists[tab]
+
+  const tabs: { id: Tab; icon: React.ReactNode; label: string; count: number | string }[] = [
+    { id: 'likes',       icon: <Heart className="w-3.5 h-3.5" />,     label: 'Beğenenler',   count: likesCount },
+    { id: 'reposts',     icon: <Repeat2 className="w-3.5 h-3.5" />,   label: 'Repost',       count: repostCount },
+    { id: 'saves',       icon: <Bookmark className="w-3.5 h-3.5" />,  label: 'Kaydeden',     count: loading ? '…' : savers.length },
+    { id: 'collections', icon: <FolderPlus className="w-3.5 h-3.5" />,label: 'Koleksiyon',   count: loading ? '…' : collectors.length },
+  ]
+
+  const tabColors: Record<Tab, string> = {
+    likes:       'border-red-400 text-red-400',
+    reposts:     'border-green-400 text-green-400',
+    saves:       'border-brand-400 text-brand-400',
+    collections: 'border-purple-400 text-purple-400',
+  }
+
+  const emptyMessages: Record<Tab, string> = {
+    likes:       'Henüz beğeni yok',
+    reposts:     'Henüz repost yok',
+    saves:       'Henüz kaydeden yok',
+    collections: 'Henüz koleksiyona eklenmemiş',
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -62,26 +92,20 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
 
         {/* Tabs */}
         <div className="flex border-b border-surface-border">
-          <button
-            onClick={() => setTab('likes')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === 'likes' ? 'border-red-400 text-red-400' : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            <Heart className="w-4 h-4" />
-            Beğenenler
-            <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{likesCount}</span>
-          </button>
-          <button
-            onClick={() => setTab('reposts')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === 'reposts' ? 'border-green-400 text-green-400' : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            <Repeat2 className="w-4 h-4" />
-            Repost
-            <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{repostCount}</span>
-          </button>
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-xs font-medium border-b-2 -mb-px transition-colors ${
+                tab === t.id ? tabColors[t.id] : 'border-transparent text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              <span className="flex items-center gap-1">{t.icon}{t.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${tab === t.id ? 'bg-surface-raised' : 'bg-surface-raised/60'}`}>
+                {t.count}
+              </span>
+            </button>
+          ))}
         </div>
 
         {/* List */}
@@ -89,9 +113,7 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
           {loading ? (
             <div className="flex justify-center py-10"><Spinner /></div>
           ) : list.length === 0 ? (
-            <p className="text-center text-gray-500 text-sm py-10">
-              {tab === 'likes' ? 'Henüz beğeni yok' : 'Henüz repost yok'}
-            </p>
+            <p className="text-center text-gray-500 text-sm py-10">{emptyMessages[tab]}</p>
           ) : (
             list.map((u) => (
               <div key={u.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-raised/50 transition-colors">

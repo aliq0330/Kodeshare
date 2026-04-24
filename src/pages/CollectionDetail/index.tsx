@@ -4,17 +4,21 @@ import { ArrowLeft, Folder, Lock, Search } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import PostCard from '@components/shared/PostCard'
+import ArticleCard from '@components/shared/ArticleCard'
 import Input from '@components/ui/Input'
 import Spinner from '@components/ui/Spinner'
 import { collectionService } from '@services/collectionService'
+import { articleService } from '@services/articleService'
 import type { Collection, PostPreview } from '@/types'
+import type { ArticleRecord } from '@services/articleService'
 
 export default function CollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>()
   const [collection, setCollection] = useState<Collection | null>(null)
-  const [posts, setPosts] = useState<PostPreview[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [query, setQuery] = useState('')
+  const [posts, setPosts]           = useState<PostPreview[]>([])
+  const [articles, setArticles]     = useState<ArticleRecord[]>([])
+  const [isLoading, setIsLoading]   = useState(true)
+  const [query, setQuery]           = useState('')
 
   useEffect(() => {
     if (!collectionId) return
@@ -22,24 +26,32 @@ export default function CollectionDetailPage() {
     Promise.all([
       collectionService.getCollection(collectionId),
       collectionService.getCollectionPosts(collectionId),
+      articleService.getCollectionArticles(collectionId),
     ])
-      .then(([col, colPosts]) => {
+      .then(([col, colPosts, colArticles]) => {
         setCollection(col)
         setPosts(colPosts)
+        setArticles(colArticles)
       })
       .catch(() => {})
       .finally(() => setIsLoading(false))
   }, [collectionId])
 
-  const filtered = useMemo(() => {
+  const filteredPosts = useMemo(() => {
     if (!query.trim()) return posts
     const q = query.toLowerCase()
     return posts.filter((p) => p.title.toLowerCase().includes(q) || p.tags.some((t) => t.toLowerCase().includes(q)))
   }, [posts, query])
 
-  if (isLoading) {
-    return <div className="flex justify-center py-20"><Spinner /></div>
-  }
+  const filteredArticles = useMemo(() => {
+    if (!query.trim()) return articles
+    const q = query.toLowerCase()
+    return articles.filter((a) =>
+      a.title.toLowerCase().includes(q) || a.subtitle?.toLowerCase().includes(q),
+    )
+  }, [articles, query])
+
+  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   if (!collection) {
     return (
@@ -48,6 +60,9 @@ export default function CollectionDetailPage() {
       </div>
     )
   }
+
+  const totalCount = filteredPosts.length + filteredArticles.length
+  const isEmpty    = posts.length === 0 && articles.length === 0
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-6">
@@ -65,9 +80,7 @@ export default function CollectionDetailPage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-white">{collection.name}</h1>
-              {collection.visibility === 'private' && (
-                <Lock className="w-4 h-4 text-gray-500" />
-              )}
+              {collection.visibility === 'private' && <Lock className="w-4 h-4 text-gray-500" />}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <Link to={`/profile/${collection.owner.username}`} className="flex items-center gap-1.5">
@@ -75,17 +88,16 @@ export default function CollectionDetailPage() {
                 <span className="text-xs text-gray-500">{collection.owner.displayName}</span>
               </Link>
               <span className="text-gray-700">·</span>
-              <Badge variant="default">{collection.postsCount} gönderi</Badge>
+              <Badge variant="default">{posts.length + articles.length} öğe</Badge>
             </div>
           </div>
         </div>
-
         {collection.description && (
           <p className="text-sm text-gray-400 mt-4">{collection.description}</p>
         )}
       </div>
 
-      {/* Search within collection */}
+      {/* Search */}
       <Input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -93,18 +105,44 @@ export default function CollectionDetailPage() {
         leftIcon={<Search className="w-4 h-4" />}
       />
 
-      {/* Posts */}
-      {filtered.length === 0 ? (
+      {/* Empty state */}
+      {isEmpty ? (
         <div className="card p-12 text-center text-gray-500">
           <Folder className="w-10 h-10 mx-auto mb-3 text-gray-700" />
-          <p className="font-medium">{query ? 'Arama sonucu bulunamadı' : 'Koleksiyon boş'}</p>
-          {!query && <p className="text-sm mt-1">Gönderileri kaydet butonuna basarak buraya ekleyebilirsin</p>}
+          <p className="font-medium">Koleksiyon boş</p>
+          <p className="text-sm mt-1">Gönderi veya makaleleri buraya ekleyebilirsin</p>
+        </div>
+      ) : totalCount === 0 ? (
+        <div className="card p-12 text-center text-gray-500">
+          <p className="font-medium">Arama sonucu bulunamadı</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
+        <div className="flex flex-col gap-6">
+          {filteredPosts.length > 0 && (
+            <section>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Gönderiler ({filteredPosts.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredPosts.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {filteredArticles.length > 0 && (
+            <section>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Makaleler ({filteredArticles.length})
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filteredArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>

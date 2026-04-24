@@ -385,6 +385,28 @@ export const postService = {
     if (error) throw new Error(error.message)
     return (data ?? []).map((row: any) => mapProfile(row.author as Record<string, unknown>))
   },
+
+  async getPostSavers(postId: string) {
+    const { data, error } = await supabase
+      .from('post_saves')
+      .select('created_at, profile:profiles!post_saves_user_id_fkey(id, username, display_name, avatar_url, is_verified, is_online)')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return (data ?? []).map((row: any) => mapProfile(row.profile as Record<string, unknown>)).filter(Boolean)
+  },
+
+  async getPostCollectors(postId: string) {
+    const { data, error } = await supabase
+      .from('collection_posts')
+      .select('collection:collections!collection_posts_collection_id_fkey(owner:profiles!collections_owner_id_fkey(id, username, display_name, avatar_url, is_verified, is_online))')
+      .eq('post_id', postId)
+    if (error) throw new Error(error.message)
+    return (data ?? [])
+      .map((row: any) => row.collection?.owner)
+      .filter(Boolean)
+      .map((p: Record<string, unknown>) => mapProfile(p))
+  },
 }
 
 function tagCaseVariants(tag: string): string[] {
