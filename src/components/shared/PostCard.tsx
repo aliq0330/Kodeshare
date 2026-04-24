@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Heart, MessageCircle, Share2, Bookmark, Repeat2, FolderPlus, Repeat, MoreHorizontal, Trash2, BarChart2, Pencil, Clock, BookOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
@@ -18,6 +18,7 @@ import { compactNumber, timeAgo } from '@utils/formatters'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { usePostStore } from '@store/postStore'
+import { useArticleStore } from '@store/articleStore'
 import type { Post, PostBlock } from '@/types'
 
 interface PostCardProps {
@@ -38,8 +39,10 @@ interface ArticleData {
 }
 
 export default function PostCard({ post, onLike, onSave }: PostCardProps) {
+  const navigate = useNavigate()
   const { isAuthenticated, user } = useAuth()
   const repostPost = usePostStore((s) => s.repostPost)
+  const loadArticle = useArticleStore((s) => s.loadArticle)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
@@ -126,6 +129,18 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     }
   }
 
+  const handleEditArticle = async () => {
+    if (!displayArticleId) return
+    setMenuOpen(false)
+    try {
+      const rec = await articleService.get(displayArticleId)
+      loadArticle(rec)
+      navigate('/makale')
+    } catch {
+      toast.error('Makale açılamadı')
+    }
+  }
+
   const handleDelete = async () => {
     setMenuOpen(false)
     if (!window.confirm('Bu gönderiyi silmek istediğine emin misin?')) return
@@ -200,6 +215,16 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             <button
               type="button"
               onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+            >
+              <Pencil className="w-4 h-4 text-amber-400" />
+              <span className="text-white">Düzenle</span>
+            </button>
+          )}
+          {isOwner && isOwnerPost && displayArticleId && (
+            <button
+              type="button"
+              onClick={handleEditArticle}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
               <Pencil className="w-4 h-4 text-amber-400" />
