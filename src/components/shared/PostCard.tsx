@@ -86,7 +86,10 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     if (!displayArticleId) return
     articleService.get(displayArticleId).then((rec) => {
       const words = rec.blocks
-        .map((b) => ((b as Record<string, unknown>).content as string ?? '').replace(/<[^>]*>/g, '') || (b as Record<string, unknown>).code as string || '')
+        .map((b) => {
+          const rb = b as Record<string, unknown>
+          return (((rb.content as string) ?? '').replace(/<[^>]*>/g, '') || (rb.code as string) || '')
+        })
         .join(' ').split(/\s+/).filter(Boolean).length
       setArticleData({
         subtitle:      rec.subtitle,
@@ -271,7 +274,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   if (displayArticleId) {
     // Block datasından anlık değerler (fetch tamamlanana kadar)
     const blockData = display.blocks[0]?.data ?? {}
-    const coverImage = articleData?.coverImage ?? (blockData.coverImage as string) || null
+    const coverImage = articleData?.coverImage ?? ((blockData.coverImage as string) || null)
     const title      = (blockData.title as string) || display.title
     const subtitle   = articleData?.subtitle ?? (blockData.subtitle as string) ?? display.description ?? ''
 
