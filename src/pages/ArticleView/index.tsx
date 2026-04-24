@@ -89,7 +89,7 @@ function ArticleToolbar({ article }: { article: ArticleRecord }) {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-surface-border bg-surface/95 backdrop-blur-md">
+    <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 border-t border-surface-border bg-surface/95 backdrop-blur-md">
       <div className="flex items-center justify-between max-w-3xl mx-auto px-4 h-14">
         {/* Left actions */}
         <div className="flex items-center gap-1">
@@ -229,7 +229,7 @@ export default function ArticleViewPage() {
   }
 
   return (
-    <div className="min-h-full bg-surface pb-14">
+    <div className="min-h-full bg-surface pb-[7.5rem] lg:pb-14">
       {/* Kapak görseli */}
       {article.coverImage && (
         <img
