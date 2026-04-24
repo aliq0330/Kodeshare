@@ -41,6 +41,13 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
   const isOwner = !!user && user.id === post.author.id
 
+  // Makale postunu tespit et (tek blok, article tipinde)
+  const getArticleId = (p: Post): string | null => {
+    if (p.blocks.length === 1 && p.blocks[0].type === 'article')
+      return (p.blocks[0].data.articleId as string) ?? null
+    return null
+  }
+
   useEffect(() => {
     if (!menuOpen) return
     const h = (e: MouseEvent) => {
@@ -73,6 +80,10 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
   // Quote post: type='post' with repostedFrom set
   const isQuote = localPost.type === 'post' && !!localPost.repostedFrom
+
+  const displayArticleId = getArticleId(display)
+  const primaryLink = displayArticleId ? `/makale/${displayArticleId}` : `/post/${display.id}`
+  const commentLink = displayArticleId ? `/makale/${displayArticleId}#comments` : `/post/${display.id}#comments`
 
   const mainTag = display.tags[0]
   const isOwnerPost = localPost.type !== 'repost' || !localPost.repostedFrom
@@ -197,7 +208,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       </div>
 
       {/* Title & description */}
-      <Link to={`/post/${display.id}`} className="block mb-3">
+      <Link to={primaryLink} className="block mb-3">
         <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2 mb-1">
           {display.title}
         </h3>
@@ -208,14 +219,14 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
       {/* Blocks (compact mode) */}
       {display.blocks.length > 0 && (
-        <Link to={`/post/${display.id}`} className="block">
+        <Link to={primaryLink} className="block">
           <BlockView blocks={display.blocks} compact postTitle={display.title} />
         </Link>
       )}
 
       {/* Preview image fallback when no blocks */}
       {display.blocks.length === 0 && display.previewImageUrl && (
-        <Link to={`/post/${display.id}`} className="block mb-3 rounded-lg overflow-hidden border border-surface-border">
+        <Link to={primaryLink} className="block mb-3 rounded-lg overflow-hidden border border-surface-border">
           <img src={display.previewImageUrl} alt={display.title} className="w-full aspect-video object-cover" />
         </Link>
       )}
@@ -237,7 +248,13 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               <span className="ml-1">@{localPost.repostedFrom.author.username}</span>
             </Link>
           </div>
-          <Link to={`/post/${localPost.repostedFrom.id}`} className="block">
+          <Link
+            to={(() => {
+              const aid = getArticleId(localPost.repostedFrom)
+              return aid ? `/makale/${aid}` : `/post/${localPost.repostedFrom.id}`
+            })()}
+            className="block"
+          >
             <p className="text-sm font-semibold text-white line-clamp-2">{localPost.repostedFrom.title}</p>
             {localPost.repostedFrom.description && (
               <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{localPost.repostedFrom.description}</p>
@@ -249,7 +266,13 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             </div>
           )}
           {localPost.repostedFrom.blocks.length === 0 && localPost.repostedFrom.previewImageUrl && (
-            <Link to={`/post/${localPost.repostedFrom.id}`} className="block mt-2 rounded-lg overflow-hidden border border-surface-border">
+            <Link
+              to={(() => {
+                const aid = getArticleId(localPost.repostedFrom)
+                return aid ? `/makale/${aid}` : `/post/${localPost.repostedFrom.id}`
+              })()}
+              className="block mt-2 rounded-lg overflow-hidden border border-surface-border"
+            >
               <img src={localPost.repostedFrom.previewImageUrl} alt={localPost.repostedFrom.title} className="w-full aspect-video object-cover" />
             </Link>
           )}
@@ -286,7 +309,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </button>
 
         <Link
-          to={`/post/${display.id}#comments`}
+          to={commentLink}
           className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
         >
           <MessageCircle className="w-[18px] h-[18px]" />

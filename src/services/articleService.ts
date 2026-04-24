@@ -1,6 +1,56 @@
 import { supabase } from '@/lib/supabase'
 import type { ArticleBlock } from '@store/articleStore'
 
+async function createArticleFeedPost(article: {
+  id: string
+  title: string
+  subtitle: string
+  coverImage: string | null
+  blocks: ArticleBlock[]
+}, userId: string): Promise<void> {
+  // Aynı makale için zaten bir post var mı?
+  const { data: existingBlocks } = await supabase
+    .from('post_blocks')
+    .select('post_id')
+    .eq('type', 'article')
+    .contains('data', { articleId: article.id })
+
+  if ((existingBlocks ?? []).length > 0) return
+
+  const textContent = article.blocks
+    .map((b) => (b.content ?? '').replace(/<[^>]*>/g, '') || b.code || '')
+    .filter(Boolean)
+    .join(' ')
+    .slice(0, 300)
+
+  const { data: post, error: postError } = await supabase
+    .from('posts')
+    .insert({
+      author_id:    userId,
+      type:         'post',
+      title:        article.title,
+      description:  article.subtitle || null,
+      tags:         [],
+      is_published: true,
+    })
+    .select('id')
+    .single()
+
+  if (postError || !post) return
+
+  await supabase.from('post_blocks').insert({
+    post_id:  (post as { id: string }).id,
+    type:     'article',
+    position: 0,
+    data: {
+      articleId:  article.id,
+      title:      article.title,
+      content:    textContent,
+      coverImage: article.coverImage ?? '',
+    },
+  })
+}
+
 export interface ArticleRecord {
   id: string
   authorId: string
@@ -176,7 +226,9 @@ export const articleService = {
       .select(ARTICLE_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as unknown as Record<string, unknown>, userId)
+    const record = mapArticle(data as unknown as Record<string, unknown>, userId)
+    void createArticleFeedPost(record, userId)
+    return record
   },
 
   async unpublish(id: string): Promise<ArticleRecord> {
