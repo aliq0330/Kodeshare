@@ -1,13 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Clock, Link2, BookOpen, Heart, MessageSquare, Quote, Bookmark, MoreHorizontal, Share2, FolderPlus, BarChart2 } from 'lucide-react'
+import {
+  ArrowLeft, Clock, Link2, BookOpen,
+  Heart, MessageSquare, Quote, Bookmark,
+  MoreHorizontal, Share2, FolderPlus, BarChart2,
+  Send, Trash2,
+} from 'lucide-react'
 import { articleService } from '@services/articleService'
-import type { ArticleRecord } from '@services/articleService'
+import type { ArticleRecord, ArticleComment } from '@services/articleService'
 import { ArticleBlocksRenderer } from '@pages/Article'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
+import AddToCollectionModal from '@collections/AddToCollectionModal'
+import ArticleShareModal from '@modules/social/ArticleShareModal'
+import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import { useComposerStore } from '@store/composerStore'
 import { useAuthStore } from '@store/authStore'
+import { timeAgo } from '@utils/formatters'
 import toast from 'react-hot-toast'
 
 function formatDate(iso: string) {
@@ -33,155 +42,124 @@ function extractPlainText(article: ArticleRecord): string {
     .join(' ')
 }
 
-function ArticleToolbar({ article }: { article: ArticleRecord }) {
-  const { openWithArticle } = useComposerStore()
-  const { isAuthenticated } = useAuthStore()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+/* ─── CommentRow ─── */
+interface CommentRowProps {
+  comment: ArticleComment
+  currentUserId?: string
+  onReply: (parentId: string, username: string) => void
+  onDelete: (commentId: string) => void
+}
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  const handleQuote = () => {
-    if (!isAuthenticated) { toast.error('Alıntı yapmak için giriş yapmalısın'); return }
-    openWithArticle({
-      id: article.id,
-      title: article.title,
-      coverImage: article.coverImage,
-      content: extractPlainText(article),
-    })
-  }
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href)
-      .then(() => toast.success('Link kopyalandı!'))
-    setMenuOpen(false)
-  }
-
-  const handleLike = () => {
-    if (!isAuthenticated) { toast.error('Beğenmek için giriş yapmalısın'); return }
-    toast('Yakında', { icon: '❤️' })
-  }
-
-  const handleComment = () => {
-    if (!isAuthenticated) { toast.error('Yorum yapmak için giriş yapmalısın'); return }
-    toast('Yakında', { icon: '💬' })
-  }
-
-  const handleSave = () => {
-    if (!isAuthenticated) { toast.error('Kaydetmek için giriş yapmalısın'); return }
-    toast('Yakında', { icon: '🔖' })
-  }
-
-  const handleAddToCollection = () => {
-    toast('Yakında', { icon: '📁' })
-    setMenuOpen(false)
-  }
-
-  const handleStats = () => {
-    toast(`${article.viewsCount} görüntülenme`, { icon: '📊' })
-    setMenuOpen(false)
-  }
-
+function CommentRow({ comment, currentUserId, onReply, onDelete }: CommentRowProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-surface-border bg-surface/95 backdrop-blur-md">
-      <div className="flex items-center justify-between max-w-3xl mx-auto px-4 h-14">
-        {/* Left actions */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={handleLike}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-red-400 hover:bg-surface-raised transition-colors"
-            title="Beğen"
-          >
-            <Heart className="w-[18px] h-[18px]" />
-            <span className="text-sm">0</span>
-          </button>
-
-          <button
-            onClick={handleComment}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
-            title="Yorum yap"
-          >
-            <MessageSquare className="w-[18px] h-[18px]" />
-            <span className="text-sm">0</span>
-          </button>
-
-          <button
-            onClick={handleQuote}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
-            title="Alıntı yap"
-          >
-            <Quote className="w-[18px] h-[18px]" />
-            <span className="text-sm hidden sm:inline">Alıntı yap</span>
-          </button>
-        </div>
-
-        {/* Right actions */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
-            title="Kaydet"
-          >
-            <Bookmark className="w-[18px] h-[18px]" />
-            <span className="text-sm hidden sm:inline">Kaydet</span>
-          </button>
-
-          {/* 3-dot menu */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
-              title="Daha fazla"
-            >
-              <MoreHorizontal className="w-[18px] h-[18px]" />
-            </button>
-
-            {menuOpen && (
-              <div className="absolute right-0 bottom-full mb-2 w-48 card shadow-2xl py-1 z-50">
-                <button
-                  onClick={handleShare}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
-                >
-                  <Share2 className="w-4 h-4 text-brand-400 shrink-0" />
-                  Paylaş
-                </button>
-                <button
-                  onClick={handleAddToCollection}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
-                >
-                  <FolderPlus className="w-4 h-4 text-brand-400 shrink-0" />
-                  Koleksiyona Ekle
-                </button>
-                <button
-                  onClick={handleStats}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
-                >
-                  <BarChart2 className="w-4 h-4 text-brand-400 shrink-0" />
-                  İstatistik
-                </button>
-              </div>
+    <div className="flex gap-3">
+      <Avatar
+        src={comment.author.avatarUrl}
+        alt={comment.author.displayName || 'Anonim'}
+        size="sm"
+        className="shrink-0 mt-0.5"
+      />
+      <div className="flex-1 min-w-0">
+        <div className="bg-surface-raised border border-surface-border rounded-xl px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <div className="flex items-center gap-1.5">
+              <Link
+                to={`/profile/${comment.author.username}`}
+                className="text-sm font-semibold text-white hover:text-brand-300 transition-colors"
+              >
+                {comment.author.displayName || 'Anonim'}
+              </Link>
+              <span className="text-xs text-gray-600">·</span>
+              <span className="text-xs text-gray-500">{timeAgo(comment.createdAt)}</span>
+            </div>
+            {currentUserId === comment.authorId && (
+              <button
+                onClick={() => onDelete(comment.id)}
+                className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors"
+                title="Yorumu sil"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             )}
           </div>
+          <p className="text-sm text-gray-300 whitespace-pre-wrap break-words">{comment.content}</p>
         </div>
+        <button
+          onClick={() => onReply(comment.id, comment.author.username)}
+          className="mt-1 ml-3 text-xs text-gray-500 hover:text-brand-400 transition-colors"
+        >
+          Yanıtla
+        </button>
+
+        {/* Replies */}
+        {comment.replies.length > 0 && (
+          <div className="mt-3 flex flex-col gap-3">
+            {comment.replies.map((reply) => (
+              <div key={reply.id} className="flex gap-3">
+                <Avatar
+                  src={reply.author.avatarUrl}
+                  alt={reply.author.displayName || 'Anonim'}
+                  size="xs"
+                  className="shrink-0 mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="bg-surface-raised border border-surface-border rounded-xl px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/profile/${reply.author.username}`}
+                          className="text-sm font-semibold text-white hover:text-brand-300 transition-colors"
+                        >
+                          {reply.author.displayName || 'Anonim'}
+                        </Link>
+                        <span className="text-xs text-gray-600">·</span>
+                        <span className="text-xs text-gray-500">{timeAgo(reply.createdAt)}</span>
+                      </div>
+                      {currentUserId === reply.authorId && (
+                        <button
+                          onClick={() => onDelete(reply.id)}
+                          className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors"
+                          title="Yorumu sil"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-300 whitespace-pre-wrap break-words">{reply.content}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
+/* ─── Main Page ─── */
 export default function ArticleViewPage() {
   const { id }   = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const [article, setArticle] = useState<ArticleRecord | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
+  const { isAuthenticated, user } = useAuthStore()
+  const { openWithArticle } = useComposerStore()
 
+  const [article, setArticle]               = useState<ArticleRecord | null>(null)
+  const [loading, setLoading]               = useState(true)
+  const [error, setError]                   = useState<string | null>(null)
+  const [comments, setComments]             = useState<ArticleComment[]>([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentText, setCommentText]       = useState('')
+  const [replyTo, setReplyTo]               = useState<{ parentId: string; username: string } | null>(null)
+  const [submitting, setSubmitting]         = useState(false)
+  const [collectModalOpen, setCollectModalOpen] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [statsOpen, setStatsOpen]           = useState(false)
+  const [menuOpen, setMenuOpen]             = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  /* Load article */
   useEffect(() => {
     if (!id) return
     setLoading(true)
@@ -197,11 +175,129 @@ export default function ArticleViewPage() {
       .finally(() => setLoading(false))
   }, [id])
 
+  /* Load comments after article is set */
+  useEffect(() => {
+    if (!article) return
+    setCommentsLoading(true)
+    articleService.getComments(article.id)
+      .then(setComments)
+      .catch(() => {})
+      .finally(() => setCommentsLoading(false))
+  }, [article?.id])
+
+  /* Close menu on outside click */
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
+
+  /* ── Handlers ── */
+  const handleLike = async () => {
+    if (!article) return
+    if (!isAuthenticated) { toast.error('Beğenmek için giriş yapmalısın'); return }
+    const wasLiked = article.isLiked
+    setArticle((a) =>
+      a ? { ...a, isLiked: !a.isLiked, likesCount: Math.max(0, a.likesCount + (a.isLiked ? -1 : 1)) } : a,
+    )
+    try {
+      await (wasLiked ? articleService.unlike(article.id) : articleService.like(article.id))
+    } catch {
+      setArticle((a) =>
+        a ? { ...a, isLiked: wasLiked, likesCount: Math.max(0, a.likesCount + (wasLiked ? 1 : -1)) } : a,
+      )
+    }
+  }
+
+  const handleSave = async () => {
+    if (!article) return
+    if (!isAuthenticated) { toast.error('Kaydetmek için giriş yapmalısın'); return }
+    const wasSaved = article.isSaved
+    setArticle((a) =>
+      a ? { ...a, isSaved: !a.isSaved, savesCount: Math.max(0, a.savesCount + (a.isSaved ? -1 : 1)) } : a,
+    )
+    try {
+      await (wasSaved ? articleService.unsaveArticle(article.id) : articleService.saveArticle(article.id))
+    } catch {
+      setArticle((a) =>
+        a ? { ...a, isSaved: wasSaved, savesCount: Math.max(0, a.savesCount + (wasSaved ? 1 : -1)) } : a,
+      )
+    }
+  }
+
+  const handleQuote = () => {
+    if (!article) return
+    if (!isAuthenticated) { toast.error('Alıntı yapmak için giriş yapmalısın'); return }
+    openWithArticle({
+      id:         article.id,
+      title:      article.title,
+      coverImage: article.coverImage,
+      content:    extractPlainText(article),
+    })
+  }
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href)
       .then(() => toast.success('Link kopyalandı!'))
   }
 
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!article || !commentText.trim()) return
+    setSubmitting(true)
+    try {
+      const newComment = await articleService.addComment(
+        article.id,
+        commentText.trim(),
+        replyTo?.parentId,
+      )
+      if (replyTo) {
+        setComments((prev) =>
+          prev.map((c) =>
+            c.id === replyTo.parentId
+              ? { ...c, replies: [...c.replies, newComment] }
+              : c,
+          ),
+        )
+      } else {
+        setComments((prev) => [...prev, newComment])
+      }
+      setCommentText('')
+      setReplyTo(null)
+    } catch {
+      toast.error('Yorum gönderilemedi')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await articleService.deleteComment(commentId)
+      setComments((prev) => {
+        // top-level comment
+        const topLevel = prev.filter((c) => c.id !== commentId)
+        // or a reply
+        return topLevel.map((c) => ({
+          ...c,
+          replies: c.replies.filter((r) => r.id !== commentId),
+        }))
+      })
+    } catch {
+      toast.error('Yorum silinemedi')
+    }
+  }
+
+  const handleReplyClick = (parentId: string, username: string) => {
+    setReplyTo({ parentId, username })
+    setCommentText(`@${username} `)
+    document.getElementById('comment-input')?.focus()
+  }
+
+  /* ── Render: loading / error ── */
   if (loading) {
     return (
       <div className="flex justify-center items-center py-32">
@@ -228,9 +324,14 @@ export default function ArticleViewPage() {
     )
   }
 
+  const totalCommentCount = comments.reduce(
+    (sum, c) => sum + 1 + c.replies.length,
+    0,
+  )
+
   return (
-    <div className="min-h-full bg-surface pb-14">
-      {/* Kapak görseli */}
+    <div className="min-h-full bg-surface">
+      {/* Cover image */}
       {article.coverImage && (
         <img
           src={article.coverImage}
@@ -240,7 +341,7 @@ export default function ArticleViewPage() {
       )}
 
       <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-        {/* Başlık */}
+        {/* Title */}
         {article.title && (
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white mb-4">
             {article.title}
@@ -252,7 +353,7 @@ export default function ArticleViewPage() {
           </p>
         )}
 
-        {/* Yazar + meta */}
+        {/* Author + meta */}
         <div className="flex items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
             {article.author && (
@@ -293,12 +394,201 @@ export default function ArticleViewPage() {
 
         <div className="w-16 h-px bg-surface-border mb-8" />
 
-        {/* Bloklar */}
+        {/* Blocks */}
         <ArticleBlocksRenderer blocks={article.blocks} />
+
+        {/* ── Toolbar ── */}
+        <div className="border-t border-surface-border mt-10 pt-4 flex items-center gap-2">
+          {/* Like */}
+          <button
+            onClick={handleLike}
+            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              article.isLiked
+                ? 'text-red-400 bg-red-500/10'
+                : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+            }`}
+            title="Beğen"
+          >
+            <Heart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
+            <span className="text-sm">{article.likesCount}</span>
+          </button>
+
+          {/* Comments scroll */}
+          <button
+            onClick={() =>
+              document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })
+            }
+            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
+            title="Yorumlar"
+          >
+            <MessageSquare className="w-[18px] h-[18px]" />
+            <span className="text-sm">{totalCommentCount}</span>
+          </button>
+
+          {/* Quote */}
+          <button
+            onClick={handleQuote}
+            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
+            title="Alıntı yap"
+          >
+            <Quote className="w-[18px] h-[18px]" />
+            <span className="text-sm hidden sm:inline">Alıntı yap</span>
+          </button>
+
+          {/* Right side */}
+          <div className="ml-auto flex items-center gap-1">
+            {/* Save */}
+            <button
+              onClick={handleSave}
+              className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+                article.isSaved
+                  ? 'text-brand-400 bg-brand-500/10'
+                  : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+              }`}
+              title={article.isSaved ? 'Kaydedildi' : 'Kaydet'}
+            >
+              <Bookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
+              <span className="text-sm hidden sm:inline">
+                {article.isSaved ? 'Kaydedildi' : 'Kaydet'}
+              </span>
+            </button>
+
+            {/* 3-dot menu */}
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
+                title="Daha fazla"
+              >
+                <MoreHorizontal className="w-[18px] h-[18px]" />
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 bottom-full mb-2 w-48 card shadow-2xl py-1 z-50">
+                  <button
+                    onClick={() => { setShareModalOpen(true); setMenuOpen(false) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
+                  >
+                    <Share2 className="w-4 h-4 text-brand-400 shrink-0" />
+                    Paylaş
+                  </button>
+                  <button
+                    onClick={() => { setCollectModalOpen(true); setMenuOpen(false) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
+                  >
+                    <FolderPlus className="w-4 h-4 text-brand-400 shrink-0" />
+                    Koleksiyona Ekle
+                  </button>
+                  <button
+                    onClick={() => { setStatsOpen(true); setMenuOpen(false) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
+                  >
+                    <BarChart2 className="w-4 h-4 text-brand-400 shrink-0" />
+                    İstatistik
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Comments ── */}
+        <div id="comments" className="mt-10">
+          <h2 className="text-base font-semibold text-white mb-4">
+            Yorumlar ({totalCommentCount})
+          </h2>
+
+          {isAuthenticated && user && (
+            <form onSubmit={handleAddComment} className="flex gap-3 mb-6">
+              <Avatar
+                src={user.avatarUrl}
+                alt={user.displayName ?? ''}
+                size="sm"
+                className="shrink-0 mt-0.5"
+              />
+              <div className="flex-1 flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
+                <div className="flex-1">
+                  {replyTo && (
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs text-brand-400">@{replyTo.username} yanıtlanıyor</span>
+                      <button
+                        type="button"
+                        onClick={() => { setReplyTo(null); setCommentText('') }}
+                        className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                  <textarea
+                    id="comment-input"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Yorum yaz..."
+                    rows={1}
+                    className="w-full bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleAddComment(e as unknown as React.FormEvent)
+                      }
+                    }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={submitting || !commentText.trim()}
+                  className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
+                  title="Gönder"
+                >
+                  {submitting ? <Spinner /> : <Send className="w-4 h-4" />}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {commentsLoading ? (
+            <div className="flex justify-center py-10"><Spinner /></div>
+          ) : comments.length === 0 ? (
+            <p className="text-center text-gray-500 text-sm py-10">
+              Henüz yorum yok. İlk yorumu yap!
+            </p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {comments.map((c) => (
+                <CommentRow
+                  key={c.id}
+                  comment={c}
+                  currentUserId={user?.id}
+                  onReply={handleReplyClick}
+                  onDelete={handleDeleteComment}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </article>
 
-      {/* Sticky toolbar */}
-      <ArticleToolbar article={article} />
+      {/* Modals */}
+      <AddToCollectionModal
+        articleId={article.id}
+        open={collectModalOpen}
+        onClose={() => setCollectModalOpen(false)}
+      />
+      <ArticleShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={article.title}
+        articleId={article.id}
+      />
+      <ArticleStatsModal
+        open={statsOpen}
+        onClose={() => setStatsOpen(false)}
+        articleId={article.id}
+        likesCount={article.likesCount}
+        savesCount={article.savesCount}
+        viewsCount={article.viewsCount}
+      />
     </div>
   )
 }
