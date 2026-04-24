@@ -10,6 +10,10 @@ export interface ArticleRecord {
   blocks: ArticleBlock[]
   isPublished: boolean
   viewsCount: number
+  likesCount: number
+  savesCount: number
+  isLiked: boolean
+  isSaved: boolean
   createdAt: string
   updatedAt: string
   author?: {
@@ -19,20 +23,43 @@ export interface ArticleRecord {
   }
 }
 
+export interface ArticleComment {
+  id: string
+  articleId: string
+  authorId: string
+  parentId: string | null
+  content: string
+  createdAt: string
+  author: {
+    username: string
+    displayName: string
+    avatarUrl: string | null
+  }
+  replies: ArticleComment[]
+}
+
 async function currentUserId(): Promise<string> {
   const id = (await supabase.auth.getSession()).data.session?.user?.id
   if (!id) throw new Error('Oturum açmanız gerekiyor')
   return id
 }
 
+async function optionalUserId(): Promise<string | undefined> {
+  return (await supabase.auth.getSession()).data.session?.user?.id
+}
+
 const ARTICLE_SELECT = [
   'id', 'author_id', 'title', 'subtitle', 'cover_image', 'blocks',
   'is_published', 'views_count', 'created_at', 'updated_at',
   'author:profiles!articles_author_id_fkey(username, display_name, avatar_url)',
+  'likes:article_likes(user_id)',
+  'saves:article_saves(user_id)',
 ].join(', ')
 
-function mapArticle(row: Record<string, unknown>): ArticleRecord {
+function mapArticle(row: Record<string, unknown>, currentUid?: string): ArticleRecord {
   const a = row.author as Record<string, unknown> | null
+  const likes = (row.likes as Array<{ user_id: string }>) ?? []
+  const saves = (row.saves as Array<{ user_id: string }>) ?? []
   return {
     id:          row.id as string,
     authorId:    row.author_id as string,
@@ -42,6 +69,10 @@ function mapArticle(row: Record<string, unknown>): ArticleRecord {
     blocks:      (row.blocks as ArticleBlock[]) ?? [],
     isPublished: row.is_published as boolean,
     viewsCount:  (row.views_count as number) ?? 0,
+    likesCount:  likes.length,
+    savesCount:  saves.length,
+    isLiked:     currentUid ? likes.some((l) => l.user_id === currentUid) : false,
+    isSaved:     currentUid ? saves.some((s) => s.user_id === currentUid) : false,
     createdAt:   row.created_at as string,
     updatedAt:   row.updated_at as string,
     author: a ? {
@@ -49,6 +80,24 @@ function mapArticle(row: Record<string, unknown>): ArticleRecord {
       displayName: a.display_name as string,
       avatarUrl:   (a.avatar_url as string) ?? null,
     } : undefined,
+  }
+}
+
+function mapComment(row: Record<string, unknown>): ArticleComment {
+  const a = row.author as Record<string, unknown> | null
+  return {
+    id:        row.id as string,
+    articleId: row.article_id as string,
+    authorId:  row.author_id as string,
+    parentId:  (row.parent_id as string) ?? null,
+    content:   row.content as string,
+    createdAt: row.created_at as string,
+    author: a ? {
+      username:    a.username as string,
+      displayName: a.display_name as string,
+      avatarUrl:   (a.avatar_url as string) ?? null,
+    } : { username: '', displayName: 'Anonim', avatarUrl: null },
+    replies: [],
   }
 }
 
@@ -61,17 +110,18 @@ export const articleService = {
       .eq('author_id', userId)
       .order('updated_at', { ascending: false })
     if (error) throw new Error(error.message)
-    return (data ?? []).map((r) => mapArticle(r as unknown as Record<string, unknown>))
+    return (data ?? []).map((r) => mapArticle(r as unknown as Record<string, unknown>, userId))
   },
 
   async get(id: string): Promise<ArticleRecord> {
+    const uid = await optionalUserId()
     const { data, error } = await supabase
       .from('articles')
       .select(ARTICLE_SELECT)
       .eq('id', id)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as unknown as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>, uid)
   },
 
   async save(article: {
@@ -97,7 +147,7 @@ export const articleService = {
         .select(ARTICLE_SELECT)
         .single()
       if (error) throw new Error(error.message)
-      return mapArticle(data as unknown as Record<string, unknown>)
+      return mapArticle(data as unknown as Record<string, unknown>, userId)
     }
 
     const { data, error } = await supabase
@@ -113,7 +163,7 @@ export const articleService = {
       .select(ARTICLE_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as unknown as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>, userId)
   },
 
   async publish(id: string): Promise<ArticleRecord> {
@@ -126,7 +176,7 @@ export const articleService = {
       .select(ARTICLE_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as unknown as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>, userId)
   },
 
   async unpublish(id: string): Promise<ArticleRecord> {
@@ -139,7 +189,7 @@ export const articleService = {
       .select(ARTICLE_SELECT)
       .single()
     if (error) throw new Error(error.message)
-    return mapArticle(data as unknown as Record<string, unknown>)
+    return mapArticle(data as unknown as Record<string, unknown>, userId)
   },
 
   async delete(id: string): Promise<void> {
@@ -153,6 +203,7 @@ export const articleService = {
   },
 
   async listPublishedByUsername(username: string): Promise<ArticleRecord[]> {
+    const uid = await optionalUserId()
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
@@ -166,6 +217,70 @@ export const articleService = {
       .eq('is_published', true)
       .order('updated_at', { ascending: false })
     if (error) throw new Error(error.message)
-    return (data ?? []).map((r) => mapArticle(r as unknown as Record<string, unknown>))
+    return (data ?? []).map((r) => mapArticle(r as unknown as Record<string, unknown>, uid))
+  },
+
+  async like(id: string): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase.from('article_likes').insert({ article_id: id, user_id: userId })
+    if (error && error.code !== '23505') throw new Error(error.message)
+  },
+
+  async unlike(id: string): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase.from('article_likes').delete().eq('article_id', id).eq('user_id', userId)
+    if (error) throw new Error(error.message)
+  },
+
+  async saveArticle(id: string): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase.from('article_saves').insert({ article_id: id, user_id: userId })
+    if (error && error.code !== '23505') throw new Error(error.message)
+  },
+
+  async unsaveArticle(id: string): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase.from('article_saves').delete().eq('article_id', id).eq('user_id', userId)
+    if (error) throw new Error(error.message)
+  },
+
+  async getComments(articleId: string): Promise<ArticleComment[]> {
+    const { data, error } = await supabase
+      .from('article_comments')
+      .select('*, author:profiles!article_comments_author_id_fkey(username, display_name, avatar_url)')
+      .eq('article_id', articleId)
+      .is('parent_id', null)
+      .order('created_at', { ascending: true })
+    if (error) throw new Error(error.message)
+
+    const top = (data ?? []).map(mapComment)
+
+    const withReplies = await Promise.all(top.map(async (c) => {
+      const { data: replies } = await supabase
+        .from('article_comments')
+        .select('*, author:profiles!article_comments_author_id_fkey(username, display_name, avatar_url)')
+        .eq('parent_id', c.id)
+        .order('created_at', { ascending: true })
+      return { ...c, replies: (replies ?? []).map(mapComment) }
+    }))
+
+    return withReplies
+  },
+
+  async addComment(articleId: string, content: string, parentId?: string): Promise<ArticleComment> {
+    const userId = await currentUserId()
+    const { data, error } = await supabase
+      .from('article_comments')
+      .insert({ article_id: articleId, author_id: userId, content, parent_id: parentId ?? null })
+      .select('*, author:profiles!article_comments_author_id_fkey(username, display_name, avatar_url)')
+      .single()
+    if (error) throw new Error(error.message)
+    return mapComment(data as unknown as Record<string, unknown>)
+  },
+
+  async deleteComment(commentId: string): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase.from('article_comments').delete().eq('id', commentId).eq('author_id', userId)
+    if (error) throw new Error(error.message)
   },
 }

@@ -8,12 +8,13 @@ import toast from 'react-hot-toast'
 import type { Collection } from '@/types'
 
 interface Props {
-  postId: string
+  postId?: string
+  articleId?: string
   open: boolean
   onClose: () => void
 }
 
-export default function AddToCollectionModal({ postId, open, onClose }: Props) {
+export default function AddToCollectionModal({ postId, articleId, open, onClose }: Props) {
   const { user } = useAuth()
   const [collections, setCollections] = useState<Collection[]>([])
   const [added, setAdded] = useState<Set<string>>(new Set())
@@ -33,13 +34,24 @@ export default function AddToCollectionModal({ postId, open, onClose }: Props) {
     const isAdded = added.has(collection.id)
     setSaving(collection.id)
     try {
-      if (isAdded) {
-        await collectionService.removePost(collection.id, postId)
-        setAdded((prev) => { const s = new Set(prev); s.delete(collection.id); return s })
-      } else {
-        await collectionService.addPost(collection.id, postId)
-        setAdded((prev) => new Set(prev).add(collection.id))
-        toast.success(`"${collection.name}" koleksiyonuna eklendi`)
+      if (articleId) {
+        if (isAdded) {
+          await collectionService.removeArticle(collection.id, articleId)
+          setAdded((prev) => { const s = new Set(prev); s.delete(collection.id); return s })
+        } else {
+          await collectionService.addArticle(collection.id, articleId)
+          setAdded((prev) => new Set(prev).add(collection.id))
+          toast.success(`"${collection.name}" koleksiyonuna eklendi`)
+        }
+      } else if (postId) {
+        if (isAdded) {
+          await collectionService.removePost(collection.id, postId)
+          setAdded((prev) => { const s = new Set(prev); s.delete(collection.id); return s })
+        } else {
+          await collectionService.addPost(collection.id, postId)
+          setAdded((prev) => new Set(prev).add(collection.id))
+          toast.success(`"${collection.name}" koleksiyonuna eklendi`)
+        }
       }
     } catch {
       toast.error('Bir hata oluştu')

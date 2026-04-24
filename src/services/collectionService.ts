@@ -72,6 +72,16 @@ export const collectionService = {
     await supabase.from('collection_posts').delete().eq('collection_id', collectionId).eq('post_id', postId)
   },
 
+  async addArticle(collectionId: string, articleId: string): Promise<void> {
+    const { error } = await supabase.from('collection_articles').insert({ collection_id: collectionId, article_id: articleId })
+    if (error && error.code !== '23505') throw new Error(error.message)
+  },
+
+  async removeArticle(collectionId: string, articleId: string): Promise<void> {
+    const { error } = await supabase.from('collection_articles').delete().eq('collection_id', collectionId).eq('article_id', articleId)
+    if (error) throw new Error(error.message)
+  },
+
   async getCollectionPosts(collectionId: string): Promise<PostPreview[]> {
     const userId = await currentUserId()
     const { data, error } = await supabase
