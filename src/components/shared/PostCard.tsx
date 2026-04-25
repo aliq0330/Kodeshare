@@ -28,15 +28,14 @@ interface PostCardProps {
 }
 
 interface ArticleData {
-  subtitle: string
-  coverImage: string | null
-  readMins: number
   likesCount: number
   savesCount: number
-  commentsCount: number
   isLiked: boolean
   isSaved: boolean
 }
+
+// Aynı makale için birden fazla kart varsa tekrar çekmesin
+const articleDataCache = new Map<string, ArticleData>()
 
 export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const navigate = useNavigate()
@@ -84,26 +83,16 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const mainTag = display.tags[0]
   const isOwnerPost = localPost.type !== 'repost' || !localPost.repostedFrom
 
-  // Makale verilerini çek
+  // Makale etkileşim verilerini çek (hafif sorgu — blocks çekmez)
   useEffect(() => {
     if (!displayArticleId) return
-    articleService.get(displayArticleId).then((rec) => {
-      const words = rec.blocks
-        .map((b) => {
-          const rb = b as unknown as Record<string, unknown>
-          return (((rb.content as string) ?? '').replace(/<[^>]*>/g, '') || (rb.code as string) || '')
-        })
-        .join(' ').split(/\s+/).filter(Boolean).length
-      setArticleData({
-        subtitle:      rec.subtitle,
-        coverImage:    rec.coverImage,
-        readMins:      Math.max(1, Math.round(words / 200)),
-        likesCount:    rec.likesCount,
-        savesCount:    rec.savesCount,
-        commentsCount: rec.commentsCount,
-        isLiked:       rec.isLiked,
-        isSaved:       rec.isSaved,
-      })
+    if (articleDataCache.has(displayArticleId)) {
+      setArticleData(articleDataCache.get(displayArticleId)!)
+      return
+    }
+    articleService.getInteractions(displayArticleId).then((interactions) => {
+      articleDataCache.set(displayArticleId, interactions)
+      setArticleData(interactions)
     }).catch(() => {})
   }, [displayArticleId])
 
@@ -298,10 +287,10 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   // ── Makale postu layout'u (ArticleCard stili) ─────────────────────────────
   if (displayArticleId) {
     // Block datasından anlık değerler (fetch tamamlanana kadar)
-    const blockData = display.blocks[0]?.data ?? {}
-    const coverImage = articleData?.coverImage ?? ((blockData.coverImage as string) || null)
+    const blockData  = display.blocks[0]?.data ?? {}
+    const coverImage = (blockData.coverImage as string) || null
     const title      = (blockData.title as string) || display.title
-    const subtitle   = articleData?.subtitle ?? (blockData.subtitle as string) ?? display.description ?? ''
+    const subtitle   = (blockData.subtitle as string) || display.description || ''
 
     return (
       <article className="card overflow-hidden hover:border-surface-raised transition-colors group">
@@ -355,14 +344,6 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             </div>
           </Link>
 
-          {/* Okuma süresi */}
-          {articleData?.readMins && (
-            <p className="flex items-center gap-1 text-xs text-gray-600 mb-3">
-              <Clock className="w-3 h-3" />
-              {articleData.readMins} dk okuma
-            </p>
-          )}
-
           {/* Aksiyon çubuğu */}
           <div className="flex items-center gap-1 pt-3 border-t border-surface-border">
             <button
@@ -380,7 +361,6 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
             >
               <MessageCircle className="w-[18px] h-[18px]" />
-              <span className="text-sm">{compactNumber(articleData?.commentsCount ?? 0)}</span>
             </Link>
 
             {isAuthenticated ? (

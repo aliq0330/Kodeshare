@@ -100,6 +100,19 @@ async function optionalUserId(): Promise<string | undefined> {
   return (await supabase.auth.getSession()).data.session?.user?.id
 }
 
+// Feed kartları için hafif etkileşim sorgusu (blocks çekmez)
+const INTERACTIONS_SELECT = [
+  'likes:article_likes(user_id)',
+  'saves:article_saves(user_id)',
+].join(', ')
+
+export interface ArticleInteractions {
+  likesCount: number
+  savesCount: number
+  isLiked: boolean
+  isSaved: boolean
+}
+
 const ARTICLE_SELECT = [
   'id', 'author_id', 'title', 'subtitle', 'cover_image', 'blocks',
   'is_published', 'views_count', 'created_at', 'updated_at',
@@ -272,6 +285,23 @@ export const articleService = {
       .order('updated_at', { ascending: false })
     if (error) throw new Error(error.message)
     return (data ?? []).map((r) => mapArticle(r as unknown as Record<string, unknown>, uid))
+  },
+
+  async getInteractions(id: string): Promise<ArticleInteractions> {
+    const uid = await optionalUserId()
+    const { data } = await supabase
+      .from('articles')
+      .select(INTERACTIONS_SELECT)
+      .eq('id', id)
+      .single()
+    const likes = ((data as Record<string, unknown> | null)?.likes as { user_id: string }[]) ?? []
+    const saves = ((data as Record<string, unknown> | null)?.saves as { user_id: string }[]) ?? []
+    return {
+      likesCount: likes.length,
+      savesCount: saves.length,
+      isLiked:    uid ? likes.some((l) => l.user_id === uid) : false,
+      isSaved:    uid ? saves.some((s) => s.user_id === uid) : false,
+    }
   },
 
   async like(id: string): Promise<void> {
