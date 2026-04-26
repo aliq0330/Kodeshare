@@ -20,7 +20,7 @@ const PUBLIC_NAV = [
 const AUTH_NAV = [
   { to: '/notifications', icon: Bell,          label: 'Bildirimler' },
   { to: '/messages',      icon: MessageSquare, label: 'Mesajlar' },
-  { to: '/makale',        icon: PenLine,       label: 'Makale' },
+  { to: '/makaleler',     icon: PenLine,       label: 'Makale' },
   { to: '/editor',        icon: Code2,         label: 'Editör' },
   { to: '',               icon: Bookmark,      label: 'Koleksiyonlar', dynamic: true },
   { to: '',               icon: User,          label: 'Profil',        dynamic: true },
