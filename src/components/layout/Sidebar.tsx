@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   Home, Compass, Star, User, Settings,
-  Hash, TrendingUp, BookOpen, PenLine, Code2,
+  Hash, TrendingUp, BookOpen,
 } from 'lucide-react'
 import { useAuthStore } from '@store/authStore'
 import { cn } from '@utils/cn'
@@ -41,34 +41,6 @@ export default function Sidebar() {
         ))}
         {isAuthenticated && (
           <>
-            <NavLink
-              to="/makale"
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-brand-900/60 text-brand-300'
-                    : 'text-gray-400 hover:bg-surface-raised hover:text-white',
-                )
-              }
-            >
-              <PenLine className="w-5 h-5" />
-              Makale
-            </NavLink>
-            <NavLink
-              to="/editor"
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-brand-900/60 text-brand-300'
-                    : 'text-gray-400 hover:bg-surface-raised hover:text-white',
-                )
-              }
-            >
-              <Code2 className="w-5 h-5" />
-              Editör
-            </NavLink>
             <NavLink
               to="/makaleler"
               className={({ isActive }) =>
