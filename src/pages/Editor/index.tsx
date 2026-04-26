@@ -573,7 +573,7 @@ export default function EditorPage() {
     files, activeFile, activeFileId, theme, fontSize, wordWrap,
     setActiveFile, addFile, removeFile, updateActiveFile, toggleWordWrap, setTheme,
   } = useEditor()
-  const { projectTitle, setProjectTitle, loadProject, markAllSaved, activeProjectId, setActiveProjectId } = useEditorStore()
+  const { projectTitle, setProjectTitle, loadProject, markAllSaved, activeProjectId, setActiveProjectId, appTheme } = useEditorStore()
   const {
     projects, loading,
     fetch: fetchProjects, addProject, patch: patchProject, remove: removeProject,
@@ -604,6 +604,16 @@ export default function EditorPage() {
       setActiveFile(found.files[0]?.id ?? null)
     }
   }, [urlProjectId, projects.length]) // eslint-disable-line
+
+  // Sync code editor theme with app theme
+  useEffect(() => {
+    const prefersDark =
+      appTheme === 'dark' ||
+      (appTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    const codeIsDark = getThemeConfig(theme).dark
+    if (prefersDark && !codeIsDark) setTheme('one-dark')
+    else if (!prefersDark && codeIsDark) setTheme('github-light')
+  }, [appTheme]) // eslint-disable-line
 
   // Ctrl+S
   useEffect(() => {
