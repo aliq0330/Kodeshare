@@ -38,7 +38,8 @@ export default function EditorNavbar() {
           type="text"
           value={projectTitle}
           onChange={(e) => setProjectTitle(e.target.value)}
-          className="bg-transparent text-sm font-medium text-white focus:outline-none focus:bg-[#1e2535] rounded px-2 py-1 min-w-0 w-0 flex-1 max-w-[180px]"
+          className="bg-transparent text-sm font-medium focus:outline-none focus:bg-[#1e2535] rounded px-2 py-1 min-w-0 w-0 flex-1 max-w-[180px]"
+      style={{ color: 'white' }}
           placeholder="Proje adı..."
         />
         {isSaving && (

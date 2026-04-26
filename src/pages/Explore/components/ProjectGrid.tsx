@@ -29,7 +29,7 @@ export default function ProjectGrid({ query, category }: ProjectGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="flex flex-col gap-4">
       {posts.map((post) => (
         <PostCard key={post.id} post={post} onLike={likePost} onSave={savePost} />
       ))}
