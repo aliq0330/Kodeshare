@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
@@ -30,6 +30,11 @@ export default function BurgerMenu() {
   const { user, isAuthenticated } = useAuthStore()
   const { openComposer } = useComposerStore()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
 
   const close = () => setIsOpen(false)
 
