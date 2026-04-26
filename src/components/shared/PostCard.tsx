@@ -293,10 +293,10 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     const subtitle   = (blockData.subtitle as string) || display.description || ''
 
     return (
-      <article className="card overflow-hidden hover:border-surface-raised transition-colors group">
+      <article className="border-b border-surface-border group">
         {/* Repost göstergesi */}
         {localPost.type === 'repost' && localPost.repostedFrom && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 px-4 pt-3">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">
             <Repeat className="w-3.5 h-3.5" />
             <Link to={`/profile/${localPost.author.username}`} className="hover:text-gray-300">
               {localPost.author.displayName}
@@ -305,81 +305,83 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           </div>
         )}
 
-        {/* Kapak görseli — kenara tam dayalı */}
-        {coverImage && (
-          <Link to={primaryLink} className="block">
-            <img src={coverImage} alt="" className="w-full h-36 object-cover" />
+        <div className="flex gap-3 px-4 pt-3 pb-4">
+          {/* Avatar */}
+          <Link to={`/profile/${display.author.username}`} className="shrink-0 mt-0.5">
+            <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" online={display.author.isOnline} />
           </Link>
-        )}
 
-        <div className="p-4">
-          {/* Yazar satırı */}
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <Link to={`/profile/${display.author.username}`} className="flex items-center gap-2.5 min-w-0">
-              <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" online={display.author.isOnline} />
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">{display.author.displayName}</p>
-                <p className="text-xs text-gray-500">@{display.author.username} · {timeAgo(display.createdAt)}</p>
-              </div>
-            </Link>
-            {menuDropdown}
-          </div>
-
-          {/* Başlık + altyazı */}
-          <Link to={primaryLink} className="block mb-3">
-            <div className="flex items-start gap-2.5">
-              {!coverImage && (
-                <div className="w-8 h-8 rounded-lg bg-surface-raised flex items-center justify-center shrink-0 mt-0.5">
-                  <BookOpen className="w-4 h-4 text-gray-600" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-white group-hover:text-gray-700 transition-colors line-clamp-2">
-                  {title}
-                </h3>
-                {subtitle && (
-                  <p className="text-sm text-gray-400 line-clamp-2 mt-0.5">{subtitle}</p>
-                )}
-              </div>
+          <div className="flex-1 min-w-0">
+            {/* Yazar satırı */}
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <Link to={`/profile/${display.author.username}`} className="min-w-0">
+                <span className="font-semibold text-sm text-white">{display.author.displayName}</span>
+                <span className="text-xs text-gray-400 ml-1.5">@{display.author.username} · {timeAgo(display.createdAt)}</span>
+              </Link>
+              {menuDropdown}
             </div>
-          </Link>
 
-          {/* Aksiyon çubuğu */}
-          <div className="flex items-center gap-1 pt-3 border-t border-surface-border">
-            <button
-              onClick={handleArticleLike}
-              className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-                articleData?.isLiked ? 'text-gray-900' : 'text-gray-400 hover:text-gray-900 hover:bg-surface-raised'
-              }`}
-            >
-              <Heart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
-              <span className="text-sm">{compactNumber(articleData?.likesCount ?? 0)}</span>
-            </button>
-
-            <Link
-              to={commentLink}
-              className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-surface-raised transition-colors"
-            >
-              <MessageCircle className="w-[18px] h-[18px]" />
-            </Link>
-
-            {isAuthenticated ? (
-              <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
-            ) : (
-              <span className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm text-gray-400">
-                <Repeat2 className="w-[18px] h-[18px]" />
-                {compactNumber(repostTarget.repostCount)}
-              </span>
+            {/* Kapak görseli */}
+            {coverImage && (
+              <Link to={primaryLink} className="block mb-2 rounded-xl overflow-hidden border border-surface-border">
+                <img src={coverImage} alt="" className="w-full h-36 object-cover" />
+              </Link>
             )}
 
-            <button
-              onClick={handleArticleSave}
-              className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-                articleData?.isSaved ? 'text-gray-900' : 'text-gray-400 hover:text-gray-900 hover:bg-surface-raised'
-              }`}
-            >
-              <Bookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
-            </button>
+            {/* Başlık + altyazı */}
+            <Link to={primaryLink} className="block mb-2">
+              <div className="flex items-start gap-2">
+                {!coverImage && (
+                  <div className="w-7 h-7 rounded-lg bg-surface-raised flex items-center justify-center shrink-0 mt-0.5">
+                    <BookOpen className="w-3.5 h-3.5 text-gray-500" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm text-white line-clamp-2">{title}</h3>
+                  {subtitle && (
+                    <p className="text-sm text-gray-400 line-clamp-2 mt-0.5">{subtitle}</p>
+                  )}
+                </div>
+              </div>
+            </Link>
+
+            {/* Aksiyon çubuğu */}
+            <div className="flex items-center gap-4 text-gray-400">
+              <button
+                onClick={handleArticleLike}
+                className={`flex items-center gap-1.5 transition-colors ${
+                  articleData?.isLiked ? 'text-white' : 'hover:text-white'
+                }`}
+              >
+                <Heart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
+                <span className="text-xs">{compactNumber(articleData?.likesCount ?? 0)}</span>
+              </button>
+
+              <Link
+                to={commentLink}
+                className="flex items-center gap-1.5 hover:text-white transition-colors"
+              >
+                <MessageCircle className="w-[18px] h-[18px]" />
+              </Link>
+
+              {isAuthenticated ? (
+                <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
+              ) : (
+                <span className="flex items-center gap-1.5 text-xs">
+                  <Repeat2 className="w-[18px] h-[18px]" />
+                  {compactNumber(repostTarget.repostCount)}
+                </span>
+              )}
+
+              <button
+                onClick={handleArticleSave}
+                className={`ml-auto flex items-center gap-1.5 transition-colors ${
+                  articleData?.isSaved ? 'text-white' : 'hover:text-white'
+                }`}
+              >
+                <Bookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -402,7 +404,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </div>
       )}
 
-      <div className="flex gap-3 px-4 pt-3 pb-2">
+      <div className="flex gap-3 px-4 pt-3 pb-4">
         {/* Left: Avatar */}
         <Link to={`/profile/${display.author.username}`} className="shrink-0 mt-0.5">
           <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" />

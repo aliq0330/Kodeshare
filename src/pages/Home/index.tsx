@@ -18,14 +18,18 @@ export default function HomePage() {
   const [activeTag, setActiveTag] = useState('all')
 
   return (
-    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
-      <h1 className="text-xl font-bold text-white">Ana Sayfa</h1>
-      <Tabs
-        tabs={FEED_TABS.map((t) => ({ id: t.id, label: t.label }))}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-      />
-      <TagFilter tags={TAGS} activeTag={activeTag} onChange={setActiveTag} />
+    <div className="flex flex-col max-w-2xl mx-auto">
+      <h1 className="text-xl font-bold text-white px-1 pt-1 pb-2">Ana Sayfa</h1>
+
+      <div className="sticky top-14 z-10 bg-surface -mx-4 lg:mx-0 px-4 lg:px-0">
+        <Tabs
+          tabs={FEED_TABS.map((t) => ({ id: t.id, label: t.label }))}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
+        <TagFilter tags={TAGS} activeTag={activeTag} onChange={setActiveTag} />
+      </div>
+
       <Feed tab={activeTab} tag={activeTag} />
     </div>
   )

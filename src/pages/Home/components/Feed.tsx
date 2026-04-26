@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { RefreshCw } from 'lucide-react'
 import PostCard from '@components/shared/PostCard'
+import PostCardSkeleton from '@components/shared/PostCardSkeleton'
 import Spinner from '@components/ui/Spinner'
 import Button from '@components/ui/Button'
 import { usePostStore } from '@store/postStore'
@@ -27,8 +28,10 @@ export default function Feed({ tab, tag }: FeedProps) {
 
   if (isLoading && posts.length === 0) {
     return (
-      <div className="flex justify-center py-12">
-        <Spinner size="lg" />
+      <div className="-mx-4 lg:mx-0 px-1 lg:px-0 flex flex-col">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <PostCardSkeleton key={i} />
+        ))}
       </div>
     )
   }

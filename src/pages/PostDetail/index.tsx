@@ -168,7 +168,7 @@ export default function PostDetailPage() {
       </Link>
 
       <article className="border-b border-surface-border">
-        <div className="flex gap-3 px-4 pt-3 pb-2">
+        <div className="flex gap-3 px-4 pt-3 pb-4">
           <Link to={`/profile/${post.author.username}`} className="shrink-0 mt-0.5">
             <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />
           </Link>
