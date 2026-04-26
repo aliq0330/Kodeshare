@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   Menu, X, Home, Compass, Star, Hash, Bell,
-  MessageSquare, Bookmark, User, Settings, Code2, PenSquare,
+  MessageSquare, Bookmark, User, Settings, Code2, PenSquare, PenLine,
 } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
@@ -20,6 +20,8 @@ const PUBLIC_NAV = [
 const AUTH_NAV = [
   { to: '/notifications', icon: Bell,          label: 'Bildirimler' },
   { to: '/messages',      icon: MessageSquare, label: 'Mesajlar' },
+  { to: '/makale',        icon: PenLine,       label: 'Makale' },
+  { to: '/editor',        icon: Code2,         label: 'Editör' },
   { to: '',               icon: Bookmark,      label: 'Koleksiyonlar', dynamic: true },
   { to: '',               icon: User,          label: 'Profil',        dynamic: true },
   { to: '/settings',      icon: Settings,      label: 'Ayarlar' },
