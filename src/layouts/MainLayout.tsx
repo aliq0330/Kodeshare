@@ -2,14 +2,13 @@ import { Outlet } from 'react-router-dom'
 import Navbar from '@components/layout/Navbar'
 import Sidebar from '@components/layout/Sidebar'
 import RightPanel from '@components/layout/RightPanel'
-import MobileNav from '@components/layout/MobileNav'
 import PostComposer from '@modules/post/PostComposer'
 
 export default function MainLayout() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <Navbar />
-      <div className="flex flex-1 max-w-[1440px] mx-auto w-full px-4 pt-16 pb-20 lg:pb-0 gap-4">
+      <div className="flex flex-1 max-w-[1440px] mx-auto w-full px-4 pt-16 pb-4 gap-4">
         <aside className="hidden lg:block w-60 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none py-4">
           <Sidebar />
         </aside>
@@ -23,7 +22,6 @@ export default function MainLayout() {
         </aside>
       </div>
 
-      <MobileNav />
       <PostComposer hideCard />
     </div>
   )

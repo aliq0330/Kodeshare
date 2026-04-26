@@ -3,6 +3,7 @@ import { Code2, Search, Bell, Mail, Plus, ShieldCheck, FileText } from 'lucide-r
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Dropdown from '@components/ui/Dropdown'
+import BurgerMenu from '@components/layout/BurgerMenu'
 import { useAuthStore } from '@store/authStore'
 import { useNotificationStore } from '@store/notificationStore'
 import { isAdmin } from '@/lib/admin'
@@ -28,11 +29,14 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 h-16 border-b border-surface-border bg-surface/90 backdrop-blur-md">
       <div className="flex items-center justify-between h-full max-w-[1440px] mx-auto px-4">
-        {/* Logo */}
+        {/* Left: burger + logo */}
+        <div className="flex items-center gap-2 shrink-0">
+        <BurgerMenu />
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <Code2 className="w-6 h-6 text-brand-400" />
           <span className="font-bold text-white hidden sm:block">Kodeshare</span>
         </Link>
+        </div>
 
         {/* Search */}
         <div className="flex-1 max-w-md mx-4 hidden md:block">
