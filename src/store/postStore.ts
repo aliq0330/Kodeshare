@@ -45,23 +45,42 @@ export const usePostStore = create<PostState>((set, get) => ({
       lastParams: { tab, tag, query, page },
       ...(page === 1 ? { posts: [], currentPage: 1, hasNextPage: true } : {}),
     })
-    try {
-      const res = await postService.getFeed({ tab, tag, query, page })
-      if (seq !== fetchSeq) return
-      set((s) => ({
-        posts: page === 1 ? res.data : [...s.posts, ...res.data],
-        hasNextPage: res.hasNextPage,
-        currentPage: page,
-        isError: false,
-      }))
-    } catch (err) {
-      console.error('[postStore] fetchPosts failed:', err)
-      if (seq !== fetchSeq) return
-      set({ isError: true })
-      toast.error('Gönderiler yüklenemedi')
-    } finally {
-      if (seq === fetchSeq) set({ isLoading: false })
+
+    let res
+    // Up to 2 attempts with 1 s gap — only for real network errors, not aborts
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        res = await postService.getFeed({ tab, tag, query, page })
+        break
+      } catch (err) {
+        const name = (err as { name?: string })?.name
+        // AbortError = request cancelled by browser/Supabase; stale seq = tab changed.
+        // Both are silent — don't treat as an error.
+        if (name === 'AbortError' || seq !== fetchSeq) {
+          set({ isLoading: false })
+          return
+        }
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 1000))
+          if (seq !== fetchSeq) { set({ isLoading: false }); return }
+          continue
+        }
+        // Second attempt also failed — real error
+        console.error('[postStore] fetchPosts failed:', err)
+        set({ isError: true, isLoading: false })
+        toast.error('Gönderiler yüklenemedi')
+        return
+      }
     }
+
+    if (seq !== fetchSeq) { set({ isLoading: false }); return }
+    set((s) => ({
+      posts: page === 1 ? res!.data : [...s.posts, ...res!.data],
+      hasNextPage: res!.hasNextPage,
+      currentPage: page,
+      isError: false,
+      isLoading: false,
+    }))
   },
 
   createPost: async (payload) => {
