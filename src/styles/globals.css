@@ -36,20 +36,14 @@
   }
 
   html.dark body  { @apply text-white; }
-  :root body, html.light body { color: #111111; }
+  html.light body { color: #111111; }
 
-  /* Light mode text overrides */
-  :root .text-white,
+  /* Light mode text overrides — only html.light, NOT :root */
   html.light .text-white       { color: #111111 !important; }
-  :root .text-gray-100,
   html.light .text-gray-100    { color: #1f1f1f !important; }
-  :root .text-gray-200,
   html.light .text-gray-200    { color: #333333 !important; }
-  :root .text-gray-300,
   html.light .text-gray-300    { color: #555555 !important; }
-  :root .text-gray-400,
   html.light .text-gray-400    { color: #777777 !important; }
-  :root .text-gray-500,
   html.light .text-gray-500    { color: #999999 !important; }
 
   ::-webkit-scrollbar {
