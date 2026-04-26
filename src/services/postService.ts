@@ -18,13 +18,16 @@ async function currentUserId(): Promise<string | undefined> {
 
 const POST_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_blocks(id,type,position,data), post_likes(user_id), post_saves(user_id)`
 
+// Feed için hafif select — tüm beğeni/kaydetme satırlarını çekmez
+const FEED_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_blocks(id,type,position,data)`
+
 export const POSTS_PREVIEW_SELECT = POST_SELECT
 
 export const postService = {
   async getFeed({ tab = 'trending', tag, query, page = 1 }: FeedParams): Promise<PaginatedResponse<PostPreview>> {
     let q = supabase
       .from('posts')
-      .select(POST_SELECT, { count: 'exact' })
+      .select(FEED_SELECT, { count: 'exact' })
       .eq('is_published', true)
       .neq('type', 'project')
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
@@ -44,10 +47,17 @@ export const postService = {
       : q.order('created_at', { ascending: false })
 
     const [{ data, error, count }, userId] = await Promise.all([q, currentUserId()])
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message ?? 'Sorgu hatası')
 
-    const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
-    await Promise.allSettled([hydrateRepostedFrom(posts), hydrateReposted(posts, userId)])
+    const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>))
+    const postIds = posts.map((p) => p.id)
+
+    await Promise.allSettled([
+      hydrateRepostedFrom(posts),
+      hydrateReposted(posts, userId),
+      userId ? hydrateUserInteractions(posts, postIds, userId) : Promise.resolve(),
+    ])
+
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
 
@@ -424,6 +434,19 @@ export async function hydratePostPreviewRows(
   await hydrateRepostedFrom(previews)
   await hydrateReposted(previews, userId)
   return previews
+}
+
+async function hydrateUserInteractions(posts: PostPreview[], postIds: string[], userId: string): Promise<void> {
+  const [{ data: likes }, { data: saves }] = await Promise.all([
+    supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', postIds),
+    supabase.from('post_saves').select('post_id').eq('user_id', userId).in('post_id', postIds),
+  ])
+  const likedSet = new Set(likes?.map((l: { post_id: string }) => l.post_id) ?? [])
+  const savedSet = new Set(saves?.map((s: { post_id: string }) => s.post_id) ?? [])
+  for (const p of posts) {
+    p.isLiked = likedSet.has(p.id)
+    p.isSaved = savedSet.has(p.id)
+  }
 }
 
 async function hydrateReposted(posts: PostPreview[], userId?: string): Promise<void> {
