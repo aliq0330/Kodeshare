@@ -52,18 +52,21 @@ export const postService = {
 
     const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>))
 
-    if (posts.length > 0) {
-      const postIds = posts.map((p) => p.id)
-      await Promise.allSettled([
-        hydrateRepostedFrom(posts),
-        hydrateReposted(posts, userId),
-        userId ? hydrateUserInteractions(posts, postIds, userId) : Promise.resolve(),
-      ])
-    }
-
     const hasNextPage = posts.length === PAGE_SIZE
     const total = (page - 1) * PAGE_SIZE + posts.length
-    return { data: posts, total, page, limit: PAGE_SIZE, hasNextPage }
+    const result: PaginatedResponse<PostPreview> = { data: posts, total, page, limit: PAGE_SIZE, hasNextPage }
+
+    // Hydration'ı bekleme — ana feed verisi geldiği anda dön. isLiked/isSaved
+    // gibi alanlar arka planda yüklenecek; bu sayede kullanıcı boş tabloda bile
+    // skeletonu uzun süre görmez.
+    if (posts.length > 0) {
+      result.hydrate = () => Promise.allSettled([
+        hydrateRepostedFrom(posts),
+        hydrateReposted(posts, userId),
+        userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
+      ]).then(() => undefined)
+    }
+    return result
   },
 
   async getPost(id: string): Promise<Post> {

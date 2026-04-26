@@ -77,6 +77,16 @@ export const usePostStore = create<PostState>((set, get) => ({
       isError: false,
       isLoading: false,
     }))
+
+    // Hydration arka planda: like/save/repost durumları ve repostedFrom verisi
+    // posts üzerinde mutate edilir; tamamlanınca yeniden render için yeni
+    // referansla set ederiz. Stale fetch'e ait hydration'lar yok sayılır.
+    if (res?.hydrate) {
+      void res.hydrate().then(() => {
+        if (seq !== fetchSeq) return
+        set((s) => ({ posts: s.posts.map((p) => ({ ...p })) }))
+      })
+    }
   },
 
   createPost: async (payload) => {
