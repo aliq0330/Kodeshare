@@ -15,24 +15,26 @@ export const commentService = {
       .from('comments')
       .select('*, author:profiles!comments_author_id_fkey(*), comment_likes(user_id)')
       .eq('post_id', postId)
-      .is('parent_id', null)
       .order('created_at', { ascending: true })
     if (error) throw new Error(error.message)
 
-    const topLevel = (data ?? []).map((c) => mapComment(c as Record<string, unknown>, userId))
-
-    const withReplies = await Promise.all(
-      topLevel.map(async (c) => {
-        const { data: replies } = await supabase
-          .from('comments')
-          .select('*, author:profiles!comments_author_id_fkey(*), comment_likes(user_id)')
-          .eq('parent_id', c.id)
-          .order('created_at', { ascending: true })
-        return { ...c, replies: (replies ?? []).map((r) => mapComment(r as Record<string, unknown>, userId)) }
-      })
-    )
-
-    return withReplies
+    const repliesByParent = new Map<string, Comment[]>()
+    const topLevel: Comment[] = []
+    for (const row of (data ?? []) as Record<string, unknown>[]) {
+      const mapped = mapComment(row, userId)
+      const parentId = row.parent_id as string | null
+      if (parentId) {
+        const arr = repliesByParent.get(parentId) ?? []
+        arr.push(mapped)
+        repliesByParent.set(parentId, arr)
+      } else {
+        topLevel.push(mapped)
+      }
+    }
+    for (const c of topLevel) {
+      c.replies = repliesByParent.get(c.id) ?? []
+    }
+    return topLevel
   },
 
   async create(postId: string, content: string, parentId?: string): Promise<Comment> {
