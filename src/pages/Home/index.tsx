@@ -27,7 +27,7 @@ export default function HomePage() {
           activeTab={activeTab}
           onChange={setActiveTab}
         />
-        <TagFilter tags={TAGS} activeTag={activeTag} onChange={setActiveTag} />
+        <TagFilter tags={TAGS} activeTag={activeTag} onChange={setActiveTag} className="mt-1" />
       </div>
 
       <Feed tab={activeTab} tag={activeTag} />
