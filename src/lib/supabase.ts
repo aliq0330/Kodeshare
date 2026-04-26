@@ -11,7 +11,7 @@ function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise
   // Çağıran kod (örn. postStore) zaten kendi AbortController'ını
   // verebiliyorsa (sekme değişimi vs.) onu da dinleyelim.
   const controller = new AbortController()
-  const tid = setTimeout(() => controller.abort(), 30_000)
+  const tid = setTimeout(() => controller.abort(), 12_000)
   const upstream = init?.signal
   if (upstream) {
     if (upstream.aborted) controller.abort()

@@ -12,6 +12,9 @@ export interface PaginatedResponse<T> {
   page: number
   limit: number
   hasNextPage: boolean
+  /** Optional background task to fill in user-specific fields (isLiked, isSaved, repostedFrom).
+   * Caller should await it to apply hydration; can be safely ignored to render faster. */
+  hydrate?: () => Promise<void>
 }
 
 export interface ApiError {
