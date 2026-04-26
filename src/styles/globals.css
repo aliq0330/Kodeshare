@@ -5,19 +5,19 @@
 @layer base {
   /* Dark theme (default) */
   :root, html.dark {
-    --surface:        15 17 23;
-    --surface-card:   22 27 39;
-    --surface-raised: 30 37 53;
-    --surface-border: 42 51 71;
+    --surface:        0 0 0;
+    --surface-card:   18 18 18;
+    --surface-raised: 30 30 30;
+    --surface-border: 50 50 50;
     color-scheme: dark;
   }
 
   /* Light theme */
   html.light {
-    --surface:        248 250 252;
+    --surface:        255 255 255;
     --surface-card:   255 255 255;
-    --surface-raised: 241 245 249;
-    --surface-border: 226 232 240;
+    --surface-raised: 243 243 243;
+    --surface-border: 214 214 214;
     color-scheme: light;
   }
 

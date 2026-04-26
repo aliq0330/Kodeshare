@@ -67,9 +67,9 @@ function Root() {
         position="bottom-right"
         toastOptions={{
           style: {
-            background: '#161b27',
-            color: '#e2e8f0',
-            border: '1px solid #2a3347',
+            background: '#121212',
+            color: '#ffffff',
+            border: '1px solid #323232',
             borderRadius: '10px',
             fontSize: '14px',
           },

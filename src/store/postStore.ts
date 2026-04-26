@@ -13,6 +13,7 @@ interface FetchParams {
 interface PostState {
   posts: PostPreview[]
   isLoading: boolean
+  isError: boolean
   hasNextPage: boolean
   currentPage: number
   lastParams: FetchParams
@@ -27,9 +28,22 @@ interface PostState {
 
 let fetchSeq = 0
 
+async function fetchWithRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn()
+    } catch (err) {
+      if (i === attempts - 1) throw err
+      await new Promise((r) => setTimeout(r, 800 * (i + 1)))
+    }
+  }
+  throw new Error('unreachable')
+}
+
 export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
   isLoading: false,
+  isError: false,
   hasNextPage: true,
   currentPage: 1,
   lastParams: {},
@@ -39,21 +53,25 @@ export const usePostStore = create<PostState>((set, get) => ({
     const seq = ++fetchSeq
     set((s) => ({
       isLoading: true,
+      isError: false,
       lastParams: { tab, tag, query, page },
-      // page=1 yenileme: mevcut postları silmeden loading göster, başarıda değiştir
       ...(page === 1 ? { currentPage: 1, hasNextPage: true } : {}),
     }))
     try {
-      const res = await postService.getFeed({ tab, tag, query, page })
+      const res = await fetchWithRetry(() => postService.getFeed({ tab, tag, query, page }))
       if (seq !== fetchSeq) return
       set((s) => ({
         posts: page === 1 ? res.data : [...s.posts, ...res.data],
         hasNextPage: res.hasNextPage,
         currentPage: page,
+        isError: false,
       }))
     } catch (err) {
       console.error('[postStore] fetchPosts failed:', err)
-      if (seq === fetchSeq) toast.error('Gönderiler yüklenemedi')
+      if (seq === fetchSeq) {
+        set({ isError: true })
+        toast.error('Gönderiler yüklenemedi')
+      }
     } finally {
       if (seq === fetchSeq) set({ isLoading: false })
     }
@@ -148,5 +166,5 @@ export const usePostStore = create<PostState>((set, get) => ({
       ),
     })),
 
-  reset: () => set({ posts: [], currentPage: 1, hasNextPage: true, isLoading: false }),
+  reset: () => set({ posts: [], currentPage: 1, hasNextPage: true, isLoading: false, isError: false }),
 }))

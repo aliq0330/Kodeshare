@@ -43,13 +43,11 @@ export const postService = {
       ? q.order('likes_count', { ascending: false })
       : q.order('created_at', { ascending: false })
 
-    const { data, error, count } = await q
+    const [{ data, error, count }, userId] = await Promise.all([q, currentUserId()])
     if (error) throw new Error(error.message)
 
-    const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
-    await hydrateRepostedFrom(posts)
-    await hydrateReposted(posts, userId)
+    await Promise.allSettled([hydrateRepostedFrom(posts), hydrateReposted(posts, userId)])
     return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
   },
 

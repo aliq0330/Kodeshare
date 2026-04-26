@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useInView } from 'react-intersection-observer'
+import { RefreshCw } from 'lucide-react'
 import PostCard from '@components/shared/PostCard'
 import Spinner from '@components/ui/Spinner'
+import Button from '@components/ui/Button'
 import { usePostStore } from '@store/postStore'
 
 interface FeedProps {
@@ -10,7 +12,7 @@ interface FeedProps {
 }
 
 export default function Feed({ tab, tag }: FeedProps) {
-  const { posts, isLoading, hasNextPage, currentPage, fetchPosts, likePost, savePost } = usePostStore()
+  const { posts, isLoading, isError, hasNextPage, currentPage, fetchPosts, likePost, savePost } = usePostStore()
   const { ref, inView } = useInView({ threshold: 0.1 })
 
   useEffect(() => {
@@ -31,7 +33,24 @@ export default function Feed({ tab, tag }: FeedProps) {
     )
   }
 
-  if (!isLoading && posts.length === 0) {
+  if (isError && posts.length === 0) {
+    return (
+      <div className="text-center py-16 text-gray-500 flex flex-col items-center gap-4">
+        <p className="text-lg font-medium text-white">Gönderiler yüklenemedi</p>
+        <p className="text-sm">Bağlantı sorunu oluştu.</p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fetchPosts({ tab, tag, page: 1 })}
+        >
+          <RefreshCw className="w-4 h-4" />
+          Tekrar Dene
+        </Button>
+      </div>
+    )
+  }
+
+  if (!isLoading && !isError && posts.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500">
         <p className="text-lg font-medium mb-2">Gönderi bulunamadı</p>
