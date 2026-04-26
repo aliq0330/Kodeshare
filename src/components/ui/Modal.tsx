@@ -7,19 +7,22 @@ interface ModalProps {
   onClose: () => void
   title?: string
   children: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'fullscreen'
   className?: string
 }
 
-const sizes = {
+const sizes: Record<string, string> = {
   sm:   'max-w-sm',
   md:   'max-w-md',
   lg:   'max-w-lg',
   xl:   'max-w-2xl',
   full: 'max-w-4xl',
+  fullscreen: '',
 }
 
 export default function Modal({ open, onClose, title, children, size = 'md', className }: ModalProps) {
+  const isFullscreen = size === 'fullscreen'
+
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -30,20 +33,30 @@ export default function Modal({ open, onClose, title, children, size = 'md', cla
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
-      />
+    <div
+      className={cn(
+        'fixed inset-0 z-50 flex',
+        isFullscreen ? '' : 'items-center justify-center p-4',
+      )}
+    >
+      {!isFullscreen && (
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+          onClick={onClose}
+        />
+      )}
       <div
         className={cn(
-          'relative w-full card shadow-2xl animate-slide-up z-10 flex flex-col max-h-[calc(100dvh-2rem)]',
+          'relative w-full bg-surface-card flex flex-col animate-slide-up z-10',
+          isFullscreen
+            ? 'h-full max-h-full rounded-none'
+            : 'card shadow-2xl max-h-[calc(100dvh-2rem)]',
           sizes[size],
           className,
         )}
       >
         {title && (
-          <div className="flex items-center justify-between p-5 border-b border-surface-border shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border shrink-0">
             <h2 className="text-base font-semibold">{title}</h2>
             <button
               onClick={onClose}
@@ -53,7 +66,9 @@ export default function Modal({ open, onClose, title, children, size = 'md', cla
             </button>
           </div>
         )}
-        <div className="p-5 overflow-y-auto">{children}</div>
+        <div className={cn('overflow-y-auto', isFullscreen ? 'flex-1 flex flex-col p-4' : 'p-5')}>
+          {children}
+        </div>
       </div>
     </div>
   )

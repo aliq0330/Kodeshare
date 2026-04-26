@@ -361,8 +361,8 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     <>
       {triggerCard}
 
-      <Modal open={open} onClose={handleClose} title="Yeni Gönderi" size="lg">
-        <div className="flex flex-col gap-4">
+      <Modal open={open} onClose={handleClose} title="Yeni Gönderi" size="fullscreen">
+        <div className="flex flex-col gap-4 flex-1">
           <Textarea
             label="Açıklama"
             value={description}
@@ -586,15 +586,17 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             )}
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
-            <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenInEditor}>
-              <Code2 className="w-4 h-4" />
-              Editörde Aç
-            </Button>
-            <div className="flex justify-end gap-2 ml-auto">
-              <Button variant="ghost" onClick={handleClose}>İptal</Button>
-              <Button variant="primary" onClick={handleSubmit} loading={loading}>Paylaş</Button>
-            </div>
+        </div>
+
+        {/* Sticky footer */}
+        <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card">
+          <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenInEditor}>
+            <Code2 className="w-4 h-4" />
+            Editörde Aç
+          </Button>
+          <div className="flex justify-end gap-2 ml-auto">
+            <Button variant="ghost" onClick={handleClose}>İptal</Button>
+            <Button variant="primary" onClick={handleSubmit} loading={loading}>Paylaş</Button>
           </div>
         </div>
       </Modal>
