@@ -161,13 +161,13 @@ export default function PostDetailPage() {
   const isQuote = post.type === 'post' && !!post.repostedFrom
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col">
+    <div className="max-w-3xl mx-auto flex flex-col -mx-4 lg:mx-auto px-1 lg:px-0">
       <Link to="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit px-4 py-3">
         <ArrowLeft className="w-4 h-4" />
         Geri Dön
       </Link>
 
-      <article className="border-b border-surface-border bg-surface-card">
+      <article className="border-b border-surface-border">
         <div className="flex gap-3 px-4 pt-3 pb-2">
           <Link to={`/profile/${post.author.username}`} className="shrink-0 mt-0.5">
             <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />

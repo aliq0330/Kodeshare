@@ -390,7 +390,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
   // ── Normal post layout ────────────────────────────────────────────────────
   return (
-    <article className="border-b border-surface-border bg-surface-card group">
+    <article className="border-b border-surface-border group">
       {/* Repost indicator */}
       {localPost.type === 'repost' && localPost.repostedFrom && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">

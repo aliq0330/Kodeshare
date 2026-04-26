@@ -60,7 +60,7 @@ export default function Feed({ tab, tag }: FeedProps) {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="-mx-4 lg:mx-0 px-1 lg:px-0 flex flex-col">
       {posts.map((post) => (
         <PostCard
           key={post.id}
