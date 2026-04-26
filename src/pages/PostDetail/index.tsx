@@ -86,9 +86,9 @@ export default function PostDetailPage() {
     const el = document.getElementById(id)
     if (!el) return
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.classList.add('ring-2', 'ring-brand-500', 'rounded-xl', 'transition')
+    el.classList.add('ring-2', 'ring-gray-500', 'rounded-xl', 'transition')
     const timer = window.setTimeout(() => {
-      el.classList.remove('ring-2', 'ring-brand-500', 'rounded-xl', 'transition')
+      el.classList.remove('ring-2', 'ring-gray-500', 'rounded-xl', 'transition')
     }, 2000)
     return () => window.clearTimeout(timer)
   }, [hash, loadedComments])
@@ -161,189 +161,197 @@ export default function PostDetailPage() {
   const isQuote = post.type === 'post' && !!post.repostedFrom
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-6">
-      <Link to="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit">
+    <div className="max-w-3xl mx-auto flex flex-col">
+      <Link to="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit px-4 py-3">
         <ArrowLeft className="w-4 h-4" />
         Geri Dön
       </Link>
 
-      <div className="card p-5">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-xl font-bold text-white mb-2">{post.title}</h1>
-            <div className="flex flex-wrap gap-1.5">
-              {post.tags.map((tag) => (
-                <Link key={tag} to={`/explore?tag=${tag}`} className="tag">#{tag}</Link>
-              ))}
-            </div>
-          </div>
-          {isAuthenticated && (
-            <div className="relative" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
-                title="Daha fazla"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+      <article className="border-b border-surface-border bg-surface-card">
+        <div className="flex gap-3 px-4 pt-3 pb-2">
+          <Link to={`/profile/${post.author.username}`} className="shrink-0 mt-0.5">
+            <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />
+          </Link>
+
+          <div className="flex-1 min-w-0">
+            {/* Author row */}
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <Link to={`/profile/${post.author.username}`} className="min-w-0">
+                <span className="font-semibold text-sm text-white">{post.author.displayName}</span>
+                <span className="text-xs text-gray-400 ml-1.5">
+                  @{post.author.username} · {timeAgo(post.createdAt)}
+                </span>
+                {post.isEdited && (
                   <button
                     type="button"
-                    onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryOpen(true) }}
+                    className="inline-flex items-center gap-0.5 text-xs text-gray-600 hover:text-gray-400 transition-colors ml-1.5"
+                    title="Düzenleme geçmişini gör"
                   >
-                    <BarChart2 className="w-4 h-4 text-purple-400" />
-                    <span className="text-white">İstatistikler</span>
+                    <Clock className="w-3 h-3" />
+                    düzenlendi
                   </button>
+                )}
+              </Link>
+              {isAuthenticated && (
+                <div className="relative shrink-0" ref={menuRef}>
                   <button
                     type="button"
-                    onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                    onClick={() => setMenuOpen((v) => !v)}
+                    className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                    title="Daha fazla"
                   >
-                    <Share2 className="w-4 h-4 text-sky-400" />
-                    <span className="text-white">Paylaş</span>
+                    <MoreHorizontal className="w-4 h-4" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                  >
-                    <BarChart2 className="w-4 h-4 text-brand-400" />
-                    <span className="text-white">Koleksiyona ekle</span>
-                  </button>
-                  {isOwner && (
-                    <button
-                      type="button"
-                      onClick={() => { setMenuOpen(false); setEditOpen(true) }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                    >
-                      <Pencil className="w-4 h-4 text-amber-400" />
-                      <span className="text-white">Düzenle</span>
-                    </button>
-                  )}
-                  {isOwner && (
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                      <span className="text-white">Sil</span>
-                    </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+                      <button
+                        type="button"
+                        onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                      >
+                        <BarChart2 className="w-4 h-4 text-gray-400" />
+                        <span className="text-white">İstatistikler</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                      >
+                        <Share2 className="w-4 h-4 text-gray-400" />
+                        <span className="text-white">Paylaş</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                      >
+                        <BarChart2 className="w-4 h-4 text-gray-400" />
+                        <span className="text-white">Koleksiyona ekle</span>
+                      </button>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-400" />
+                          <span className="text-white">Düzenle</span>
+                        </button>
+                      )}
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={handleDelete}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-400" />
+                          <span className="text-white">Sil</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
             </div>
-          )}
-        </div>
 
-        {post.description && <p className="text-sm text-gray-400 mb-4">{post.description}</p>}
+            {/* Title & tags */}
+            <h1 className="text-xl font-bold text-white mb-1.5">{post.title}</h1>
+            {post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {post.tags.map((tag) => (
+                  <Link key={tag} to={`/explore?tag=${tag}`} className="tag">#{tag}</Link>
+                ))}
+              </div>
+            )}
 
-        <Link to={`/profile/${post.author.username}`} className="flex items-center gap-2.5 mb-5">
-          <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />
-          <div>
-            <p className="text-sm font-medium text-white">{post.author.displayName}</p>
-            <p className="text-xs text-gray-500 flex items-center gap-1">
-              @{post.author.username} · {timeAgo(post.createdAt)}
-              {post.isEdited && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHistoryOpen(true) }}
-                  className="inline-flex items-center gap-0.5 text-gray-600 hover:text-gray-400 transition-colors"
-                  title="Düzenleme geçmişini gör"
-                >
-                  <Clock className="w-3 h-3" />
-                  düzenlendi
-                </button>
-              )}
-            </p>
-          </div>
-        </Link>
+            {post.description && <p className="text-sm text-gray-400 mb-3">{post.description}</p>}
 
-        {/* Blocks */}
-        {post.blocks.length > 0 && (
-          <BlockView
-            blocks={post.blocks}
-            postTitle={post.title}
-            onForkProject={isAuthenticated ? handleForkProject : undefined}
-          />
-        )}
-
-        {/* Preview image fallback */}
-        {post.blocks.length === 0 && post.previewImageUrl && (
-          <div className="rounded-xl overflow-hidden border border-surface-border mb-5">
-            <img src={post.previewImageUrl} alt={post.title} className="w-full object-cover" />
-          </div>
-        )}
-
-        {/* Quote embed — original post */}
-        {isQuote && post.repostedFrom && (
-          <div className="mb-5 rounded-xl border border-surface-border bg-surface-raised/30 p-3 hover:border-surface-raised transition-colors">
-            <Link to={`/profile/${post.repostedFrom.author.username}`} className="flex items-center gap-2 mb-2">
-              <Avatar
-                src={post.repostedFrom.author.avatarUrl}
-                alt={post.repostedFrom.author.displayName}
-                size="xs"
+            {/* Blocks */}
+            {post.blocks.length > 0 && (
+              <BlockView
+                blocks={post.blocks}
+                postTitle={post.title}
+                onForkProject={isAuthenticated ? handleForkProject : undefined}
               />
-              <div className="text-xs text-gray-400">
-                <span className="font-medium text-gray-200">{post.repostedFrom.author.displayName}</span>
-                <span className="ml-1">@{post.repostedFrom.author.username}</span>
-              </div>
-            </Link>
-            <Link to={`/post/${post.repostedFrom.id}`} className="block">
-              <p className="text-sm font-semibold text-white line-clamp-2">{post.repostedFrom.title}</p>
-              {post.repostedFrom.description && (
-                <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
-              )}
-            </Link>
-            {post.repostedFrom.blocks.length > 0 && (
-              <div className="mt-3">
-                <BlockView blocks={post.repostedFrom.blocks} compact postTitle={post.repostedFrom.title} />
-              </div>
             )}
-            {post.repostedFrom.blocks.length === 0 && post.repostedFrom.previewImageUrl && (
-              <Link to={`/post/${post.repostedFrom.id}`} className="block mt-3 rounded-lg overflow-hidden border border-surface-border">
-                <img src={post.repostedFrom.previewImageUrl} alt={post.repostedFrom.title} className="w-full aspect-video object-cover" />
-              </Link>
-            )}
-          </div>
-        )}
 
-        <div className="flex items-center gap-1 pt-4 border-t border-surface-border">
-          <button
-            onClick={handleLike}
-            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-              post.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
-            }`}
-          >
-            <Heart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
-            <span className="text-sm">{compactNumber(post.likesCount)}</span>
-          </button>
-          {isAuthenticated ? (
-            <RepostMenu
-              post={post}
-              onRepost={handleRepost}
-              onQuote={() => setQuoteOpen(true)}
-            />
-          ) : (
-            <span className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-sm text-gray-400">
-              <Repeat2 className="w-[18px] h-[18px]" />
-              {compactNumber(post.repostCount)}
-            </span>
-          )}
-          <button
-            onClick={handleSave}
-            className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-              post.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
-            }`}
-          >
-            <Bookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
-            <span className="text-sm">{post.isSaved ? 'Kaydedildi' : 'Kaydet'}</span>
-          </button>
+            {/* Preview image fallback */}
+            {post.blocks.length === 0 && post.previewImageUrl && (
+              <div className="rounded-xl overflow-hidden border border-surface-border mb-3">
+                <img src={post.previewImageUrl} alt={post.title} className="w-full object-cover" />
+              </div>
+            )}
+
+            {/* Quote embed */}
+            {isQuote && post.repostedFrom && (
+              <div className="mb-3 rounded-xl border border-surface-border bg-surface-raised/30 p-3 hover:border-surface-raised transition-colors">
+                <Link to={`/profile/${post.repostedFrom.author.username}`} className="flex items-center gap-2 mb-2">
+                  <Avatar
+                    src={post.repostedFrom.author.avatarUrl}
+                    alt={post.repostedFrom.author.displayName}
+                    size="xs"
+                  />
+                  <div className="text-xs text-gray-400">
+                    <span className="font-medium text-gray-200">{post.repostedFrom.author.displayName}</span>
+                    <span className="ml-1">@{post.repostedFrom.author.username}</span>
+                  </div>
+                </Link>
+                <Link to={`/post/${post.repostedFrom.id}`} className="block">
+                  <p className="text-sm font-semibold text-white line-clamp-2">{post.repostedFrom.title}</p>
+                  {post.repostedFrom.description && (
+                    <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{post.repostedFrom.description}</p>
+                  )}
+                </Link>
+                {post.repostedFrom.blocks.length > 0 && (
+                  <div className="mt-3">
+                    <BlockView blocks={post.repostedFrom.blocks} compact postTitle={post.repostedFrom.title} />
+                  </div>
+                )}
+                {post.repostedFrom.blocks.length === 0 && post.repostedFrom.previewImageUrl && (
+                  <Link to={`/post/${post.repostedFrom.id}`} className="block mt-3 rounded-lg overflow-hidden border border-surface-border">
+                    <img src={post.repostedFrom.previewImageUrl} alt={post.repostedFrom.title} className="w-full aspect-video object-cover" />
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center gap-4 mt-1 text-gray-400">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-1.5 transition-colors ${
+                  post.isLiked ? 'text-white' : 'hover:text-white'
+                }`}
+              >
+                <Heart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
+                <span className="text-sm">{compactNumber(post.likesCount)}</span>
+              </button>
+              {isAuthenticated ? (
+                <RepostMenu
+                  post={post}
+                  onRepost={handleRepost}
+                  onQuote={() => setQuoteOpen(true)}
+                />
+              ) : (
+                <span className="flex items-center gap-1.5 text-sm">
+                  <Repeat2 className="w-[18px] h-[18px]" />
+                  {compactNumber(post.repostCount)}
+                </span>
+              )}
+              <button
+                onClick={handleSave}
+                className={`ml-auto flex items-center gap-1.5 transition-colors ${
+                  post.isSaved ? 'text-white' : 'hover:text-white'
+                }`}
+              >
+                <Bookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
+                <span className="text-sm">{post.isSaved ? 'Kaydedildi' : 'Kaydet'}</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </article>
 
       {isAuthenticated && post && (
         <AddToCollectionModal
@@ -386,7 +394,7 @@ export default function PostDetailPage() {
         post={post}
       />
 
-      <div id="comments">
+      <div id="comments" className="px-4 pt-4">
         <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({displayCommentCount})</h2>
         <CommentThread
           postId={post.id}
