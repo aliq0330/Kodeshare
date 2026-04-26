@@ -16,10 +16,11 @@ async function currentUserId(): Promise<string | undefined> {
   return (await supabase.auth.getSession()).data.session?.user?.id
 }
 
-const POST_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_blocks(id,type,position,data), post_likes(user_id), post_saves(user_id)`
+// Tüm beğeni/kaydetme satırlarını çekmek yerine denormalize edilmiş sayaçları
+// (likes_count, saves_count) kullanıyoruz; isLiked/isSaved ayrıca hydrate edilir.
+const POST_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_blocks(id,type,position,data)`
 
-// Feed için hafif select — tüm beğeni/kaydetme satırlarını çekmez
-const FEED_SELECT = `*, author:profiles!posts_author_id_fkey(*), post_blocks(id,type,position,data)`
+const FEED_SELECT = POST_SELECT
 
 export const POSTS_PREVIEW_SELECT = POST_SELECT
 
@@ -27,7 +28,7 @@ export const postService = {
   async getFeed({ tab = 'trending', tag, query, page = 1 }: FeedParams): Promise<PaginatedResponse<PostPreview>> {
     let q = supabase
       .from('posts')
-      .select(FEED_SELECT, { count: 'exact' })
+      .select(FEED_SELECT)
       .eq('is_published', true)
       .neq('type', 'project')
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
@@ -46,19 +47,23 @@ export const postService = {
       ? q.order('likes_count', { ascending: false })
       : q.order('created_at', { ascending: false })
 
-    const [{ data, error, count }, userId] = await Promise.all([q, currentUserId()])
+    const [{ data, error }, userId] = await Promise.all([q, currentUserId()])
     if (error) throw new Error(error.message ?? 'Sorgu hatası')
 
     const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>))
-    const postIds = posts.map((p) => p.id)
 
-    await Promise.allSettled([
-      hydrateRepostedFrom(posts),
-      hydrateReposted(posts, userId),
-      userId ? hydrateUserInteractions(posts, postIds, userId) : Promise.resolve(),
-    ])
+    if (posts.length > 0) {
+      const postIds = posts.map((p) => p.id)
+      await Promise.allSettled([
+        hydrateRepostedFrom(posts),
+        hydrateReposted(posts, userId),
+        userId ? hydrateUserInteractions(posts, postIds, userId) : Promise.resolve(),
+      ])
+    }
 
-    return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
+    const hasNextPage = posts.length === PAGE_SIZE
+    const total = (page - 1) * PAGE_SIZE + posts.length
+    return { data: posts, total, page, limit: PAGE_SIZE, hasNextPage }
   },
 
   async getPost(id: string): Promise<Post> {
@@ -71,19 +76,30 @@ export const postService = {
     const userId = await currentUserId()
     const post = mapPost(data as Record<string, unknown>, userId)
     const repostedFromId = (data as { reposted_from?: string | null }).reposted_from ?? null
+
+    const tasks: Promise<unknown>[] = []
     if (repostedFromId) {
-      const originals = await fetchOriginals([repostedFromId])
-      post.repostedFrom = originals.get(repostedFromId) ?? null
+      tasks.push(
+        fetchOriginals([repostedFromId]).then((originals) => {
+          post.repostedFrom = originals.get(repostedFromId) ?? null
+        }),
+      )
     }
     if (userId) {
-      const { count } = await supabase
-        .from('posts')
-        .select('id', { count: 'exact', head: true })
-        .eq('author_id', userId)
-        .eq('type', 'repost')
-        .eq('reposted_from', post.id)
-      post.isReposted = (count ?? 0) > 0
+      tasks.push(hydrateUserInteractions([post], [post.id], userId))
+      tasks.push(
+        (async () => {
+          const { count } = await supabase
+            .from('posts')
+            .select('id', { count: 'exact', head: true })
+            .eq('author_id', userId)
+            .eq('type', 'repost')
+            .eq('reposted_from', post.id)
+          post.isReposted = (count ?? 0) > 0
+        })(),
+      )
     }
+    if (tasks.length > 0) await Promise.allSettled(tasks)
     return post
   },
 
@@ -253,8 +269,13 @@ export const postService = {
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
     const posts = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
-    await hydrateRepostedFrom(posts)
-    await hydrateReposted(posts, userId)
+    if (posts.length > 0) {
+      await Promise.allSettled([
+        hydrateRepostedFrom(posts),
+        hydrateReposted(posts, userId),
+        userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
+      ])
+    }
     return posts
   },
 
@@ -263,9 +284,9 @@ export const postService = {
     if (!profile) return { data: [], total: 0, page: 1, limit: PAGE_SIZE, hasNextPage: false }
 
     const page = params?.page ?? 1
-    const { data, error, count } = await supabase
+    const { data, error } = await supabase
       .from('posts')
-      .select(POST_SELECT, { count: 'exact' })
+      .select(POST_SELECT)
       .eq('author_id', (profile as { id: string }).id)
       .eq('is_published', true)
       .neq('type', 'project')
@@ -275,9 +296,16 @@ export const postService = {
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
     const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
-    await hydrateRepostedFrom(posts)
-    await hydrateReposted(posts, userId)
-    return { data: posts, total: count ?? 0, page, limit: PAGE_SIZE, hasNextPage: (count ?? 0) > page * PAGE_SIZE }
+    if (posts.length > 0) {
+      await Promise.allSettled([
+        hydrateRepostedFrom(posts),
+        hydrateReposted(posts, userId),
+        userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
+      ])
+    }
+    const hasNextPage = posts.length === PAGE_SIZE
+    const total = (page - 1) * PAGE_SIZE + posts.length
+    return { data: posts, total, page, limit: PAGE_SIZE, hasNextPage }
   },
 
   async getSavedPosts(): Promise<PostPreview[]> {
@@ -288,13 +316,19 @@ export const postService = {
       .select(`post:posts(${POST_SELECT})`)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
+      .limit(100)
     if (error) throw new Error(error.message)
     const posts = (data ?? [])
       .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
       .filter(Boolean)
       .map((p) => mapPost(p, userId))
-    await hydrateRepostedFrom(posts)
-    await hydrateReposted(posts, userId)
+    if (posts.length > 0) {
+      await Promise.allSettled([
+        hydrateRepostedFrom(posts),
+        hydrateReposted(posts, userId),
+        hydrateUserInteractions(posts, posts.map((p) => p.id), userId),
+      ])
+    }
     return posts
   },
 
@@ -306,14 +340,20 @@ export const postService = {
       .select(`post:posts(${POST_SELECT})`)
       .eq('user_id', (profile as { id: string }).id)
       .order('created_at', { ascending: false })
+      .limit(100)
     if (error) throw new Error(error.message)
     const userId = await currentUserId()
     const posts = (data ?? [])
       .map((r) => (r as Record<string, unknown>).post as Record<string, unknown>)
       .filter(Boolean)
       .map((p) => mapPost(p, userId))
-    await hydrateRepostedFrom(posts)
-    await hydrateReposted(posts, userId)
+    if (posts.length > 0) {
+      await Promise.allSettled([
+        hydrateRepostedFrom(posts),
+        hydrateReposted(posts, userId),
+        userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
+      ])
+    }
     return posts
   },
 
@@ -431,8 +471,12 @@ export async function hydratePostPreviewRows(
   userId?: string,
 ): Promise<PostPreview[]> {
   const previews = rows.map((r) => mapPost(r, userId))
-  await hydrateRepostedFrom(previews)
-  await hydrateReposted(previews, userId)
+  if (previews.length === 0) return previews
+  await Promise.allSettled([
+    hydrateRepostedFrom(previews),
+    hydrateReposted(previews, userId),
+    userId ? hydrateUserInteractions(previews, previews.map((p) => p.id), userId) : Promise.resolve(),
+  ])
   return previews
 }
 
@@ -489,9 +533,7 @@ async function hydrateRepostedFrom(previews: PostPreview[]): Promise<void> {
   }
 }
 
-function mapPost(p: Record<string, unknown>, userId?: string): Post {
-  const likes = (p.post_likes as { user_id: string }[]) ?? []
-  const saves = (p.post_saves as { user_id: string }[]) ?? []
+function mapPost(p: Record<string, unknown>, _userId?: string): Post {
   const rawBlocks = (p.post_blocks as Array<{ id: string; type: string; position: number; data: Record<string, unknown> }>) ?? []
   const blocks: PostBlock[] = [...rawBlocks]
     .sort((a, b) => a.position - b.position)
@@ -510,14 +552,14 @@ function mapPost(p: Record<string, unknown>, userId?: string): Post {
     tags:            (p.tags as string[]) ?? [],
     blocks,
     previewImageUrl: p.preview_image_url as string | null,
-    likesCount:      (p.post_likes as unknown[] | null)?.length ?? (p.likes_count as number ?? 0),
+    likesCount:      (p.likes_count as number) ?? 0,
     commentsCount:   (p.comments_count as number) ?? 0,
     sharesCount:     (p.shares_count as number) ?? 0,
     savesCount:      (p.saves_count as number) ?? 0,
     viewsCount:      (p.views_count as number) ?? 0,
     repostCount:     (p.repost_count as number) ?? 0,
-    isLiked:         userId ? likes.some((l) => l.user_id === userId) : false,
-    isSaved:         userId ? saves.some((s) => s.user_id === userId) : false,
+    isLiked:         false,
+    isSaved:         false,
     isReposted:      false,
     isEdited:        !!(p.is_edited),
     author:          mapProfile(p.author as Record<string, unknown>),

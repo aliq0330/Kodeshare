@@ -8,8 +8,15 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  // Çağıran kod (örn. postStore) zaten kendi AbortController'ını
+  // verebiliyorsa (sekme değişimi vs.) onu da dinleyelim.
   const controller = new AbortController()
-  const tid = setTimeout(() => controller.abort(), 15_000)
+  const tid = setTimeout(() => controller.abort(), 30_000)
+  const upstream = init?.signal
+  if (upstream) {
+    if (upstream.aborted) controller.abort()
+    else upstream.addEventListener('abort', () => controller.abort(), { once: true })
+  }
   return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(tid))
 }
 

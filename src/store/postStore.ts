@@ -47,25 +47,21 @@ export const usePostStore = create<PostState>((set, get) => ({
     })
 
     let res
-    // Up to 2 attempts with 1 s gap — only for real network errors, not aborts
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Yavaş ağ veya geçici Supabase hatalarına karşı 3 deneme,
+    // exponential backoff (500ms, 1500ms). Sadece gerçek stale seq'te sessiz çık.
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         res = await postService.getFeed({ tab, tag, query, page })
         break
       } catch (err) {
-        const name = (err as { name?: string })?.name
-        // AbortError = request cancelled by browser/Supabase; stale seq = tab changed.
-        // Both are silent — don't treat as an error.
-        if (name === 'AbortError' || seq !== fetchSeq) {
-          set({ isLoading: false })
-          return
-        }
-        if (attempt === 0) {
-          await new Promise((r) => setTimeout(r, 1000))
+        // Tab/tag değişti — kullanıcı yeni bir istek tetikledi, sessizce çık.
+        if (seq !== fetchSeq) { set({ isLoading: false }); return }
+
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, attempt === 0 ? 500 : 1500))
           if (seq !== fetchSeq) { set({ isLoading: false }); return }
           continue
         }
-        // Second attempt also failed — real error
         console.error('[postStore] fetchPosts failed:', err)
         set({ isError: true, isLoading: false })
         toast.error('Gönderiler yüklenemedi')
