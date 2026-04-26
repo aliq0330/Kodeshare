@@ -321,16 +321,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         })
         .map((b, i) => blockToPayload(b, i))
 
-      // Başlık: description'ın ilk satırı ya da ilk bloğun adı
       const desc = description.trim()
-      const autoTitle = desc.split('\n')[0].slice(0, 100) ||
-        (blocks[0]?.type === 'article' && (blocks[0] as { articleTitle: string }).articleTitle) ||
-        (blocks[0]?.type === 'project' && (blocks[0] as { project: { title: string } | null }).project?.title) ||
-        'Gönderi'
 
       await createPost({
         type: 'post',
-        title: autoTitle,
+        title: 'Gönderi',
         description: desc || undefined,
         tags: tags.split(',').map((x) => x.trim()).filter(Boolean),
         blocks: validBlocks,
