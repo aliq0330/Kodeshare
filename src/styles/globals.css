@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  /* Dark theme (default) */
-  :root, html.dark {
+  /* Dark theme */
+  html.dark {
     --surface:        0 0 0;
     --surface-card:   18 18 18;
     --surface-raised: 30 30 30;
@@ -12,12 +12,12 @@
     color-scheme: dark;
   }
 
-  /* Light theme */
-  html.light {
-    --surface:        255 255 255;
+  /* Light theme (default) */
+  :root, html.light {
+    --surface:        244 244 245;
     --surface-card:   255 255 255;
-    --surface-raised: 243 243 243;
-    --surface-border: 214 214 214;
+    --surface-raised: 228 228 231;
+    --surface-border: 212 212 216;
     color-scheme: light;
   }
 
@@ -36,15 +36,21 @@
   }
 
   html.dark body  { @apply text-white; }
-  html.light body { color: #0f172a; }
+  :root body, html.light body { color: #111111; }
 
   /* Light mode text overrides */
-  html.light .text-white       { color: #0f172a !important; }
-  html.light .text-gray-100    { color: #1e293b !important; }
-  html.light .text-gray-200    { color: #334155 !important; }
-  html.light .text-gray-300    { color: #475569 !important; }
-  html.light .text-gray-400    { color: #64748b !important; }
-  html.light .text-gray-500    { color: #94a3b8 !important; }
+  :root .text-white,
+  html.light .text-white       { color: #111111 !important; }
+  :root .text-gray-100,
+  html.light .text-gray-100    { color: #1f1f1f !important; }
+  :root .text-gray-200,
+  html.light .text-gray-200    { color: #333333 !important; }
+  :root .text-gray-300,
+  html.light .text-gray-300    { color: #555555 !important; }
+  :root .text-gray-400,
+  html.light .text-gray-400    { color: #777777 !important; }
+  :root .text-gray-500,
+  html.light .text-gray-500    { color: #999999 !important; }
 
   ::-webkit-scrollbar {
     width: 6px;

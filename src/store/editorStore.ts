@@ -59,7 +59,7 @@ export const useEditorStore = create<EditorStoreState>()(
       isFullscreen: false,
       projectTitle: 'Yeni Proje',
       isSaving: false,
-      appTheme: 'dark',
+      appTheme: 'light',
 
       setActiveFile:      (id) => set({ activeFileId: id }),
       setActiveProjectId: (id) => set({ activeProjectId: id }),

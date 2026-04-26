@@ -67,11 +67,12 @@ function Root() {
         position="bottom-right"
         toastOptions={{
           style: {
-            background: '#121212',
-            color: '#ffffff',
-            border: '1px solid #323232',
+            background: '#ffffff',
+            color: '#111111',
+            border: '1px solid #d4d4d8',
             borderRadius: '10px',
             fontSize: '14px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           },
         }}
       />

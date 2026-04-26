@@ -24,15 +24,15 @@ export default function Tabs({ tabs, activeTab, onChange, className }: TabsProps
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap',
               activeTab === tab.id
-                ? 'border-brand-400 text-white'
-                : 'border-transparent text-gray-500 hover:text-gray-300',
+                ? 'border-gray-900 text-white font-semibold'
+                : 'border-transparent text-gray-400 hover:text-gray-300',
             )}
           >
             {tab.label}
             {tab.count !== undefined && (
               <span className={cn(
                 'text-xs px-1.5 py-0.5 rounded-full',
-                activeTab === tab.id ? 'bg-brand-900 text-brand-300' : 'bg-surface-raised text-gray-500',
+                activeTab === tab.id ? 'bg-surface-raised text-gray-900' : 'bg-surface-raised text-gray-500',
               )}>
                 {tab.count}
               </span>

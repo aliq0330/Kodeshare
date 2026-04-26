@@ -22,8 +22,8 @@ export default function TagFilter({ tags, activeTag, onChange, className }: TagF
           className={cn(
             'shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
             activeTag === tag.id
-              ? 'bg-brand-500 text-white'
-              : 'bg-surface-raised text-gray-400 hover:text-white hover:bg-surface-border',
+              ? 'bg-black text-white'
+              : 'bg-surface-card border border-surface-border text-gray-500 hover:bg-surface-raised',
           )}
         >
           {tag.label}

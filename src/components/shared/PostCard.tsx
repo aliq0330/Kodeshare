@@ -181,7 +181,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <BarChart2 className="w-4 h-4 text-purple-400" />
+            <BarChart2 className="w-4 h-4 text-gray-500" />
             <span className="text-white">İstatistikler</span>
           </button>
           <button
@@ -189,7 +189,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <Share2 className="w-4 h-4 text-sky-400" />
+            <Share2 className="w-4 h-4 text-gray-500" />
             <span className="text-white">Paylaş</span>
           </button>
           <button
@@ -197,7 +197,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <FolderPlus className="w-4 h-4 text-brand-400" />
+            <FolderPlus className="w-4 h-4 text-gray-500" />
             <span className="text-white">Koleksiyona ekle</span>
           </button>
           {isOwner && isOwnerPost && !displayArticleId && (
@@ -206,7 +206,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               onClick={() => { setMenuOpen(false); setEditOpen(true) }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <Pencil className="w-4 h-4 text-amber-400" />
+              <Pencil className="w-4 h-4 text-gray-500" />
               <span className="text-white">Düzenle</span>
             </button>
           )}
@@ -216,7 +216,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               onClick={handleEditArticle}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <Pencil className="w-4 h-4 text-amber-400" />
+              <Pencil className="w-4 h-4 text-gray-500" />
               <span className="text-white">Düzenle</span>
             </button>
           )}
@@ -226,7 +226,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               onClick={handleDelete}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <Trash2 className="w-4 h-4 text-red-400" />
+              <Trash2 className="w-4 h-4 text-gray-500" />
               <span className="text-white">Sil</span>
             </button>
           )}
@@ -334,7 +334,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2">
+                <h3 className="font-semibold text-white group-hover:text-gray-700 transition-colors line-clamp-2">
                   {title}
                 </h3>
                 {subtitle && (
@@ -349,7 +349,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             <button
               onClick={handleArticleLike}
               className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-                articleData?.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+                articleData?.isLiked ? 'text-gray-900' : 'text-gray-400 hover:text-gray-900 hover:bg-surface-raised'
               }`}
             >
               <Heart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
@@ -358,7 +358,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
             <Link
               to={commentLink}
-              className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
+              className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-surface-raised transition-colors"
             >
               <MessageCircle className="w-[18px] h-[18px]" />
             </Link>
@@ -375,7 +375,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             <button
               onClick={handleArticleSave}
               className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-                articleData?.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+                articleData?.isSaved ? 'text-gray-900' : 'text-gray-400 hover:text-gray-900 hover:bg-surface-raised'
               }`}
             >
               <Bookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
@@ -426,7 +426,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </Link>
         <div className="flex items-center gap-2 shrink-0">
           {mainTag && (
-            <Badge variant="brand" className="shrink-0">#{mainTag}</Badge>
+            <Badge variant="default" className="shrink-0 text-xs text-gray-500">#{mainTag}</Badge>
           )}
           {menuDropdown}
         </div>
@@ -434,7 +434,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
       {/* Title & description */}
       <Link to={primaryLink} className="block mb-3">
-        <h3 className="font-semibold text-white group-hover:text-brand-300 transition-colors line-clamp-2 mb-1">
+        <h3 className="font-semibold text-white group-hover:text-gray-700 transition-colors line-clamp-2 mb-1">
           {display.title}
         </h3>
         {display.description && (
@@ -526,7 +526,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         <button
           onClick={() => onLike?.(display.id)}
           className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-            display.isLiked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+            display.isLiked ? 'text-gray-900' : 'text-gray-400 hover:text-gray-900 hover:bg-surface-raised'
           }`}
         >
           <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
@@ -535,7 +535,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
 
         <Link
           to={commentLink}
-          className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
+          className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-surface-raised transition-colors"
         >
           <MessageCircle className="w-[18px] h-[18px]" />
           <span className="text-sm">{compactNumber(display.commentsCount)}</span>
@@ -553,7 +553,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         <button
           onClick={() => onSave?.(display.id)}
           className={`ml-auto flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-            display.isSaved ? 'text-brand-400 bg-brand-500/10' : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+            display.isSaved ? 'text-gray-900' : 'text-gray-400 hover:text-gray-900 hover:bg-surface-raised'
           }`}
         >
           <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />

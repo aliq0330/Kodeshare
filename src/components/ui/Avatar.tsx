@@ -43,7 +43,7 @@ export default function Avatar({ src, alt, size = 'md', className, online }: Ava
           className="w-full h-full rounded-full object-cover"
         />
       ) : (
-        <div className="w-full h-full rounded-full bg-brand-800 flex items-center justify-center text-brand-300 font-semibold">
+        <div className="w-full h-full rounded-full bg-surface-raised border border-surface-border flex items-center justify-center text-gray-500 font-semibold">
           {initials}
         </div>
       )}

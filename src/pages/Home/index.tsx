@@ -19,6 +19,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+      <h1 className="text-xl font-bold text-white">Ana Sayfa</h1>
       <Tabs
         tabs={FEED_TABS.map((t) => ({ id: t.id, label: t.label }))}
         activeTab={activeTab}
