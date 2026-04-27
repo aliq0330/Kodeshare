@@ -209,7 +209,7 @@ const TEXT_TYPES: BlockType[] = ['paragraph', 'heading1', 'heading2', 'heading3'
 
 export default function ArticleEditor() {
   const { title, subtitle, coverImage, blocks, setTitle, setSubtitle, setCoverImage, addBlock, setActiveBlock } = useArticleStore()
-  const coverInputRef = useRef<HTMLInputElement>(null)
+  const [coverUrlInput, setCoverUrlInput] = useState('')
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const subtitleRef = useRef<HTMLTextAreaElement>(null)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
@@ -270,11 +270,11 @@ export default function ArticleEditor() {
     return () => document.removeEventListener('mousedown', handler)
   }, [addMenuOpen])
 
-  const handleCoverFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return
-    const reader = new FileReader()
-    reader.onload = (e) => setCoverImage(e.target?.result as string)
-    reader.readAsDataURL(file)
+  const handleCoverUrlSubmit = () => {
+    const url = coverUrlInput.trim()
+    if (!url) return
+    setCoverImage(url)
+    setCoverUrlInput('')
   }
 
   const autoGrow = (el: HTMLTextAreaElement) => {
@@ -308,21 +308,29 @@ export default function ArticleEditor() {
           </div>
         </div>
       ) : (
-        <button
-          onClick={() => coverInputRef.current?.click()}
-          className="flex items-center gap-2 mx-4 sm:mx-6 mt-6 mb-2 px-4 py-2 rounded-lg border border-dashed border-surface-border hover:border-brand-500 text-gray-600 hover:text-brand-400 text-sm transition-colors self-start"
-        >
-          <ImagePlus className="w-4 h-4" />
-          Kapak fotoğrafı ekle
-        </button>
+        <div className="flex flex-col items-center gap-2 mx-4 sm:mx-6 mt-6 mb-2">
+          <div className="flex items-center gap-2 w-full max-w-md">
+            <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-lg border border-dashed border-surface-border hover:border-brand-500 transition-colors text-sm">
+              <ImagePlus className="w-4 h-4 text-gray-600 shrink-0" />
+              <input
+                type="url"
+                value={coverUrlInput}
+                onChange={(e) => setCoverUrlInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleCoverUrlSubmit() }}
+                placeholder="Kapak fotoğrafı URL'si..."
+                className="flex-1 bg-transparent outline-none text-gray-400 placeholder:text-gray-600 min-w-0"
+              />
+            </div>
+            <button
+              onClick={handleCoverUrlSubmit}
+              disabled={!coverUrlInput.trim()}
+              className="px-3 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm transition-colors shrink-0"
+            >
+              Ekle
+            </button>
+          </div>
+        </div>
       )}
-      <input
-        ref={coverInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverFile(f) }}
-      />
 
       {/* ── Title + Subtitle ── */}
       <div className="px-4 sm:px-6 pt-6 pb-2 max-w-3xl w-full mx-auto">
