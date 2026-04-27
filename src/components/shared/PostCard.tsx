@@ -118,6 +118,29 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
     }
   }
 
+  const handlePostLike = () => {
+    setLocalPost((prev) => {
+      const isRepost = prev.type === 'repost' && !!prev.repostedFrom
+      if (isRepost) {
+        const target = prev.repostedFrom!
+        const wasLiked = target.isLiked
+        return { ...prev, repostedFrom: { ...target, isLiked: !wasLiked, likesCount: Math.max(0, target.likesCount + (wasLiked ? -1 : 1)) } }
+      }
+      const wasLiked = prev.isLiked
+      return { ...prev, isLiked: !wasLiked, likesCount: Math.max(0, prev.likesCount + (wasLiked ? -1 : 1)) }
+    })
+    onLike?.(display.id)
+  }
+
+  const handlePostSave = () => {
+    setLocalPost((prev) => {
+      const isRepost = prev.type === 'repost' && !!prev.repostedFrom
+      if (isRepost) return { ...prev, repostedFrom: { ...prev.repostedFrom!, isSaved: !prev.repostedFrom!.isSaved } }
+      return { ...prev, isSaved: !prev.isSaved }
+    })
+    onSave?.(display.id)
+  }
+
   const handleEditArticle = async () => {
     if (!displayArticleId) return
     setMenuOpen(false)
@@ -502,7 +525,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             )}
 
             <button
-              onClick={() => onLike?.(display.id)}
+              onClick={handlePostLike}
               className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-gray-900' : 'hover:text-gray-600'}`}
             >
               <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
@@ -510,7 +533,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             </button>
 
             <button
-              onClick={() => onSave?.(display.id)}
+              onClick={handlePostSave}
               className={`ml-auto flex items-center transition-colors ${display.isSaved ? 'text-gray-900' : 'hover:text-gray-600'}`}
             >
               <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
