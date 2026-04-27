@@ -161,13 +161,13 @@ export default function PostDetailPage() {
   const isQuote = post.type === 'post' && !!post.repostedFrom
 
   return (
-    <div className="flex flex-col -mx-4 lg:mx-0 px-1 lg:px-0">
+    <div className="flex flex-col max-w-2xl mx-auto w-full">
       <Link to="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit px-4 py-3">
         <ArrowLeft className="w-4 h-4" />
         Geri Dön
       </Link>
 
-      <article className="border-b border-surface-border">
+      <article className="-mx-4 lg:mx-0 border-b border-surface-border">
         <div className="flex gap-3 px-4 pt-3 pb-4">
           <Link to={`/profile/${post.author.username}`} className="shrink-0 mt-0.5">
             <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />
@@ -394,7 +394,7 @@ export default function PostDetailPage() {
         post={post}
       />
 
-      <div id="comments" className="px-4 pt-4">
+      <div id="comments" className="-mx-4 lg:mx-0 px-4 pt-4">
         <h2 className="text-base font-semibold text-white mb-4">Yorumlar ({displayCommentCount})</h2>
         <CommentThread
           postId={post.id}
