@@ -322,10 +322,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         .map((b, i) => blockToPayload(b, i))
 
       const desc = description.trim()
+      const autoTitle = desc.split('\n')[0].slice(0, 100) || 'Gönderi'
 
       await createPost({
         type: 'post',
-        title: 'Gönderi',
+        title: autoTitle,
         description: desc || undefined,
         tags: tags.split(',').map((x) => x.trim()).filter(Boolean),
         blocks: validBlocks,
