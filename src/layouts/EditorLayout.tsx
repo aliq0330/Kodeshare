@@ -8,7 +8,7 @@ interface EditorLayoutProps {
 
 export default function EditorLayout({ children }: EditorLayoutProps) {
   return (
-    <div className="h-screen flex flex-col bg-surface overflow-hidden">
+    <div className="h-screen flex flex-col bg-[#0d1117] overflow-hidden">
       <EditorNavbar />
       <div className="flex-1 overflow-hidden">
         {children}

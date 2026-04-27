@@ -23,22 +23,23 @@ export default function EditorNavbar() {
   }
 
   return (
-    <header className="h-12 border-b border-surface-border bg-surface flex items-center gap-2 px-3 shrink-0 min-w-0 overflow-hidden">
+    <header className="h-12 border-b border-[#2a3347] bg-[#0d1117] flex items-center gap-2 px-3 shrink-0 min-w-0 overflow-hidden">
       {/* Left — proje adı */}
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <Link
           to="/"
-          className="p-1.5 rounded hover:bg-surface-raised text-gray-400 hover:text-white transition-colors shrink-0"
+          className="p-1.5 rounded hover:bg-[#1e2535] text-gray-400 hover:text-white transition-colors shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <div className="hidden sm:block w-px h-4 bg-surface-border shrink-0" />
+        <div className="hidden sm:block w-px h-4 bg-[#2a3347] shrink-0" />
         <Code2 className="hidden sm:block w-4 h-4 text-brand-400 shrink-0" />
         <input
           type="text"
           value={projectTitle}
           onChange={(e) => setProjectTitle(e.target.value)}
-          className="bg-transparent text-sm font-medium text-white focus:outline-none focus:bg-surface-raised rounded px-2 py-1 min-w-0 w-0 flex-1 max-w-[180px]"
+          className="bg-transparent text-sm font-medium focus:outline-none focus:bg-[#1e2535] rounded px-2 py-1 min-w-0 w-0 flex-1 max-w-[180px]"
+      style={{ color: 'white' }}
           placeholder="Proje adı..."
         />
         {isSaving && (
