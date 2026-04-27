@@ -5,7 +5,7 @@ import TopUsers from './components/TopUsers'
 
 export default function FeaturedPage() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 max-w-2xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold text-white mb-1 flex items-center gap-2">
           <Star className="w-6 h-6 text-yellow-400" />

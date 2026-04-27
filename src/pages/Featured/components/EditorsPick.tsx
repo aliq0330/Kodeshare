@@ -28,7 +28,7 @@ export default function EditorsPick() {
       {isLoading ? (
         <div className="flex justify-center py-8"><Spinner /></div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="-mx-4 lg:mx-0 flex flex-col">
           {posts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
