@@ -7,10 +7,12 @@ import { compactNumber } from '@utils/formatters'
 import { userService } from '@services/userService'
 import FollowButton from '@modules/social/FollowButton'
 import { useAuthStore } from '@store/authStore'
+import { useFollowStore } from '@store/followStore'
 import type { User } from '@/types'
 
 export default function TopUsers() {
-  const { user: me } = useAuthStore()
+  const { user: me, isAuthenticated } = useAuthStore()
+  const { followingIds, initialized, init } = useFollowStore()
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -20,6 +22,10 @@ export default function TopUsers() {
       .catch(() => {})
       .finally(() => setIsLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (isAuthenticated) init()
+  }, [isAuthenticated]) // eslint-disable-line
 
   if (isLoading) return <div className="flex justify-center py-8"><Spinner /></div>
 
@@ -50,7 +56,7 @@ export default function TopUsers() {
             {compactNumber(user.followersCount ?? 0)} takipçi
           </div>
           {me && me.id !== user.id && (
-            <FollowButton userId={user.id} isFollowing={false} size="sm" />
+            <FollowButton userId={user.id} isFollowing={initialized ? followingIds.has(user.id) : false} size="sm" />
           )}
         </div>
       ))}

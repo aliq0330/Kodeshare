@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@/types'
+import { useFollowStore } from '@store/followStore'
 
 interface RegisterPayload {
   displayName: string
@@ -87,6 +88,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         await supabase.auth.signOut()
         set({ user: null, isAuthenticated: false })
+        useFollowStore.getState().reset()
       },
 
       setUser: (user) => set({ user, isAuthenticated: !!user }),

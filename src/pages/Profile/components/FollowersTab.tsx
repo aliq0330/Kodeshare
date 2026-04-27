@@ -6,6 +6,7 @@ import Spinner from '@components/ui/Spinner'
 import FollowButton from '@modules/social/FollowButton'
 import { userService } from '@services/userService'
 import { useAuthStore } from '@store/authStore'
+import { useFollowStore } from '@store/followStore'
 import type { User } from '@/types'
 
 interface FollowersTabProps {
@@ -15,24 +16,19 @@ interface FollowersTabProps {
 
 export default function FollowersTab({ username, type }: FollowersTabProps) {
   const { user: me, isAuthenticated } = useAuthStore()
+  const { followingIds, initialized, init } = useFollowStore()
   const [users, setUsers] = useState<User[]>([])
-  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     setIsLoading(true)
     const fn = type === 'followers' ? userService.getFollowers : userService.getFollowing
-    Promise.all([
-      fn(username),
-      isAuthenticated ? userService.getFollowingIds() : Promise.resolve(new Set<string>()),
-    ])
-      .then(([fetchedUsers, ids]) => {
-        setUsers(fetchedUsers)
-        setFollowingIds(ids)
-      })
+    fn(username)
+      .then(setUsers)
       .catch(() => {})
       .finally(() => setIsLoading(false))
-  }, [username, type, isAuthenticated])
+    if (isAuthenticated) init()
+  }, [username, type, isAuthenticated]) // eslint-disable-line
 
   if (isLoading) return <div className="flex justify-center py-10"><Spinner /></div>
 
@@ -59,7 +55,11 @@ export default function FollowersTab({ username, type }: FollowersTabProps) {
             </div>
           </Link>
           {isAuthenticated && me?.id !== user.id && (
-            <FollowButton userId={user.id} isFollowing={followingIds.has(user.id)} size="xs" />
+            <FollowButton
+              userId={user.id}
+              isFollowing={initialized ? followingIds.has(user.id) : false}
+              size="xs"
+            />
           )}
         </div>
       ))}

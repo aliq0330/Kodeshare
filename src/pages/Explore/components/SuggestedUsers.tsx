@@ -5,6 +5,7 @@ import { BadgeCheck } from 'lucide-react'
 import FollowButton from '@modules/social/FollowButton'
 import { userService } from '@services/userService'
 import { useAuthStore } from '@store/authStore'
+import { useFollowStore } from '@store/followStore'
 import type { User } from '@/types'
 
 interface SuggestedUsersProps {
@@ -13,8 +14,8 @@ interface SuggestedUsersProps {
 
 export default function SuggestedUsers({ query }: SuggestedUsersProps) {
   const { user: me, isAuthenticated } = useAuthStore()
+  const { followingIds, initialized, init } = useFollowStore()
   const [users, setUsers] = useState<User[]>([])
-  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -26,10 +27,8 @@ export default function SuggestedUsers({ query }: SuggestedUsersProps) {
   }, [query])
 
   useEffect(() => {
-    if (isAuthenticated) {
-      userService.getFollowingIds().then(setFollowingIds).catch(() => {})
-    }
-  }, [isAuthenticated])
+    if (isAuthenticated) init()
+  }, [isAuthenticated]) // eslint-disable-line
 
   if (loading) return null
   if (users.length === 0) {
@@ -66,7 +65,12 @@ export default function SuggestedUsers({ query }: SuggestedUsersProps) {
               <p className="text-xs text-gray-500">{(user.followersCount ?? 0).toLocaleString()} takipçi</p>
             </div>
             {isAuthenticated && me?.id !== user.id && (
-              <FollowButton userId={user.id} isFollowing={followingIds.has(user.id)} size="xs" className="w-full" />
+              <FollowButton
+                userId={user.id}
+                isFollowing={initialized ? followingIds.has(user.id) : false}
+                size="xs"
+                className="w-full"
+              />
             )}
           </div>
         ))}
