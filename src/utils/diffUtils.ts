@@ -1,6 +1,5 @@
 export type DiffPart = { type: 'same' | 'add' | 'del'; text: string }
 
-// Word-level text diff using LCS
 export function diffText(oldText: string, newText: string): DiffPart[] {
   if (oldText === newText) return [{ type: 'same', text: oldText }]
 
@@ -13,7 +12,6 @@ export function diffText(oldText: string, newText: string): DiffPart[] {
   const m = oldTokens.length
   const n = newTokens.length
 
-  // Build LCS table
   const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0) as number[])
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
@@ -23,7 +21,6 @@ export function diffText(oldText: string, newText: string): DiffPart[] {
     }
   }
 
-  // Backtrack
   const result: DiffPart[] = []
   let i = m, j = n
   while (i > 0 || j > 0) {
@@ -45,6 +42,43 @@ function tokenize(text: string): string[] {
   return text.split(/(\s+)/).filter((s) => s.length > 0)
 }
 
+export type LineDiff = { type: 'same' | 'add' | 'del'; content: string; lineNo?: number }
+
+export function diffLines(oldCode: string, newCode: string): LineDiff[] {
+  const oldLines = oldCode.split('\n')
+  const newLines = newCode.split('\n')
+
+  if (oldCode === newCode) return oldLines.map((l, i) => ({ type: 'same', content: l, lineNo: i + 1 }))
+
+  const m = oldLines.length
+  const n = newLines.length
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0) as number[])
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = oldLines[i - 1] === newLines[j - 1]
+        ? dp[i - 1][j - 1] + 1
+        : Math.max(dp[i - 1][j], dp[i][j - 1])
+    }
+  }
+
+  const result: LineDiff[] = []
+  let i = m, j = n
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
+      result.unshift({ type: 'same', content: oldLines[i - 1], lineNo: j })
+      i--; j--
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      result.unshift({ type: 'add', content: newLines[j - 1], lineNo: j })
+      j--
+    } else {
+      result.unshift({ type: 'del', content: oldLines[i - 1] })
+      i--
+    }
+  }
+  return result
+}
+
 export type BlockDiffEntry =
   | { status: 'same';    block: { type: string; content?: string; code?: string; src?: string } }
   | { status: 'added';   block: { type: string; content?: string; code?: string; src?: string } }
@@ -57,10 +91,8 @@ export function diffBlocks(
 ): BlockDiffEntry[] {
   const result: BlockDiffEntry[] = []
 
-  // Build ID maps
   const oldById = new Map(oldBlocks.map((b) => [b.id, b]))
   const newById = new Map(newBlocks.map((b) => [b.id, b]))
-
   const processedNewIds = new Set<string>()
 
   for (const oldBlock of oldBlocks) {

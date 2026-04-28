@@ -4,7 +4,7 @@ import {
   Files, Code2, Eye, WrapText, Sun, Moon, Plus, Trash2, X,
   RefreshCw, ExternalLink, Monitor, Tablet, Smartphone,
   Loader2, Save, ChevronRight, ChevronDown, FolderOpen, Cloud,
-  Pencil, Check, Palette,
+  Pencil, Check, Palette, History,
 } from 'lucide-react'
 import { useEditor } from '@editor/hooks/useEditor'
 import { useAutoSave } from '@editor/hooks/useAutoSave'
@@ -20,6 +20,8 @@ import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 import type { EditorLanguage, EditorTheme } from '@/types'
 import { useComposerStore } from '@store/composerStore'
+import ProjectVersionPanel from '@modules/editor/ProjectVersionPanel'
+import type { ProjectVersionFile } from '@services/projectVersionService'
 import '@/styles/editor.css'
 
 // ─── ThemePreview ──────────────────────────────────────────────────────────
@@ -585,6 +587,7 @@ export default function EditorPage() {
 
   const [showProjects,      setShowProjects]      = useState(true)
   const [showPreview,       setShowPreview]        = useState(true)
+  const [showVersions,      setShowVersions]       = useState(false)
   const [isSaving,          setIsSaving]           = useState(false)
   const [mobilePanel,       setMobilePanel]        = useState<'projects' | 'editor'>('editor')
   const [mobileShowPreview, setMobileShowPreview]  = useState(false)
@@ -653,6 +656,20 @@ export default function EditorPage() {
   }, [activeProjectId, projects, projectTitle, files, isAuthenticated, markAllSaved, patchProject, addProject, setActiveProjectId])
 
   useAutoSave(handleSave)
+
+  // ── Restore from version ──────────────────────────────────────────────────
+
+  const handleRestoreVersion = useCallback((versionFiles: ProjectVersionFile[], versionTitle: string) => {
+    const editorFiles = versionFiles.map((f) => ({
+      id:         f.id,
+      name:       f.name,
+      language:   f.language as EditorLanguage,
+      content:    f.content,
+      isModified: true,
+    }))
+    loadProject(versionTitle, editorFiles, activeProjectId)
+    if (versionFiles[0]) setActiveFile(versionFiles[0].id)
+  }, [activeProjectId, loadProject, setActiveFile])
 
   // ── Open project / file ───────────────────────────────────────────────────
 
@@ -837,8 +854,11 @@ export default function EditorPage() {
       style={{ height: 40, background: ui.panelBg, borderBottom: `1px solid ${ui.border}`, color: ui.text }}
     >
       <div className="flex items-center gap-1">
-        <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={Files}  label="Projeler"  />
-        <PanelBtn active={showPreview}  onClick={() => setShowPreview((p)  => !p)} icon={Eye}    label="Önizleme" />
+        <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={Files}   label="Projeler"  />
+        <PanelBtn active={showPreview}  onClick={() => setShowPreview((p)  => !p)} icon={Eye}     label="Önizleme" />
+        {activeProjectId && (
+          <PanelBtn active={showVersions} onClick={() => setShowVersions((p) => !p)} icon={History} label="Geçmiş" />
+        )}
       </div>
 
       <div className="w-px h-4 bg-[#1e2535] mx-1" />
@@ -932,6 +952,20 @@ export default function EditorPage() {
             ? <Loader2 className="w-4 h-4 animate-spin" />
             : hasUnsaved ? <Save className="w-4 h-4" /> : <Check className="w-4 h-4" />}
           <span>{isSaving ? '…' : 'Kaydet'}</span>
+        </button>
+      )}
+
+      {/* Mobile history button */}
+      {activeProjectId && (
+        <button
+          onClick={() => setShowVersions((p) => !p)}
+          className={cn(
+            'flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-[11px] font-medium transition-colors border-b-2',
+            showVersions ? 'text-[#8aa8ff] border-[#8aa8ff]' : 'text-gray-600 border-transparent',
+          )}
+        >
+          <History className="w-4 h-4" />
+          <span>Geçmiş</span>
         </button>
       )}
     </div>
@@ -1147,6 +1181,16 @@ export default function EditorPage() {
           </div>
         )}
       </div>
+
+      <ProjectVersionPanel
+        open={showVersions}
+        onClose={() => setShowVersions(false)}
+        projectId={activeProjectId}
+        projectTitle={projectTitle}
+        currentFiles={files.map((f) => ({ id: f.id ?? '', name: f.name, language: f.language, content: f.content }))}
+        onRestore={handleRestoreVersion}
+        ui={ui}
+      />
     </div>
   )
 }
