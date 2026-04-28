@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Reply, ChevronDown, ChevronUp, Send } from 'lucide-react'
+import { Heart, Reply, ChevronDown, ChevronUp, Send, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
@@ -29,12 +29,20 @@ interface CommentItemProps {
 }
 
 export default function CommentItem({ comment, postId, depth = 0 }: CommentItemProps) {
-  const { isAuthenticated } = useAuthStore()
-  const { toggleLike, addReply } = useCommentStore()
+  const { isAuthenticated, user } = useAuthStore()
+  const { toggleLike, addReply, editComment, deleteComment } = useCommentStore()
   const [showReplies, setShowReplies] = useState(true)
   const [showReplyBox, setShowReplyBox] = useState(false)
   const [replyText, setReplyText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [editText, setEditText] = useState(comment.content)
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  const isOwner = !!user && user.id === comment.author.id
 
   const handleLike = async () => {
     if (!isAuthenticated) return
@@ -60,6 +68,32 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
     }
   }
 
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editText.trim() || editSubmitting) return
+    setEditSubmitting(true)
+    try {
+      await editComment(postId, comment.id, editText.trim())
+      setEditMode(false)
+      toast.success('Yorum güncellendi')
+    } catch {
+      toast.error('Yorum güncellenemedi')
+    } finally {
+      setEditSubmitting(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    setMenuOpen(false)
+    if (!window.confirm('Bu yorumu silmek istediğine emin misin?')) return
+    try {
+      await deleteComment(postId, comment.id)
+      toast.success('Yorum silindi')
+    } catch {
+      toast.error('Yorum silinemedi')
+    }
+  }
+
   return (
     <div id={`comment-${comment.id}`} className={cn('flex gap-3', depth > 0 && 'ml-8 pl-3 border-l border-surface-border')}>
       <Avatar src={comment.author.avatarUrl} alt={comment.author.displayName} size="sm" className="mt-0.5 shrink-0" />
@@ -70,8 +104,77 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
               {comment.author.displayName}
             </Link>
             <span className="text-xs text-gray-600">{timeAgo(comment.createdAt)}</span>
+            {comment.updatedAt !== comment.createdAt && (
+              <span className="text-xs text-gray-700">(düzenlendi)</span>
+            )}
+            {isOwner && (
+              <div className="relative ml-auto" ref={menuRef}>
+                <button
+                  onClick={() => setMenuOpen((p) => !p)}
+                  className="p-1 rounded text-gray-600 hover:text-gray-300 transition-colors"
+                >
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </button>
+                {menuOpen && (
+                  <div
+                    className="absolute right-0 top-full mt-1 z-20 card shadow-xl py-1 min-w-[120px]"
+                    onMouseLeave={() => setMenuOpen(false)}
+                  >
+                    <button
+                      onClick={() => { setEditText(comment.content); setEditMode(true); setMenuOpen(false) }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-surface-raised hover:text-white transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      Düzenle
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-surface-raised transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Sil
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <p className="text-sm text-gray-300 leading-relaxed">{renderContent(comment.content)}</p>
+
+          {editMode ? (
+            <form onSubmit={handleEdit} className="flex flex-col gap-2">
+              <textarea
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                rows={2}
+                className="w-full bg-surface border border-surface-border rounded-lg px-2 py-1.5 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:border-brand-500"
+                style={{ minHeight: '40px', maxHeight: '120px' }}
+                autoFocus
+                onInput={(e) => {
+                  const t = e.target as HTMLTextAreaElement
+                  t.style.height = 'auto'
+                  t.style.height = t.scrollHeight + 'px'
+                }}
+              />
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setEditMode(false)}
+                  className="text-xs text-gray-500 hover:text-gray-300 transition-colors px-2 py-1"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={!editText.trim() || editSubmitting}
+                  className="text-xs text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors px-2 py-1 font-medium"
+                >
+                  {editSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p className="text-sm text-gray-300 leading-relaxed">{renderContent(comment.content)}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-3 mt-1 px-1">

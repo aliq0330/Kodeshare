@@ -97,6 +97,20 @@ export const commentService = {
     return { ...mapComment(data as Record<string, unknown>, userId), replies: [] }
   },
 
+  async update(commentId: string, content: string): Promise<Comment> {
+    const userId = await currentUserId()
+    if (!userId) throw new Error('Giriş yapmalısın')
+    const { data, error } = await supabase
+      .from('comments')
+      .update({ content })
+      .eq('id', commentId)
+      .eq('author_id', userId)
+      .select('*, author:profiles!comments_author_id_fkey(*), comment_likes(user_id)')
+      .single()
+    if (error) throw new Error(error.message)
+    return { ...mapComment(data as Record<string, unknown>, userId), replies: [] }
+  },
+
   async delete(commentId: string): Promise<void> {
     await supabase.from('comments').delete().eq('id', commentId)
   },

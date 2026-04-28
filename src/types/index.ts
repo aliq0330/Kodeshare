@@ -5,6 +5,7 @@ export type * from './collection'
 export type * from './message'
 export type * from './notification'
 export type * from './editor'
+export type * from './series'
 
 export interface PaginatedResponse<T> {
   data: T[]

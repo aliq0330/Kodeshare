@@ -9,6 +9,8 @@ interface CommentState {
   fetchComments: (postId: string) => Promise<void>
   addComment: (postId: string, content: string) => Promise<void>
   addReply: (postId: string, parentId: string, content: string) => Promise<void>
+  editComment: (postId: string, commentId: string, content: string) => Promise<void>
+  deleteComment: (postId: string, commentId: string) => Promise<void>
   toggleLike: (postId: string, commentId: string) => Promise<void>
 }
 
@@ -35,6 +37,24 @@ export const useCommentStore = create<CommentState>((set, get) => ({
       },
     }))
     usePostStore.getState().incrementCommentCount(postId)
+  },
+
+  editComment: async (postId, commentId, content) => {
+    const updated = await commentService.update(commentId, content)
+    const patch = (list: Comment[]): Comment[] =>
+      list.map((c) => {
+        if (c.id === commentId) return { ...c, content: updated.content, updatedAt: updated.updatedAt }
+        return { ...c, replies: patch(c.replies) }
+      })
+    set((s) => ({ commentsByPost: { ...s.commentsByPost, [postId]: patch(s.commentsByPost[postId] ?? []) } }))
+  },
+
+  deleteComment: async (postId, commentId) => {
+    await commentService.delete(commentId)
+    const remove = (list: Comment[]): Comment[] =>
+      list.filter((c) => c.id !== commentId).map((c) => ({ ...c, replies: remove(c.replies) }))
+    set((s) => ({ commentsByPost: { ...s.commentsByPost, [postId]: remove(s.commentsByPost[postId] ?? []) } }))
+    usePostStore.getState().decrementCommentCount(postId)
   },
 
   addReply: async (postId, parentId, content) => {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2 } from 'lucide-react'
+import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Cloud, UploadCloud, Clock } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
@@ -13,8 +13,10 @@ import { usePostStore } from '@store/postStore'
 import { useComposerStore } from '@store/composerStore'
 import { projectService, type SavedProject } from '@services/projectService'
 import { articleService } from '@services/articleService'
+import { draftService, type CloudDraft } from '@services/draftService'
 import type { ArticleRecord } from '@services/articleService'
 import { LANGUAGE_COLORS } from '@utils/constants'
+import { timeAgo } from '@utils/formatters'
 import toast from 'react-hot-toast'
 import type { PostBlockType } from '@/types'
 
@@ -127,7 +129,7 @@ interface PostComposerProps {
 
 export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, isAuthenticated } = useAuthStore()
   const { createPost } = usePostStore()
   const { open, prefilledProject, prefilledSnippet, prefilledArticle, openComposer, closeComposer } = useComposerStore()
 
@@ -140,6 +142,13 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
   const addMenuRef  = useRef<HTMLDivElement>(null)
   const hydratedRef = useRef(false)
+
+  // Cloud draft state
+  const [cloudDraftId, setCloudDraftId]   = useState<string | null>(null)
+  const [cloudSaving, setCloudSaving]     = useState(false)
+  const [draftsOpen, setDraftsOpen]       = useState(false)
+  const [cloudDrafts, setCloudDrafts]     = useState<CloudDraft[]>([])
+  const [draftsLoading, setDraftsLoading] = useState(false)
 
   // Project picker state (per project block)
   const [pickerBlockId, setPickerBlockId]       = useState<string | null>(null)
@@ -197,7 +206,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     setBlocks([b])
   }, [prefilledArticle, open])
 
-  // Auto-save draft
+  // Auto-save draft to localStorage
   useEffect(() => {
     if (!open) return
     const hasContent = description || tags || blocks.length > 0
@@ -296,6 +305,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const reset = () => {
     setDescription(''); setTags(''); setBlocks([])
     setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null); setAddMenuOpen(false)
+    setCloudDraftId(null)
     hydratedRef.current = false
   }
 
@@ -304,6 +314,58 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const handleOpenInEditor = () => {
     navigate('/editor')
     closeComposer(); reset(); clearDraft()
+  }
+
+  // Cloud draft: save
+  const handleCloudSave = async () => {
+    if (!isAuthenticated) { toast.error('Taslak kaydetmek için giriş yapmalısın'); return }
+    setCloudSaving(true)
+    try {
+      const saved = await draftService.save(cloudDraftId, { description, tags, blocks })
+      setCloudDraftId(saved.id)
+      toast.success('Taslak buluta kaydedildi')
+    } catch {
+      toast.error('Taslak kaydedilemedi')
+    } finally {
+      setCloudSaving(false)
+    }
+  }
+
+  // Cloud draft: load list
+  const handleOpenDrafts = async () => {
+    if (!isAuthenticated) { toast.error('Taslakları görmek için giriş yapmalısın'); return }
+    setDraftsOpen(true)
+    setDraftsLoading(true)
+    try {
+      setCloudDrafts(await draftService.list())
+    } catch {
+      toast.error('Taslaklar yüklenemedi')
+    } finally {
+      setDraftsLoading(false)
+    }
+  }
+
+  // Cloud draft: restore a draft
+  const handleRestoreDraft = (draft: CloudDraft) => {
+    setDescription(draft.description ?? '')
+    setTags(draft.tags ?? '')
+    setBlocks((draft.blocks as ComposerBlock[]) ?? [])
+    setCloudDraftId(draft.id)
+    setDraftsOpen(false)
+    toast.success('Taslak yüklendi')
+  }
+
+  // Cloud draft: delete a draft
+  const handleDeleteDraft = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      await draftService.delete(id)
+      setCloudDrafts((prev) => prev.filter((d) => d.id !== id))
+      if (cloudDraftId === id) setCloudDraftId(null)
+      toast.success('Taslak silindi')
+    } catch {
+      toast.error('Taslak silinemedi')
+    }
   }
 
   const handleSubmit = async () => {
@@ -331,6 +393,10 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         tags: tags.split(',').map((x) => x.trim()).filter(Boolean),
         blocks: validBlocks,
       })
+      // Delete cloud draft on successful publish
+      if (cloudDraftId) {
+        void draftService.delete(cloudDraftId).catch(() => { /* noop */ })
+      }
       toast.success('Gönderi paylaşıldı!')
       clearDraft(); reset(); closeComposer()
     } catch (err) {
@@ -356,6 +422,56 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   return (
     <>
       {triggerCard}
+
+      {/* Cloud Drafts Modal */}
+      <Modal open={draftsOpen} onClose={() => setDraftsOpen(false)} title="Bulut Taslaklar" size="sm">
+        <div className="flex flex-col gap-3">
+          {draftsLoading ? (
+            <div className="flex justify-center py-8"><Spinner /></div>
+          ) : cloudDrafts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Cloud className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+              <p className="text-sm">Kayıtlı taslak yok</p>
+            </div>
+          ) : (
+            cloudDrafts.map((draft) => (
+              <button
+                key={draft.id}
+                onClick={() => handleRestoreDraft(draft)}
+                className="w-full text-left card p-3 hover:border-brand-500/50 transition-colors group"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white font-medium truncate">
+                      {draft.description?.split('\n')[0]?.slice(0, 60) || 'Başlıksız taslak'}
+                    </p>
+                    {draft.tags && (
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{draft.tags}</p>
+                    )}
+                    <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {timeAgo(draft.updatedAt)}
+                      {(draft.blocks as unknown[]).length > 0 && (
+                        <span className="ml-1">· {(draft.blocks as unknown[]).length} blok</span>
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    onClick={(e) => handleDeleteDraft(draft.id, e)}
+                    className="shrink-0 p-1.5 rounded text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                    title="Taslağı sil"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {cloudDraftId === draft.id && (
+                  <span className="text-[10px] text-brand-400 mt-1 block">Şu an düzenleniyor</span>
+                )}
+              </button>
+            ))
+          )}
+        </div>
+      </Modal>
 
       <Modal open={open} onClose={handleClose} title="Yeni Gönderi" size="fullscreen">
         <div className="flex flex-col gap-4 flex-1">
@@ -585,11 +701,23 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         </div>
 
         {/* Sticky footer */}
-        <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card">
+        <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card flex-wrap">
           <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenInEditor}>
             <Code2 className="w-4 h-4" />
             Editörde Aç
           </Button>
+          {isAuthenticated && (
+            <>
+              <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleCloudSave} loading={cloudSaving}>
+                <UploadCloud className="w-4 h-4" />
+                {cloudDraftId ? 'Taslağı Güncelle' : 'Taslak Kaydet'}
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
+                <Cloud className="w-4 h-4" />
+                Taslaklar
+              </Button>
+            </>
+          )}
           <div className="flex justify-end gap-2 ml-auto">
             <Button variant="ghost" onClick={handleClose}>İptal</Button>
             <Button variant="primary" onClick={handleSubmit} loading={loading}>Paylaş</Button>

@@ -23,6 +23,7 @@ interface PostState {
   savePost: (id: string) => Promise<void>
   repostPost: (id: string) => Promise<void>
   incrementCommentCount: (postId: string) => void
+  decrementCommentCount: (postId: string) => void
   reset: () => void
 }
 
@@ -175,6 +176,13 @@ export const usePostStore = create<PostState>((set, get) => ({
     set((s) => ({
       posts: s.posts.map((p) =>
         p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p,
+      ),
+    })),
+
+  decrementCommentCount: (postId) =>
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === postId ? { ...p, commentsCount: Math.max(0, p.commentsCount - 1) } : p,
       ),
     })),
 

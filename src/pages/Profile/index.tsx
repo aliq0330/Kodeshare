@@ -5,6 +5,7 @@ import Tabs from '@components/ui/Tabs'
 import ProfileHeader from './components/ProfileHeader'
 import PostsTab from './components/PostsTab'
 import CollectionsTab from './components/CollectionsTab'
+import SeriesTab from './components/SeriesTab'
 import LikesTab from './components/LikesTab'
 import SavedTab from './components/SavedTab'
 import FollowersTab from './components/FollowersTab'
@@ -27,6 +28,7 @@ export default function ProfilePage() {
   const tabs = [
     { id: 'posts',       label: 'Gönderiler' },
     { id: 'collections', label: 'Koleksiyonlar' },
+    { id: 'series',      label: 'Seriler' },
     ...(showLikesTab ? [{ id: 'likes', label: 'Beğenilenler' }] : []),
     ...(isOwn ? [{ id: 'saved', label: 'Kaydedilenler' }] : []),
     { id: 'followers',   label: 'Takipçiler' },
@@ -61,6 +63,7 @@ export default function ProfilePage() {
           />
           {activeTab === 'posts'       && <PostsTab username={username} />}
           {activeTab === 'collections' && <CollectionsTab username={username} isOwn={isOwn} />}
+          {activeTab === 'series'      && <SeriesTab username={username} isOwn={isOwn} />}
           {activeTab === 'likes'       && <LikesTab username={username} />}
           {activeTab === 'saved'       && isOwn && <SavedTab />}
           {activeTab === 'followers'   && <FollowersTab username={username} type="followers" />}

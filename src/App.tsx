@@ -15,6 +15,7 @@ import LoginPage from '@pages/Auth/Login'
 import RegisterPage from '@pages/Auth/Register'
 import PostDetailPage from '@pages/PostDetail'
 import CollectionDetailPage from '@pages/CollectionDetail'
+import SeriesDetailPage from '@pages/SeriesDetail'
 import AdminPage from '@pages/Admin'
 import AdminUserDetailPage from '@pages/Admin/UserDetail'
 import ArticlePage from '@pages/Article'
@@ -103,6 +104,7 @@ export default function App() {
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/post/:postId" element={<PostDetailPage />} />
         <Route path="/collection/:collectionId" element={<CollectionDetailPage />} />
+        <Route path="/series/:seriesId" element={<SeriesDetailPage />} />
         <Route path="/makaleler" element={<ProtectedRoute><ArticlesPage /></ProtectedRoute>} />
         <Route path="/makale/:id" element={<ArticleViewPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

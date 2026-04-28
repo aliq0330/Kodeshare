@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock } from 'lucide-react'
+import { ArrowLeft, Heart, Bookmark, Share2, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock, BookOpen } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
+import AddToSeriesModal from '@modules/series/AddToSeriesModal'
 import ShareModal from '@modules/social/ShareModal'
 import CommentThread from '@modules/social/CommentThread'
 import RepostMenu from '@modules/post/RepostMenu'
@@ -28,6 +29,7 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [collectModalOpen, setCollectModalOpen] = useState(false)
+  const [seriesModalOpen, setSeriesModalOpen]   = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -232,6 +234,16 @@ export default function PostDetailPage() {
                       {isOwner && (
                         <button
                           type="button"
+                          onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                        >
+                          <BookOpen className="w-4 h-4 text-gray-400" />
+                          <span className="text-white">Seriye ekle</span>
+                        </button>
+                      )}
+                      {isOwner && (
+                        <button
+                          type="button"
                           onClick={() => { setMenuOpen(false); setEditOpen(true) }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                         >
@@ -358,6 +370,13 @@ export default function PostDetailPage() {
           postId={post.id}
           open={collectModalOpen}
           onClose={() => setCollectModalOpen(false)}
+        />
+      )}
+      {isOwner && post && (
+        <AddToSeriesModal
+          postId={post.id}
+          open={seriesModalOpen}
+          onClose={() => setSeriesModalOpen(false)}
         />
       )}
       <ShareModal
