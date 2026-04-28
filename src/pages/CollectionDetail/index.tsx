@@ -115,7 +115,13 @@ export default function CollectionDetailPage() {
       </Link>
 
       {/* Header */}
-      <div className="card p-5">
+      <div className="card overflow-hidden">
+        {collection.coverUrl && (
+          <div className="h-40 w-full bg-surface-raised">
+            <img src={collection.coverUrl} alt="Kapak" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-5">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-brand-900/40 flex items-center justify-center shrink-0">
             <Folder className="w-6 h-6 text-brand-400" />
@@ -147,6 +153,7 @@ export default function CollectionDetailPage() {
         {collection.description && (
           <p className="text-sm text-gray-400 mt-4">{collection.description}</p>
         )}
+        </div>
       </div>
 
       {isOwner && (
