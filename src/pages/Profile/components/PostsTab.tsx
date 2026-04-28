@@ -32,7 +32,7 @@ export default function PostsTab({ username }: PostsTabProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="-mx-4 lg:mx-0 flex flex-col">
       {posts.map((post) => (
         <PostCard key={post.id} post={post} onLike={likePost} onSave={savePost} />
       ))}
