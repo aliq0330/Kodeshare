@@ -1,8 +1,9 @@
 -- Run this in your Supabase SQL editor
+-- Projects are stored in the "posts" table (type='project'), not a separate table
 
 CREATE TABLE IF NOT EXISTS project_versions (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id     uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  project_id     uuid NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
   author_id      uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   version_number integer NOT NULL,
   title          text NOT NULL DEFAULT '',
