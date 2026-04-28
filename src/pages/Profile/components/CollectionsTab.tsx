@@ -78,7 +78,7 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
                   {isOwn && (
                     <button
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditTarget(col) }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white shrink-0"
+                      className="p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white shrink-0 transition-colors"
                       title="Düzenle"
                     >
                       <Pencil className="w-3.5 h-3.5" />
