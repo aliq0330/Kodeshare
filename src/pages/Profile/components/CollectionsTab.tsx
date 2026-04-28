@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Lock, Folder, Plus } from 'lucide-react'
+import { Lock, Globe, Folder, Plus, Pencil } from 'lucide-react'
 import Badge from '@components/ui/Badge'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -17,7 +17,8 @@ interface CollectionsTabProps {
 export default function CollectionsTab({ username, isOwn }: CollectionsTabProps) {
   const [collections, setCollections] = useState<Collection[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Collection | null>(null)
 
   useEffect(() => {
     setIsLoading(true)
@@ -30,13 +31,20 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
     toast.success('Koleksiyon oluşturuldu')
   }
 
+  const handleEdit = async (payload: CreateCollectionPayload) => {
+    if (!editTarget) return
+    const updated = await collectionService.update(editTarget.id, payload)
+    setCollections((prev) => prev.map((c) => c.id === updated.id ? updated : c))
+    toast.success('Koleksiyon güncellendi')
+  }
+
   if (isLoading) return <div className="flex justify-center py-10"><Spinner /></div>
 
   return (
     <div className="flex flex-col gap-4">
       {isOwn && (
         <div className="flex justify-end">
-          <Button variant="primary" size="sm" onClick={() => setModalOpen(true)}>
+          <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="w-4 h-4" />
             Yeni Koleksiyon
           </Button>
@@ -54,31 +62,49 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {collections.map((col) => (
-            <Link
-              key={col.id}
-              to={`/collection/${col.id}`}
-              className="card p-4 hover:border-brand-500/50 transition-colors group"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Folder className="w-5 h-5 text-brand-400" />
-                <span className="font-medium text-white group-hover:text-brand-300 transition-colors">{col.name}</span>
-                {col.visibility === 'private' && (
-                  <Lock className="w-3.5 h-3.5 text-gray-500 ml-auto" />
+            <div key={col.id} className="relative group">
+              <Link
+                to={`/collection/${col.id}`}
+                className="card p-4 hover:border-brand-500/50 transition-colors flex flex-col gap-2 block"
+              >
+                <div className="flex items-center gap-2">
+                  <Folder className="w-5 h-5 text-brand-400 shrink-0" />
+                  <span className="font-medium text-white group-hover:text-brand-300 transition-colors truncate flex-1">{col.name}</span>
+                  {col.visibility === 'private' ? (
+                    <Lock className="w-3.5 h-3.5 text-gray-500 shrink-0" title="Gizli" />
+                  ) : (
+                    <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" title="Herkese açık" />
+                  )}
+                </div>
+                {col.description && (
+                  <p className="text-sm text-gray-500 line-clamp-2">{col.description}</p>
                 )}
-              </div>
-              {col.description && (
-                <p className="text-sm text-gray-500 line-clamp-2 mb-2">{col.description}</p>
+                <Badge variant="default">{col.postsCount} gönderi</Badge>
+              </Link>
+              {isOwn && (
+                <button
+                  onClick={(e) => { e.preventDefault(); setEditTarget(col) }}
+                  className="absolute top-3 right-8 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white"
+                  title="Düzenle"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
               )}
-              <Badge variant="default">{col.postsCount} gönderi</Badge>
-            </Link>
+            </div>
           ))}
         </div>
       )}
 
       <CollectionModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
         onSave={handleCreate}
+      />
+      <CollectionModal
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        onSave={handleEdit}
+        initial={editTarget ?? undefined}
       />
     </div>
   )
