@@ -82,6 +82,30 @@ export const collectionService = {
     if (error) throw new Error(error.message)
   },
 
+  async getCollectionIdsForPost(postId: string): Promise<string[]> {
+    const userId = await currentUserId()
+    if (!userId) return []
+    const { data } = await supabase
+      .from('collection_posts')
+      .select('collection_id, collection:collections!collection_posts_collection_id_fkey(owner_id)')
+      .eq('post_id', postId)
+    return (data ?? [])
+      .filter((r) => (r as Record<string, unknown> & { collection: { owner_id: string } }).collection?.owner_id === userId)
+      .map((r) => (r as Record<string, string>).collection_id)
+  },
+
+  async getCollectionIdsForArticle(articleId: string): Promise<string[]> {
+    const userId = await currentUserId()
+    if (!userId) return []
+    const { data } = await supabase
+      .from('collection_articles')
+      .select('collection_id, collection:collections!collection_articles_collection_id_fkey(owner_id)')
+      .eq('article_id', articleId)
+    return (data ?? [])
+      .filter((r) => (r as Record<string, unknown> & { collection: { owner_id: string } }).collection?.owner_id === userId)
+      .map((r) => (r as Record<string, string>).collection_id)
+  },
+
   async getCollectionPosts(collectionId: string): Promise<PostPreview[]> {
     const userId = await currentUserId()
     const { data, error } = await supabase

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Folder, Lock, Search } from 'lucide-react'
+import { ArrowLeft, Folder, Lock, Search, X } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import PostCard from '@components/shared/PostCard'
@@ -9,16 +9,20 @@ import Input from '@components/ui/Input'
 import Spinner from '@components/ui/Spinner'
 import { collectionService } from '@services/collectionService'
 import { articleService } from '@services/articleService'
+import { useAuthStore } from '@store/authStore'
+import toast from 'react-hot-toast'
 import type { Collection, PostPreview } from '@/types'
 import type { ArticleRecord } from '@services/articleService'
 
 export default function CollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>()
+  const { user } = useAuthStore()
   const [collection, setCollection] = useState<Collection | null>(null)
   const [posts, setPosts]           = useState<PostPreview[]>([])
   const [articles, setArticles]     = useState<ArticleRecord[]>([])
   const [isLoading, setIsLoading]   = useState(true)
   const [query, setQuery]           = useState('')
+  const [removing, setRemoving]     = useState<string | null>(null)
 
   useEffect(() => {
     if (!collectionId) return
@@ -36,6 +40,36 @@ export default function CollectionDetailPage() {
       .catch(() => {})
       .finally(() => setIsLoading(false))
   }, [collectionId])
+
+  const isOwner = !!user && !!collection && user.id === collection.owner.id
+
+  const removePost = async (postId: string) => {
+    if (!collectionId) return
+    setRemoving(postId)
+    try {
+      await collectionService.removePost(collectionId, postId)
+      setPosts((prev) => prev.filter((p) => p.id !== postId))
+      toast.success('Koleksiyondan çıkarıldı')
+    } catch {
+      toast.error('Bir hata oluştu')
+    } finally {
+      setRemoving(null)
+    }
+  }
+
+  const removeArticle = async (articleId: string) => {
+    if (!collectionId) return
+    setRemoving(articleId)
+    try {
+      await collectionService.removeArticle(collectionId, articleId)
+      setArticles((prev) => prev.filter((a) => a.id !== articleId))
+      toast.success('Koleksiyondan çıkarıldı')
+    } catch {
+      toast.error('Bir hata oluştu')
+    } finally {
+      setRemoving(null)
+    }
+  }
 
   const filteredPosts = useMemo(() => {
     if (!query.trim()) return posts
@@ -65,7 +99,7 @@ export default function CollectionDetailPage() {
   const isEmpty    = posts.length === 0 && articles.length === 0
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-6">
+    <div className="max-w-2xl mx-auto flex flex-col gap-6">
       <Link to="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit">
         <ArrowLeft className="w-4 h-4" />
         Geri Dön
@@ -125,7 +159,19 @@ export default function CollectionDetailPage() {
               </h3>
               <div className="-mx-4 lg:mx-0 flex flex-col">
                 {filteredPosts.map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <div key={post.id} className="relative group/item">
+                    <PostCard post={post} />
+                    {isOwner && (
+                      <button
+                        onClick={() => removePost(post.id)}
+                        disabled={removing === post.id}
+                        className="absolute top-3 right-3 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs disabled:opacity-40"
+                      >
+                        <X className="w-3 h-3" />
+                        Çıkar
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </section>
@@ -138,7 +184,19 @@ export default function CollectionDetailPage() {
               </h3>
               <div className="-mx-4 lg:mx-0 flex flex-col">
                 {filteredArticles.map((article) => (
-                  <ArticleCard key={article.id} article={article} />
+                  <div key={article.id} className="relative group/item">
+                    <ArticleCard article={article} />
+                    {isOwner && (
+                      <button
+                        onClick={() => removeArticle(article.id)}
+                        disabled={removing === article.id}
+                        className="absolute top-3 right-3 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs disabled:opacity-40"
+                      >
+                        <X className="w-3 h-3" />
+                        Çıkar
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </section>
