@@ -71,9 +71,9 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
                   <Folder className="w-5 h-5 text-brand-400 shrink-0" />
                   <span className="font-medium text-white group-hover:text-brand-300 transition-colors truncate flex-1">{col.name}</span>
                   {col.visibility === 'private' ? (
-                    <Lock className="w-3.5 h-3.5 text-gray-500 shrink-0" title="Gizli" />
+                    <Lock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                   ) : (
-                    <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" title="Herkese açık" />
+                    <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                   )}
                 </div>
                 {col.description && (
