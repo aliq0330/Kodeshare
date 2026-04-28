@@ -143,6 +143,7 @@ export default function SeriesDetailPage() {
               <PostCard
                 post={post}
                 onRemoveFromCollection={isOwner && !removing ? () => handleRemovePost(post.id) : undefined}
+                removeFromCollectionLabel="Bu seriden çıkar"
               />
             </div>
           ))}
