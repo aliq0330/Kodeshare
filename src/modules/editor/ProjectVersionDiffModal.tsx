@@ -12,9 +12,11 @@ interface Props {
   versionA: ProjectVersion
   currentFiles: ProjectVersionFile[]
   ui: UiColors
+  rightLabel?: string
+  leftLabel?: string
 }
 
-export default function ProjectVersionDiffModal({ open, onClose, versionA, currentFiles, ui }: Props) {
+export default function ProjectVersionDiffModal({ open, onClose, versionA, currentFiles, ui, rightLabel, leftLabel }: Props) {
   const allNames = useMemo(() => {
     const names = new Set([
       ...versionA.files.map((f) => f.name),
@@ -154,9 +156,9 @@ export default function ProjectVersionDiffModal({ open, onClose, versionA, curre
           style={{ borderBottom: `1px solid ${ui.border}`, color: ui.textMuted }}
         >
           <div className="px-10 py-2" style={{ borderRight: `1px solid ${ui.border}` }}>
-            v{versionA.versionNumber}{versionA.label ? ` · ${versionA.label}` : ''}
+            {leftLabel ?? `v${versionA.versionNumber}${versionA.label ? ` · ${versionA.label}` : ''}`}
           </div>
-          <div className="px-10 py-2">Mevcut durum</div>
+          <div className="px-10 py-2">{rightLabel ?? 'Mevcut durum'}</div>
         </div>
 
         {/* Diff body */}
