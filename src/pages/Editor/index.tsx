@@ -575,7 +575,7 @@ export default function EditorPage() {
     files, activeFile, activeFileId, theme, fontSize, wordWrap,
     setActiveFile, addFile, removeFile, updateActiveFile, toggleWordWrap, setTheme,
   } = useEditor()
-  const { projectTitle, setProjectTitle, loadProject, markAllSaved, activeProjectId, setActiveProjectId } = useEditorStore()
+  const { projectTitle, setProjectTitle, loadProject, markAllSaved, activeProjectId, setActiveProjectId, showVersionPanel, setShowVersionPanel } = useEditorStore()
   const {
     projects, loading,
     fetch: fetchProjects, addProject, patch: patchProject, remove: removeProject,
@@ -587,7 +587,8 @@ export default function EditorPage() {
 
   const [showProjects,      setShowProjects]      = useState(true)
   const [showPreview,       setShowPreview]        = useState(true)
-  const [showVersions,      setShowVersions]       = useState(false)
+  const showVersions    = showVersionPanel
+  const setShowVersions = setShowVersionPanel
   const [isSaving,          setIsSaving]           = useState(false)
   const [mobilePanel,       setMobilePanel]        = useState<'projects' | 'editor'>('editor')
   const [mobileShowPreview, setMobileShowPreview]  = useState(false)
@@ -857,7 +858,7 @@ export default function EditorPage() {
         <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={Files}   label="Projeler"  />
         <PanelBtn active={showPreview}  onClick={() => setShowPreview((p)  => !p)} icon={Eye}     label="Önizleme" />
         {activeProjectId && (
-          <PanelBtn active={showVersions} onClick={() => setShowVersions((p) => !p)} icon={History} label="Geçmiş" />
+          <PanelBtn active={showVersions} onClick={() => setShowVersions(!showVersions)} icon={History} label="Geçmiş" />
         )}
       </div>
 
@@ -958,7 +959,7 @@ export default function EditorPage() {
       {/* Mobile history button */}
       {activeProjectId && (
         <button
-          onClick={() => setShowVersions((p) => !p)}
+          onClick={() => setShowVersions(!showVersions)}
           className={cn(
             'flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-[11px] font-medium transition-colors border-b-2',
             showVersions ? 'text-[#8aa8ff] border-[#8aa8ff]' : 'text-gray-600 border-transparent',

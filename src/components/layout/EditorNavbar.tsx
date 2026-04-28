@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Code2, Share2, ArrowLeft } from 'lucide-react'
+import { Code2, Share2, ArrowLeft, History } from 'lucide-react'
 import Button from '@components/ui/Button'
 import Avatar from '@components/ui/Avatar'
 import { useAuthStore } from '@store/authStore'
@@ -9,7 +9,7 @@ import { useComposerStore } from '@store/composerStore'
 
 export default function EditorNavbar() {
   const { user } = useAuthStore()
-  const { projectTitle, isSaving, setProjectTitle, activeProjectId } = useEditorStore()
+  const { projectTitle, isSaving, setProjectTitle, activeProjectId, showVersionPanel, toggleVersionPanel } = useEditorStore()
   const { projects } = useProjectStore()
   const { openWithProject, openComposer } = useComposerStore()
 
@@ -52,6 +52,21 @@ export default function EditorNavbar() {
 
       {/* Right — eylemler */}
       <div className="flex items-center gap-1 shrink-0">
+        {activeProjectId && (
+          <button
+            onClick={toggleVersionPanel}
+            title="Versiyon Geçmişi"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors"
+            style={{
+              color: showVersionPanel ? '#8aa8ff' : '#6b7280',
+              background: showVersionPanel ? 'rgba(138,168,255,0.1)' : 'transparent',
+              border: showVersionPanel ? '1px solid rgba(138,168,255,0.3)' : '1px solid transparent',
+            }}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Geçmiş</span>
+          </button>
+        )}
         <Button variant="primary" size="sm" onClick={handlePublish}>
           <Share2 className="w-4 h-4" />
           <span className="hidden md:inline ml-1">Paylaş</span>

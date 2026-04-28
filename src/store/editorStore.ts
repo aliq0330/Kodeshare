@@ -20,6 +20,7 @@ interface EditorStoreState {
   projectTitle: string
   isSaving: boolean
   appTheme: AppTheme
+  showVersionPanel: boolean
   setActiveFile:       (id: string) => void
   setActiveProjectId:  (id: string | null) => void
   addFile:             (file: Omit<EditorFile, 'id'> & { id?: string }) => void
@@ -33,6 +34,8 @@ interface EditorStoreState {
   toggleAutoSave:      () => void
   toggleFullscreen:    () => void
   setProjectTitle:     (title: string) => void
+  toggleVersionPanel:  () => void
+  setShowVersionPanel: (show: boolean) => void
   // projectId geçilirse activeProjectId de güncellenir
   loadProject:         (title: string, projectFiles: EditorFile[], projectId?: string | null) => void
   save:                () => void
@@ -60,6 +63,7 @@ export const useEditorStore = create<EditorStoreState>()(
       projectTitle: 'Yeni Proje',
       isSaving: false,
       appTheme: 'light',
+      showVersionPanel: false,
 
       setActiveFile:      (id) => set({ activeFileId: id }),
       setActiveProjectId: (id) => set({ activeProjectId: id }),
@@ -80,6 +84,9 @@ export const useEditorStore = create<EditorStoreState>()(
 
       updateFile: (id, patch) =>
         set((s) => ({ files: s.files.map((f) => (f.id === id ? { ...f, ...patch } : f)) })),
+
+      toggleVersionPanel:  ()    => set((s) => ({ showVersionPanel: !s.showVersionPanel })),
+      setShowVersionPanel: (show) => set({ showVersionPanel: show }),
 
       setTheme:         (theme)    => set({ theme }),
       setFontSize:      (fontSize) => set({ fontSize }),
