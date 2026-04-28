@@ -42,7 +42,7 @@ export const collectionService = {
     const userId = await currentUserId()
     const { data, error } = await supabase
       .from('collections')
-      .insert({ owner_id: userId!, name: payload.name, description: payload.description, visibility: payload.visibility })
+      .insert({ owner_id: userId!, name: payload.name, description: payload.description, cover_url: payload.coverUrl ?? null, visibility: payload.visibility })
       .select('*, owner:profiles!collections_owner_id_fkey(*)')
       .single()
     if (error) throw new Error(error.message)
@@ -52,7 +52,7 @@ export const collectionService = {
   async update(id: string, payload: Partial<CreateCollectionPayload>): Promise<Collection> {
     const { data, error } = await supabase
       .from('collections')
-      .update({ name: payload.name, description: payload.description, visibility: payload.visibility })
+      .update({ name: payload.name, description: payload.description, cover_url: payload.coverUrl ?? null, visibility: payload.visibility })
       .eq('id', id)
       .select('*, owner:profiles!collections_owner_id_fkey(*)')
       .single()

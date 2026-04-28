@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Globe, Lock } from 'lucide-react'
+import { Globe, Lock, ImageIcon, X } from 'lucide-react'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
 import Textarea from '@components/ui/Textarea'
@@ -15,28 +15,37 @@ interface CollectionModalProps {
 }
 
 export default function CollectionModal({ open, onClose, onSave, initial }: CollectionModalProps) {
-  const [name, setName] = useState(initial?.name ?? '')
+  const [name, setName]             = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
+  const [coverUrl, setCoverUrl]     = useState(initial?.coverUrl ?? '')
   const [visibility, setVisibility] = useState<CollectionVisibility>(initial?.visibility ?? 'public')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]       = useState(false)
+  const [imgError, setImgError]     = useState(false)
 
   useEffect(() => {
     if (open) {
       setName(initial?.name ?? '')
       setDescription(initial?.description ?? '')
+      setCoverUrl(initial?.coverUrl ?? '')
       setVisibility(initial?.visibility ?? 'public')
+      setImgError(false)
     }
   }, [open, initial])
+
+  // Yeni URL girilince hata durumunu sıfırla
+  useEffect(() => { setImgError(false) }, [coverUrl])
 
   const handleSave = async () => {
     setLoading(true)
     try {
-      await onSave({ name, description, visibility })
+      await onSave({ name, description, coverUrl: coverUrl.trim() || undefined, visibility })
       onClose()
     } finally {
       setLoading(false)
     }
   }
+
+  const showPreview = !!coverUrl.trim() && !imgError
 
   return (
     <Modal
@@ -46,6 +55,37 @@ export default function CollectionModal({ open, onClose, onSave, initial }: Coll
       size="sm"
     >
       <div className="flex flex-col gap-4">
+        {/* Kapak fotoğrafı */}
+        <div>
+          <p className="text-sm font-medium text-gray-300 mb-1.5">Kapak Fotoğrafı</p>
+          {showPreview && (
+            <div className="relative mb-2 rounded-xl overflow-hidden h-32 bg-surface-raised">
+              <img
+                src={coverUrl.trim()}
+                alt="Kapak"
+                className="w-full h-full object-cover"
+                onError={() => setImgError(true)}
+              />
+              <button
+                type="button"
+                onClick={() => setCoverUrl('')}
+                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+          <Input
+            value={coverUrl}
+            onChange={(e) => setCoverUrl(e.target.value)}
+            placeholder="https://örnek.com/kapak.jpg"
+            leftIcon={<ImageIcon className="w-4 h-4" />}
+          />
+          {imgError && coverUrl.trim() && (
+            <p className="text-xs text-red-400 mt-1">Görsel yüklenemedi, URL'yi kontrol et.</p>
+          )}
+        </div>
+
         <Input
           label="İsim"
           value={name}
