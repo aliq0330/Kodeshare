@@ -123,7 +123,7 @@ export default function CollectionDetailPage() {
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 Gönderiler ({filteredPosts.length})
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="-mx-4 lg:mx-0 flex flex-col">
                 {filteredPosts.map((post) => (
                   <PostCard key={post.id} post={post} />
                 ))}
@@ -136,7 +136,7 @@ export default function CollectionDetailPage() {
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 Makaleler ({filteredArticles.length})
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="-mx-4 lg:mx-0 flex flex-col">
                 {filteredArticles.map((article) => (
                   <ArticleCard key={article.id} article={article} />
                 ))}

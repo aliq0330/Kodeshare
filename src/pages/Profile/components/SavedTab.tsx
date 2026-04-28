@@ -41,7 +41,7 @@ export default function SavedTab() {
       {posts.length > 0 && (
         <section>
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Gönderiler</h3>
-          <div className="flex flex-col gap-4">
+          <div className="-mx-4 lg:mx-0 flex flex-col">
             {posts.map((post) => (
               <PostCard key={post.id} post={post} onLike={likePost} onSave={savePost} />
             ))}
@@ -52,7 +52,7 @@ export default function SavedTab() {
       {articles.length > 0 && (
         <section>
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Makaleler</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="-mx-4 lg:mx-0 flex flex-col">
             {articles.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}
