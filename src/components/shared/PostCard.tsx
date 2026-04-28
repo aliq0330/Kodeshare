@@ -25,6 +25,7 @@ interface PostCardProps {
   post: Post
   onLike?: (postId: string) => void
   onSave?: (postId: string) => void
+  onRemoveFromCollection?: () => void
 }
 
 interface ArticleData {
@@ -37,7 +38,7 @@ interface ArticleData {
 // Aynı makale için birden fazla kart varsa tekrar çekmesin
 const articleDataCache = new Map<string, ArticleData>()
 
-export default function PostCard({ post, onLike, onSave }: PostCardProps) {
+export default function PostCard({ post, onLike, onSave, onRemoveFromCollection }: PostCardProps) {
   const navigate = useNavigate()
   const { isAuthenticated, user } = useAuth()
   const repostPost = usePostStore((s) => s.repostPost)
@@ -223,6 +224,16 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
             <FolderPlus className="w-4 h-4 text-gray-500" />
             <span className="text-white">Koleksiyona ekle</span>
           </button>
+          {onRemoveFromCollection && (
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); onRemoveFromCollection() }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+            >
+              <FolderPlus className="w-4 h-4 text-red-400" />
+              <span className="text-red-400">Bu koleksiyondan çıkar</span>
+            </button>
+          )}
           {isOwner && isOwnerPost && !displayArticleId && (
             <button
               type="button"

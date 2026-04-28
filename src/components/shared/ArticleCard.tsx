@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Heart, MessageCircle, Bookmark, Share2, FolderPlus, BarChart2, MoreHorizontal } from 'lucide-react'
+import { BookOpen, Heart, MessageCircle, Bookmark, Share2, FolderPlus, BarChart2, MoreHorizontal, FolderMinus } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ArticleShareModal from '@modules/social/ArticleShareModal'
@@ -13,9 +13,10 @@ import toast from 'react-hot-toast'
 
 interface ArticleCardProps {
   article: ArticleRecord
+  onRemoveFromCollection?: () => void
 }
 
-export default function ArticleCard({ article: initialArticle }: ArticleCardProps) {
+export default function ArticleCard({ article: initialArticle, onRemoveFromCollection }: ArticleCardProps) {
   const [article, setArticle]       = useState(initialArticle)
   const [menuOpen, setMenuOpen]     = useState(false)
   const [collectOpen, setCollectOpen] = useState(false)
@@ -105,6 +106,16 @@ export default function ArticleCard({ article: initialArticle }: ArticleCardProp
                         <FolderPlus className="w-4 h-4 text-brand-400" />
                         <span className="text-white">Koleksiyona ekle</span>
                       </button>
+                      {onRemoveFromCollection && (
+                        <button
+                          type="button"
+                          onClick={() => { setMenuOpen(false); onRemoveFromCollection() }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                        >
+                          <FolderMinus className="w-4 h-4 text-red-400" />
+                          <span className="text-red-400">Bu koleksiyondan çıkar</span>
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => { setStatsOpen(true); setMenuOpen(false) }}

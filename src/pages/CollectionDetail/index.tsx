@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Folder, Lock, Search, X } from 'lucide-react'
+import { ArrowLeft, Folder, Lock, Search } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import PostCard from '@components/shared/PostCard'
@@ -159,19 +159,11 @@ export default function CollectionDetailPage() {
               </h3>
               <div className="-mx-4 lg:mx-0 flex flex-col">
                 {filteredPosts.map((post) => (
-                  <div key={post.id} className="relative group/item">
-                    <PostCard post={post} />
-                    {isOwner && (
-                      <button
-                        onClick={() => removePost(post.id)}
-                        disabled={removing === post.id}
-                        className="absolute top-3 right-3 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs disabled:opacity-40"
-                      >
-                        <X className="w-3 h-3" />
-                        Çıkar
-                      </button>
-                    )}
-                  </div>
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onRemoveFromCollection={isOwner ? () => removePost(post.id) : undefined}
+                  />
                 ))}
               </div>
             </section>
@@ -184,19 +176,11 @@ export default function CollectionDetailPage() {
               </h3>
               <div className="-mx-4 lg:mx-0 flex flex-col">
                 {filteredArticles.map((article) => (
-                  <div key={article.id} className="relative group/item">
-                    <ArticleCard article={article} />
-                    {isOwner && (
-                      <button
-                        onClick={() => removeArticle(article.id)}
-                        disabled={removing === article.id}
-                        className="absolute top-3 right-3 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs disabled:opacity-40"
-                      >
-                        <X className="w-3 h-3" />
-                        Çıkar
-                      </button>
-                    )}
-                  </div>
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    onRemoveFromCollection={isOwner ? () => removeArticle(article.id) : undefined}
+                  />
                 ))}
               </div>
             </section>
