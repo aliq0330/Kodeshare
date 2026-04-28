@@ -1,17 +1,18 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Folder, Lock, Search } from 'lucide-react'
+import { ArrowLeft, Folder, Lock, Search, Pencil } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import PostCard from '@components/shared/PostCard'
 import ArticleCard from '@components/shared/ArticleCard'
 import Input from '@components/ui/Input'
 import Spinner from '@components/ui/Spinner'
+import CollectionModal from '@collections/CollectionModal'
 import { collectionService } from '@services/collectionService'
 import { articleService } from '@services/articleService'
 import { useAuthStore } from '@store/authStore'
 import toast from 'react-hot-toast'
-import type { Collection, PostPreview } from '@/types'
+import type { Collection, PostPreview, CreateCollectionPayload } from '@/types'
 import type { ArticleRecord } from '@services/articleService'
 
 export default function CollectionDetailPage() {
@@ -23,6 +24,7 @@ export default function CollectionDetailPage() {
   const [isLoading, setIsLoading]   = useState(true)
   const [query, setQuery]           = useState('')
   const [removing, setRemoving]     = useState<string | null>(null)
+  const [editOpen, setEditOpen]     = useState(false)
 
   useEffect(() => {
     if (!collectionId) return
@@ -42,6 +44,13 @@ export default function CollectionDetailPage() {
   }, [collectionId])
 
   const isOwner = !!user && !!collection && user.id === collection.owner.id
+
+  const handleEdit = async (payload: CreateCollectionPayload) => {
+    if (!collectionId) return
+    const updated = await collectionService.update(collectionId, payload)
+    setCollection(updated)
+    toast.success('Koleksiyon güncellendi')
+  }
 
   const removePost = async (postId: string) => {
     if (!collectionId) return
@@ -115,6 +124,15 @@ export default function CollectionDetailPage() {
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-white">{collection.name}</h1>
               {collection.visibility === 'private' && <Lock className="w-4 h-4 text-gray-500" />}
+              {isOwner && (
+                <button
+                  onClick={() => setEditOpen(true)}
+                  className="p-1 rounded-md text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                  title="Düzenle"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <Link to={`/profile/${collection.owner.username}`} className="flex items-center gap-1.5">
@@ -130,6 +148,15 @@ export default function CollectionDetailPage() {
           <p className="text-sm text-gray-400 mt-4">{collection.description}</p>
         )}
       </div>
+
+      {isOwner && (
+        <CollectionModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSave={handleEdit}
+          initial={collection}
+        />
+      )}
 
       {/* Search */}
       <Input

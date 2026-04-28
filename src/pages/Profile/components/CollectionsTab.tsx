@@ -75,21 +75,21 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
                   ) : (
                     <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                   )}
+                  {isOwn && (
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditTarget(col) }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white shrink-0"
+                      title="Düzenle"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
                 {col.description && (
                   <p className="text-sm text-gray-500 line-clamp-2">{col.description}</p>
                 )}
                 <Badge variant="default">{col.postsCount} gönderi</Badge>
               </Link>
-              {isOwn && (
-                <button
-                  onClick={(e) => { e.preventDefault(); setEditTarget(col) }}
-                  className="absolute top-3 right-8 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white"
-                  title="Düzenle"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-              )}
             </div>
           ))}
         </div>
