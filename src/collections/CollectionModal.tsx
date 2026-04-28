@@ -66,7 +66,7 @@ export default function CollectionModal({ open, onClose, onSave, initial }: Coll
                 className={cn(
                   'flex items-center gap-2 p-3 rounded-lg border text-sm transition-colors',
                   visibility === id
-                    ? 'border-brand-500 bg-brand-900/20 text-brand-300'
+                    ? 'border-brand-500 bg-brand-500/10 text-brand-500'
                     : 'border-surface-border text-gray-500 hover:border-surface-raised hover:text-gray-300',
                 )}
               >
