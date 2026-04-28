@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Globe, Lock } from 'lucide-react'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
@@ -19,6 +19,14 @@ export default function CollectionModal({ open, onClose, onSave, initial }: Coll
   const [description, setDescription] = useState(initial?.description ?? '')
   const [visibility, setVisibility] = useState<CollectionVisibility>(initial?.visibility ?? 'public')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setName(initial?.name ?? '')
+      setDescription(initial?.description ?? '')
+      setVisibility(initial?.visibility ?? 'public')
+    }
+  }, [open, initial])
 
   const handleSave = async () => {
     setLoading(true)
