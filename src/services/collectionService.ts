@@ -15,7 +15,7 @@ export const collectionService = {
     const userId = await currentUserId()
     let q = supabase
       .from('collections')
-      .select('*, owner:profiles!collections_owner_id_fkey(*)')
+      .select('*, owner:profiles!collections_owner_id_fkey(*), collection_articles(count)')
       .eq('owner_id', (profile as { id: string }).id)
       .order('updated_at', { ascending: false })
 
@@ -31,7 +31,7 @@ export const collectionService = {
   async getCollection(id: string): Promise<Collection> {
     const { data, error } = await supabase
       .from('collections')
-      .select(`*, owner:profiles!collections_owner_id_fkey(*)`)
+      .select(`*, owner:profiles!collections_owner_id_fkey(*), collection_articles(count)`)
       .eq('id', id)
       .single()
     if (error) throw new Error(error.message)
@@ -124,13 +124,15 @@ export const collectionService = {
 }
 
 function mapCollection(c: Record<string, unknown>): Collection {
+  const articlesCountArr = c.collection_articles as { count: number }[] | undefined
+  const articlesCount = articlesCountArr?.[0]?.count ?? 0
   return {
     id:          c.id as string,
     name:        c.name as string,
     description: c.description as string | null,
     coverUrl:    c.cover_url as string | null,
     visibility:  c.visibility as 'public' | 'private',
-    postsCount:  c.posts_count as number,
+    postsCount:  (c.posts_count as number) + articlesCount,
     owner:       mapProfile(c.owner as Record<string, unknown>),
     posts:       [],
     createdAt:   c.created_at as string,
