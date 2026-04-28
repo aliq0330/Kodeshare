@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import {
   X, Plus, RotateCcw, GitCompare, Trash2, Clock, Tag, ChevronDown, ChevronUp,
   CheckCircle2, Loader2, Maximize2, Minimize2, Search, Pin, PinOff, FileCode,
-  Eye, Download, FileText, Hash,
+  Eye, Download, FileText, Hash, ArrowLeft,
 } from 'lucide-react'
 import { projectVersionService, type ProjectVersion, type ProjectVersionFile } from '@services/projectVersionService'
 import { fullDate, timeAgo } from '@utils/formatters'
@@ -71,6 +71,23 @@ function savePins(pins: Set<string>) {
   try { localStorage.setItem(PIN_KEY, JSON.stringify(Array.from(pins))) } catch { /* noop */ }
 }
 
+const MOBILE_QUERY = '(max-width: 767px)'
+
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia(MOBILE_QUERY).matches
+  })
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia(MOBILE_QUERY)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isMobile
+}
+
 export default function ProjectVersionPanel({
   open, onClose, projectId, projectTitle, currentFiles, onRestore, ui,
 }: Props) {
@@ -84,12 +101,18 @@ export default function ProjectVersionPanel({
   const [diffPair,      setDiffPair]      = useState<{ a: ProjectVersion; bFiles: ProjectVersionFile[]; rightLabel: string } | null>(null)
   const [expandedId,    setExpandedId]    = useState<string | null>(null)
 
-  const [fullscreen, setFullscreen]   = useState(false)
+  const isMobile = useIsMobile()
+  const [fullscreen, setFullscreen]   = useState<boolean>(isMobile)
   const [search, setSearch]           = useState('')
   const [pins, setPins]               = useState<Set<string>>(() => loadPins())
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [previewId, setPreviewId]     = useState<string | null>(null)
   const [previewFileIdx, setPreviewFileIdx] = useState(0)
+  const [mobileView, setMobileView]   = useState<'list' | 'detail'>('list')
+
+  // On mobile, always run in fullscreen — the side-panel layout doesn't fit
+  // the rich features the user expects to see at a glance.
+  useEffect(() => { if (isMobile) setFullscreen(true) }, [isMobile])
 
   const labelRef = useRef<HTMLInputElement>(null)
 
@@ -110,7 +133,7 @@ export default function ProjectVersionPanel({
   }, [showSaveForm])
 
   useEffect(() => {
-    if (!open) { setSelectedIds([]); setSearch('') }
+    if (!open) { setSelectedIds([]); setSearch(''); setMobileView('list') }
   }, [open])
 
   useEffect(() => { setPreviewFileIdx(0) }, [previewId])
@@ -258,44 +281,60 @@ export default function ProjectVersionPanel({
   const noProject = !projectId
 
   // ── Sub-renderers ─────────────────────────────────────────────────
-  const renderHeader = () => (
-    <div
-      className="flex items-center justify-between px-4 py-3 shrink-0"
-      style={{ borderBottom: `1px solid ${ui.border}` }}
-    >
-      <div className="flex items-center gap-2">
-        <Clock className="w-4 h-4" style={{ color: '#8aa8ff' }} />
-        <h2 className="text-sm font-semibold" style={{ color: ui.text }}>
-          Versiyon Geçmişi
-        </h2>
-        {versions.length > 0 && (
-          <span
-            className="text-[10px] px-1.5 py-0.5 rounded-full"
-            style={{ background: ui.raisedBg, color: ui.textMuted }}
+  const renderHeader = () => {
+    const showBack = isMobile && fullscreen && mobileView === 'detail'
+    return (
+      <div
+        className="flex items-center justify-between px-4 py-3 shrink-0"
+        style={{ borderBottom: `1px solid ${ui.border}` }}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          {showBack ? (
+            <button
+              onClick={() => setMobileView('list')}
+              className="p-1.5 -ml-1.5 rounded transition-colors"
+              style={{ color: ui.text }}
+              title="Listeye dön"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          ) : (
+            <Clock className="w-4 h-4" style={{ color: '#8aa8ff' }} />
+          )}
+          <h2 className="text-sm font-semibold truncate" style={{ color: ui.text }}>
+            {showBack ? (previewVersion ? `v${previewVersion.versionNumber}` : 'Versiyon') : 'Versiyon Geçmişi'}
+          </h2>
+          {!showBack && versions.length > 0 && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded-full"
+              style={{ background: ui.raisedBg, color: ui.textMuted }}
+            >
+              {versions.length}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {!isMobile && (
+            <button
+              onClick={() => setFullscreen((f) => !f)}
+              className="p-1.5 rounded transition-colors"
+              style={{ color: ui.textMuted }}
+              title={fullscreen ? 'Yan panele geç' : 'Tam ekran'}
+            >
+              {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded transition-colors"
+            style={{ color: ui.textMuted }}
           >
-            {versions.length}
-          </span>
-        )}
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => setFullscreen((f) => !f)}
-          className="p-1.5 rounded transition-colors"
-          style={{ color: ui.textMuted }}
-          title={fullscreen ? 'Yan panele geç' : 'Tam ekran'}
-        >
-          {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </button>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded transition-colors"
-          style={{ color: ui.textMuted }}
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  )
+    )
+  }
 
   const renderSaveForm = () => (
     <div className="px-4 py-3 shrink-0" style={{ borderBottom: `1px solid ${ui.border}` }}>
@@ -376,8 +415,12 @@ export default function ProjectVersionPanel({
             outlineOffset: '-1px',
           }}
           onClick={() => {
-            if (fullscreen) setPreviewId(v.id)
-            else setExpandedId(isExpanded ? null : v.id)
+            if (fullscreen) {
+              setPreviewId(v.id)
+              if (isMobile) setMobileView('detail')
+            } else {
+              setExpandedId(isExpanded ? null : v.id)
+            }
           }}
           onMouseEnter={(e) => { if (!isPreview) e.currentTarget.style.background = ui.raisedBg }}
           onMouseLeave={(e) => { if (!isPreview) e.currentTarget.style.background = 'transparent' }}
@@ -601,9 +644,11 @@ export default function ProjectVersionPanel({
       >
         {renderHeader()}
 
-        {/* Toolbar */}
+        {/* Toolbar — hidden on mobile detail view */}
         <div
-          className="flex items-center gap-2 px-4 py-2 shrink-0 flex-wrap"
+          className={`items-center gap-2 px-4 py-2 shrink-0 flex-wrap ${
+            isMobile && mobileView === 'detail' ? 'hidden' : 'flex'
+          }`}
           style={{ borderBottom: `1px solid ${ui.border}` }}
         >
           <div className="relative flex-1 min-w-[200px] max-w-md">
@@ -646,10 +691,14 @@ export default function ProjectVersionPanel({
         </div>
 
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: list */}
+          {/* Left: list — full width on mobile list view, fixed width on desktop, hidden on mobile detail view */}
           <div
-            className="w-full md:w-96 lg:w-[380px] flex flex-col shrink-0"
-            style={{ borderRight: `1px solid ${ui.border}` }}
+            className={`flex-col shrink-0 ${
+              isMobile
+                ? (mobileView === 'list' ? 'flex w-full' : 'hidden')
+                : 'flex w-full md:w-96 lg:w-[380px]'
+            }`}
+            style={{ borderRight: isMobile ? undefined : `1px solid ${ui.border}` }}
           >
             {renderSaveForm()}
             <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
@@ -664,12 +713,16 @@ export default function ProjectVersionPanel({
             )}
           </div>
 
-          {/* Right: detail / preview */}
-          <div className="flex-1 hidden md:flex flex-col overflow-hidden">
+          {/* Right: detail / preview — full width on mobile detail, side pane on desktop */}
+          <div className={`flex-1 flex-col overflow-hidden ${
+            isMobile
+              ? (mobileView === 'detail' ? 'flex' : 'hidden')
+              : 'hidden md:flex'
+          }`}>
             {previewVersion ? (
               <>
-                <div className="px-6 py-4 shrink-0" style={{ borderBottom: `1px solid ${ui.border}` }}>
-                  <div className="flex items-start justify-between gap-3">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 shrink-0" style={{ borderBottom: `1px solid ${ui.border}` }}>
+                  <div className="flex items-start justify-between gap-3 flex-col sm:flex-row">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
@@ -696,7 +749,7 @@ export default function ProjectVersionPanel({
                         {fullDate(previewVersion.createdAt)} · {timeAgo(previewVersion.createdAt)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                    <div className="flex items-center gap-1 shrink-0 flex-wrap w-full sm:w-auto">
                       <button
                         onClick={() => setDiffPair({ a: previewVersion, bFiles: currentFiles, rightLabel: 'Mevcut durum' })}
                         className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs transition-colors"
@@ -705,7 +758,8 @@ export default function ProjectVersionPanel({
                         onMouseLeave={(e) => { e.currentTarget.style.color = ui.textMuted }}
                       >
                         <GitCompare className="w-3.5 h-3.5" style={{ color: '#8aa8ff' }} />
-                        Mevcutla karşılaştır
+                        <span className="hidden sm:inline">Mevcutla karşılaştır</span>
+                        <span className="sm:hidden">Karşılaştır</span>
                       </button>
                       <button
                         onClick={() => handleRestore(previewVersion)}
@@ -727,9 +781,20 @@ export default function ProjectVersionPanel({
                         İndir
                       </button>
                       <button
+                        onClick={() => togglePin(previewVersion.id)}
+                        className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs transition-colors"
+                        style={{ background: ui.raisedBg, border: `1px solid ${ui.border}`, color: ui.textMuted }}
+                        title={pins.has(previewVersion.id) ? 'Sabitlemeyi kaldır' : 'Sabitle'}
+                      >
+                        {pins.has(previewVersion.id)
+                          ? <PinOff className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />
+                          : <Pin className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />}
+                        <span className="hidden sm:inline">{pins.has(previewVersion.id) ? 'Çıkar' : 'Sabitle'}</span>
+                      </button>
+                      <button
                         onClick={() => handleDelete(previewVersion)}
                         disabled={deleting === previewVersion.id || pins.has(previewVersion.id)}
-                        className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs disabled:opacity-40 transition-colors"
+                        className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs disabled:opacity-40 transition-colors ml-auto sm:ml-0"
                         style={{ border: '1px solid transparent', color: ui.border }}
                         title={pins.has(previewVersion.id) ? 'Sabitlenmiş versiyon silinemez' : 'Sil'}
                       >
