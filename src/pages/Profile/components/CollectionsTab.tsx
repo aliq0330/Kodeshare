@@ -65,30 +65,40 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
             <div key={col.id} className="relative group">
               <Link
                 to={`/collection/${col.id}`}
-                className="card p-4 hover:border-brand-500/50 transition-colors flex flex-col gap-2 block"
+                className="card hover:border-brand-500/50 transition-colors flex flex-col gap-0 block overflow-hidden"
               >
-                <div className="flex items-center gap-2">
-                  <Folder className="w-5 h-5 text-brand-400 shrink-0" />
-                  <span className="font-medium text-white group-hover:text-brand-300 transition-colors truncate flex-1">{col.name}</span>
-                  {col.visibility === 'private' ? (
-                    <Lock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                  ) : (
-                    <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" />
-                  )}
-                  {isOwn && (
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditTarget(col) }}
-                      className="p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white shrink-0 transition-colors"
-                      title="Düzenle"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-                {col.description && (
-                  <p className="text-sm text-gray-500 line-clamp-2">{col.description}</p>
+                {col.coverUrl ? (
+                  <div className="h-28 w-full bg-surface-raised">
+                    <img src={col.coverUrl} alt="Kapak" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-20 w-full bg-gradient-to-br from-brand-900/60 to-surface-raised flex items-center justify-center">
+                    <Folder className="w-7 h-7 text-brand-700" />
+                  </div>
                 )}
-                <Badge variant="default">{col.postsCount} gönderi</Badge>
+                <div className="p-3 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-white group-hover:text-brand-300 transition-colors truncate flex-1 text-sm">{col.name}</span>
+                    {col.visibility === 'private' ? (
+                      <Lock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                    ) : (
+                      <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+                    )}
+                    {isOwn && (
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditTarget(col) }}
+                        className="p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white shrink-0 transition-colors"
+                        title="Düzenle"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {col.description && (
+                    <p className="text-xs text-gray-500 line-clamp-2">{col.description}</p>
+                  )}
+                  <Badge variant="default">{col.postsCount} gönderi</Badge>
+                </div>
               </Link>
             </div>
           ))}
