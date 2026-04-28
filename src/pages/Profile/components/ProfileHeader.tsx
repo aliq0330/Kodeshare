@@ -5,6 +5,7 @@ import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import FollowButton from '@modules/social/FollowButton'
 import Spinner from '@components/ui/Spinner'
+import FollowersModal from './FollowersModal'
 import { compactNumber } from '@utils/formatters'
 import { useAuthStore } from '@store/authStore'
 import { userService } from '@services/userService'
@@ -27,6 +28,7 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
   const [isPendingRequest, setIsPendingRequest] = useState(false)
   const [loading, setLoading] = useState(true)
   const [messageLoading, setMessageLoading] = useState(false)
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -147,16 +149,31 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
             <span className="font-semibold text-white">{compactNumber(profile.postsCount)}</span>
             <span className="text-gray-500 ml-1">gönderi</span>
           </div>
-          <div>
+          <button
+            onClick={() => setFollowModal('followers')}
+            className="hover:text-white transition-colors text-left"
+          >
             <span className="font-semibold text-white">{compactNumber(profile.followersCount)}</span>
             <span className="text-gray-500 ml-1">takipçi</span>
-          </div>
-          <div>
+          </button>
+          <button
+            onClick={() => setFollowModal('following')}
+            className="hover:text-white transition-colors text-left"
+          >
             <span className="font-semibold text-white">{compactNumber(profile.followingCount)}</span>
             <span className="text-gray-500 ml-1">takip</span>
-          </div>
+          </button>
         </div>
       </div>
+
+      {followModal && (
+        <FollowersModal
+          open
+          onClose={() => setFollowModal(null)}
+          username={username}
+          type={followModal}
+        />
+      )}
     </div>
   )
 }

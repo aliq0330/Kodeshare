@@ -8,7 +8,6 @@ import CollectionsTab from './components/CollectionsTab'
 import SeriesTab from './components/SeriesTab'
 import LikesTab from './components/LikesTab'
 import SavedTab from './components/SavedTab'
-import FollowersTab from './components/FollowersTab'
 import { useAuthStore } from '@store/authStore'
 import type { User } from '@/types'
 
@@ -31,8 +30,6 @@ export default function ProfilePage() {
     { id: 'series',      label: 'Seriler' },
     ...(showLikesTab ? [{ id: 'likes', label: 'Beğenilenler' }] : []),
     ...(isOwn ? [{ id: 'saved', label: 'Kaydedilenler' }] : []),
-    { id: 'followers',   label: 'Takipçiler' },
-    { id: 'following',   label: 'Takip' },
   ]
 
   return (
@@ -66,8 +63,6 @@ export default function ProfilePage() {
           {activeTab === 'series'      && <SeriesTab username={username} isOwn={isOwn} />}
           {activeTab === 'likes'       && <LikesTab username={username} />}
           {activeTab === 'saved'       && isOwn && <SavedTab />}
-          {activeTab === 'followers'   && <FollowersTab username={username} type="followers" />}
-          {activeTab === 'following'   && <FollowersTab username={username} type="following" />}
         </>
       )}
     </div>
