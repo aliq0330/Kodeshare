@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import {
   X, Plus, RotateCcw, GitCompare, Trash2, Clock, Tag, ChevronDown, ChevronUp,
   CheckCircle2, Loader2, Maximize2, Minimize2, Search, Pin, PinOff, FileCode,
-  Eye, Download, FileText, Hash, ArrowLeft,
+  Eye, Download, FileText, Hash, ArrowLeft, Copy, Check, RefreshCw,
 } from 'lucide-react'
 import { projectVersionService, type ProjectVersion, type ProjectVersionFile } from '@services/projectVersionService'
 import { fullDate, timeAgo } from '@utils/formatters'
@@ -41,6 +41,18 @@ function formatBytes(n: number): string {
   if (n < 1024) return `${n}B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)}KB`
   return `${(n / 1024 / 1024).toFixed(2)}MB`
+}
+
+function computeFilesChanged(oldFiles: ProjectVersionFile[], newFiles: ProjectVersionFile[]): number {
+  let changed = 0
+  for (const nf of newFiles) {
+    const of_ = oldFiles.find((f) => f.name === nf.name)
+    if (!of_ || of_.content !== nf.content) changed++
+  }
+  for (const of_ of oldFiles) {
+    if (!newFiles.find((f) => f.name === of_.name)) changed++
+  }
+  return changed
 }
 
 function groupKey(date: Date): 'today' | 'yesterday' | 'week' | 'month' | 'older' {
@@ -102,13 +114,20 @@ export default function ProjectVersionPanel({
   const [expandedId,    setExpandedId]    = useState<string | null>(null)
 
   const isMobile = useIsMobile()
-  const [fullscreen, setFullscreen]   = useState<boolean>(isMobile)
+  // Default fullscreen on all devices so tablet/desktop also gets the dual-pane view.
+  // Users can click the minimize button to switch to compact side-panel.
+  const [fullscreen, setFullscreen]   = useState<boolean>(true)
   const [search, setSearch]           = useState('')
   const [pins, setPins]               = useState<Set<string>>(() => loadPins())
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [previewId, setPreviewId]     = useState<string | null>(null)
   const [previewFileIdx, setPreviewFileIdx] = useState(0)
   const [mobileView, setMobileView]   = useState<'list' | 'detail'>('list')
+  const [copiedFileId, setCopiedFileId] = useState<string | null>(null)
+  const [autoSave, setAutoSave]         = useState(false)
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null)
+  const currentFilesRef = useRef<ProjectVersionFile[]>(currentFiles)
+  const filteredRef     = useRef<ProjectVersion[]>([])
 
   // On mobile, always run in fullscreen — the side-panel layout doesn't fit
   // the rich features the user expects to see at a glance.
@@ -137,6 +156,50 @@ export default function ProjectVersionPanel({
   }, [open])
 
   useEffect(() => { setPreviewFileIdx(0) }, [previewId])
+
+  // Keep refs in sync so callbacks don't close over stale values
+  useEffect(() => { currentFilesRef.current = currentFiles }, [currentFiles])
+
+  // Auto-save: save a version every 5 minutes when enabled
+  useEffect(() => {
+    if (!autoSave || !open || !projectId) return
+    const handle = setInterval(async () => {
+      try {
+        const v = await projectVersionService.saveVersion({
+          projectId,
+          title: projectTitle || 'Başlıksız Proje',
+          files: currentFilesRef.current.map((f) => ({
+            id: f.id, name: f.name, language: f.language, content: f.content,
+          })),
+          label: 'Otomatik',
+        })
+        setVersions((prev) => [v, ...prev])
+        setLastAutoSave(new Date())
+      } catch { /* silent — auto-save failures are non-critical */ }
+    }, 5 * 60 * 1000)
+    return () => clearInterval(handle)
+  }, [autoSave, open, projectId, projectTitle])
+
+  // Keyboard navigation: ↑/↓ to browse versions in the list
+  useEffect(() => {
+    if (!open || !fullscreen) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+      e.preventDefault()
+      setPreviewId((prev) => {
+        const list = filteredRef.current
+        const idx  = list.findIndex((v) => v.id === prev)
+        if (e.key === 'ArrowUp' && idx > 0) return list[idx - 1].id
+        if (e.key === 'ArrowDown' && idx === -1 && list.length > 0) return list[0].id
+        if (e.key === 'ArrowDown' && idx >= 0 && idx < list.length - 1) return list[idx + 1].id
+        return prev
+      })
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open, fullscreen])
+
 
   const togglePin = (id: string) => {
     setPins((prev) => {
@@ -215,6 +278,13 @@ export default function ProjectVersionPanel({
     toast.success('Versiyon indirildi')
   }
 
+  const handleCopyFile = (content: string, id: string) => {
+    navigator.clipboard.writeText(content ?? '').then(() => {
+      setCopiedFileId(id)
+      setTimeout(() => setCopiedFileId(null), 1500)
+    })
+  }
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id)
@@ -276,6 +346,20 @@ export default function ProjectVersionPanel({
 
   const currentStats = useMemo(() => computeStats(currentFiles), [currentFiles])
 
+  // How many files changed between each version and the one before it
+  const fileDiffs = useMemo(() => {
+    const map = new Map<string, number>()
+    for (let i = 0; i < versions.length; i++) {
+      const curr = versions[i]
+      const prev = versions[i + 1]
+      if (prev) map.set(curr.id, computeFilesChanged(prev.files, curr.files))
+    }
+    return map
+  }, [versions])
+
+  // Keep filteredRef current so keyboard handler doesn't close over stale list
+  filteredRef.current = filtered
+
   if (!open) return null
 
   const noProject = !projectId
@@ -314,6 +398,21 @@ export default function ProjectVersionPanel({
           )}
         </div>
         <div className="flex items-center gap-1">
+          {/* Auto-save toggle */}
+          {!showBack && !noProject && (
+            <button
+              onClick={() => setAutoSave((a) => !a)}
+              className="p-1.5 rounded transition-colors"
+              style={{ color: autoSave ? '#34d399' : ui.textMuted }}
+              title={
+                autoSave
+                  ? `Otomatik kayıt aktif (5 dk'da bir)${lastAutoSave ? ` · Son: ${timeAgo(lastAutoSave)}` : ''} — kapatmak için tıkla`
+                  : 'Otomatik kayıt (5 dk\'da bir)'
+              }
+            >
+              <RefreshCw className="w-4 h-4" style={autoSave ? { animation: 'spin 3s linear infinite' } : {}} />
+            </button>
+          )}
           {!isMobile && (
             <button
               onClick={() => setFullscreen((f) => !f)}
@@ -461,6 +560,11 @@ export default function ProjectVersionPanel({
             </p>
             <p className="text-xs mt-0.5 truncate" style={{ color: ui.textMuted }}>
               {stats.fileCount} dosya · {stats.lineCount} satır · {formatBytes(stats.byteCount)}
+              {fileDiffs.get(v.id) !== undefined && (
+                <span className="ml-1.5 text-[10px] font-medium" style={{ color: '#8aa8ff' }}>
+                  · {fileDiffs.get(v.id)} değişik
+                </span>
+              )}
             </p>
           </div>
 
@@ -599,10 +703,10 @@ export default function ProjectVersionPanel({
         <div
           className="fixed z-[70] flex flex-col
             bottom-0 left-0 right-0 rounded-t-2xl max-h-[85vh]
-            lg:top-0 lg:right-0 lg:bottom-0 lg:left-auto lg:rounded-none lg:w-80 lg:max-h-none"
+            md:top-0 md:right-0 md:bottom-0 md:left-auto md:rounded-none md:w-96 md:max-h-none"
           style={{ background: ui.panelBg, borderColor: ui.border, borderTop: `1px solid ${ui.border}` }}
         >
-          <div className="lg:hidden flex justify-center pt-3 pb-1 shrink-0">
+          <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
             <div className="w-10 h-1 rounded-full" style={{ background: ui.border }} />
           </div>
           {renderHeader()}
@@ -849,14 +953,30 @@ export default function ProjectVersionPanel({
                 )}
 
                 {/* File content */}
-                <div className="flex-1 overflow-auto">
+                <div className="flex-1 overflow-auto relative">
                   {previewFile ? (
-                    <pre
-                      className="font-mono text-[12px] leading-5 p-4 m-0"
-                      style={{ color: ui.text }}
-                    >
-                      <code>{previewFile.content || '(boş)'}</code>
-                    </pre>
+                    <>
+                      <button
+                        onClick={() => handleCopyFile(previewFile.content || '', previewFile.id || previewFile.name)}
+                        className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-1 rounded text-[11px] transition-colors"
+                        style={{
+                          background: ui.raisedBg,
+                          border: `1px solid ${ui.border}`,
+                          color: copiedFileId === (previewFile.id || previewFile.name) ? '#34d399' : ui.textMuted,
+                        }}
+                        title="Kodu kopyala"
+                      >
+                        {copiedFileId === (previewFile.id || previewFile.name)
+                          ? <><Check className="w-3 h-3" /> Kopyalandı</>
+                          : <><Copy className="w-3 h-3" /> Kopyala</>}
+                      </button>
+                      <pre
+                        className="font-mono text-[12px] leading-5 p-4 m-0 pt-10"
+                        style={{ color: ui.text }}
+                      >
+                        <code>{previewFile.content || '(boş)'}</code>
+                      </pre>
+                    </>
                   ) : (
                     <div className="flex items-center justify-center py-16 text-sm" style={{ color: ui.textMuted }}>
                       Bu versiyonda dosya yok
