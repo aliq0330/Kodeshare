@@ -406,7 +406,7 @@ export default function ProjectVersionPanel({
               style={{ color: autoSave ? '#34d399' : ui.textMuted }}
               title={
                 autoSave
-                  ? `Otomatik kayıt aktif (5 dk'da bir)${lastAutoSave ? ` · Son: ${timeAgo(lastAutoSave)}` : ''} — kapatmak için tıkla`
+                  ? `Otomatik kayıt aktif (5 dk'da bir)${lastAutoSave ? ` · Son: ${timeAgo(lastAutoSave.toISOString())}` : ''} — kapatmak için tıkla`
                   : 'Otomatik kayıt (5 dk\'da bir)'
               }
             >
