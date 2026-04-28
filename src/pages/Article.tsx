@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Send, Clock, CheckCheck, MoreHorizontal, Eye, Link2, Globe, EyeOff, Copy } from 'lucide-react'
+import { ArrowLeft, Save, Send, Clock, CheckCheck, MoreHorizontal, Eye, Link2, Globe, EyeOff, Copy, History } from 'lucide-react'
 import { cn } from '@utils/cn'
 import { useArticleStore, type ArticleBlock } from '@store/articleStore'
 import ArticleEditor from '@modules/article/ArticleEditor'
+import VersionHistoryPanel from '@modules/article/VersionHistoryPanel'
 import CodeBlockPreview from '@modules/article/blocks/CodeBlockPreview'
 import PostEmbedBlock from '@modules/article/blocks/PostEmbedBlock'
 import toast from 'react-hot-toast'
@@ -42,8 +43,9 @@ export default function ArticlePage() {
     reset, saveArticle, publishArticle, unpublishArticle,
   } = useArticleStore()
 
-  const [showPreview,   setShowPreview]   = useState(false)
-  const [menuOpen,      setMenuOpen]      = useState(false)
+  const [showPreview,    setShowPreview]    = useState(false)
+  const [menuOpen,       setMenuOpen]       = useState(false)
+  const [showVersions,   setShowVersions]   = useState(false)
 
   useEffect(() => () => reset(), [reset])
 
@@ -121,6 +123,23 @@ export default function ArticlePage() {
               >
                 <Link2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Link</span>
+              </button>
+            )}
+
+            {/* Versiyon geçmişi */}
+            {supabaseId && (
+              <button
+                onClick={() => setShowVersions((v) => !v)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 h-8 rounded-lg text-sm transition-colors',
+                  showVersions
+                    ? 'bg-surface-raised text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-surface-raised',
+                )}
+                title="Versiyon geçmişi"
+              >
+                <History className="w-4 h-4" />
+                <span className="hidden sm:inline">Geçmiş</span>
               </button>
             )}
 
@@ -215,9 +234,11 @@ export default function ArticlePage() {
       </header>
 
       {/* ── İçerik alanı ── */}
-      <main className="flex-1 pt-14">
+      <main className={cn('flex-1 pt-14 transition-all duration-300', showVersions && 'lg:mr-80')}>
         {showPreview ? <ArticlePreview /> : <ArticleEditor />}
       </main>
+
+      <VersionHistoryPanel open={showVersions} onClose={() => setShowVersions(false)} />
     </div>
   )
 }
