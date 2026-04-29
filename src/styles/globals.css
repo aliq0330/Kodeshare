@@ -155,6 +155,15 @@ html.dark svg {
   color: white !important;
 }
 
+/* Also force stroke on inner path/circle/line elements (Tabler uses stroke="currentColor") */
+:root svg *:not([stroke="none"]),
+html.light svg *:not([stroke="none"]) {
+  stroke: black !important;
+}
+html.dark svg *:not([stroke="none"]) {
+  stroke: white !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
