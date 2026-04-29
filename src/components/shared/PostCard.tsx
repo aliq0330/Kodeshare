@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeat, IconFolderPlus, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
+import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeat, IconFolderPlus, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2, IconStack2 } from '@tabler/icons-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
+import AddToSeriesModal from '@modules/series/AddToSeriesModal'
 import ShareModal from '@modules/social/ShareModal'
 import PostStatsModal from '@modules/post/PostStatsModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
@@ -49,6 +50,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [seriesModalOpen, setSeriesModalOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleted, setDeleted] = useState(false)
   const [localPost, setLocalPost] = useState(post)
@@ -225,6 +227,16 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             <IconFolderPlus className="w-4 h-4 text-gray-500" />
             <span className="text-white">Koleksiyona ekle</span>
           </button>
+          {isOwner && isOwnerPost && !displayArticleId && (
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+            >
+              <IconStack2 className="w-4 h-4 text-gray-500" />
+              <span className="text-white">Seriye ekle</span>
+            </button>
+          )}
           {onRemoveFromCollection && (
             <button
               type="button"
@@ -306,6 +318,13 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           open={historyOpen}
           onClose={() => setHistoryOpen(false)}
           post={localPost}
+        />
+      )}
+      {isOwner && isOwnerPost && !displayArticleId && (
+        <AddToSeriesModal
+          open={seriesModalOpen}
+          onClose={() => setSeriesModalOpen(false)}
+          postId={localPost.id}
         />
       )}
     </>
