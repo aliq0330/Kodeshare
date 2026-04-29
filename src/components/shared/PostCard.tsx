@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeat, IconFolderPlus, IconStackPop, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2, IconStack2 } from '@tabler/icons-react'
+import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeat, IconFolderPlus, IconStackPop, IconStackPush, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2, IconStack2 } from '@tabler/icons-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
@@ -233,7 +233,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <IconStack2 className="w-4 h-4 text-gray-500" />
+              <IconStackPush className="w-4 h-4 text-gray-500" />
               <span className="text-white">Seriye ekle</span>
             </button>
           )}
