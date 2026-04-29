@@ -6,6 +6,7 @@ interface ModalProps {
   open: boolean
   onClose: () => void
   title?: string
+  titleAction?: ReactNode
   children: ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'fullscreen'
   className?: string
@@ -20,7 +21,7 @@ const sizes: Record<string, string> = {
   fullscreen: '',
 }
 
-export default function Modal({ open, onClose, title, children, size = 'md', className }: ModalProps) {
+export default function Modal({ open, onClose, title, titleAction, children, size = 'md', className }: ModalProps) {
   const isFullscreen = size === 'fullscreen'
 
   useEffect(() => {
@@ -64,12 +65,15 @@ export default function Modal({ open, onClose, title, children, size = 'md', cla
         {title && (
           <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border shrink-0">
             <h2 className="text-base font-semibold">{title}</h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-surface-raised text-gray-400 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              {titleAction}
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg hover:bg-surface-raised text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
         <div className={cn('overflow-y-auto', isFullscreen ? 'flex-1 flex flex-col p-4' : 'p-5')}>

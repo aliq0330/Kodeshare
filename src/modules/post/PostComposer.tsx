@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Cloud, UploadCloud, Clock } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
@@ -128,7 +127,6 @@ interface PostComposerProps {
 }
 
 export default function PostComposer({ hideCard = false }: PostComposerProps) {
-  const navigate = useNavigate()
   const { user, isAuthenticated } = useAuthStore()
   const { createPost } = usePostStore()
   const { open, prefilledProject, prefilledSnippet, prefilledArticle, openComposer, closeComposer } = useComposerStore()
@@ -311,11 +309,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
   const handleClose = () => { closeComposer(); reset() }
 
-  const handleOpenInEditor = () => {
-    navigate('/editor')
-    closeComposer(); reset(); clearDraft()
-  }
-
   // Cloud draft: save
   const handleCloudSave = async () => {
     if (!isAuthenticated) { toast.error('Taslak kaydetmek için giriş yapmalısın'); return }
@@ -473,7 +466,18 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         </div>
       </Modal>
 
-      <Modal open={open} onClose={handleClose} title="Yeni Gönderi" size="fullscreen">
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title="Yeni Gönderi"
+        size="fullscreen"
+        titleAction={isAuthenticated ? (
+          <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
+            <Cloud className="w-4 h-4" />
+            Taslaklar
+          </Button>
+        ) : undefined}
+      >
         <div className="flex flex-col gap-4 flex-1">
           <Textarea
             label="Açıklama"
@@ -702,21 +706,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
         {/* Sticky footer */}
         <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card flex-wrap">
-          <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenInEditor}>
-            <Code2 className="w-4 h-4" />
-            Editörde Aç
-          </Button>
           {isAuthenticated && (
-            <>
-              <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleCloudSave} loading={cloudSaving}>
-                <UploadCloud className="w-4 h-4" />
-                {cloudDraftId ? 'Taslağı Güncelle' : 'Taslak Kaydet'}
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
-                <Cloud className="w-4 h-4" />
-                Taslaklar
-              </Button>
-            </>
+            <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleCloudSave} loading={cloudSaving}>
+              <UploadCloud className="w-4 h-4" />
+              {cloudDraftId ? 'Taslağı Güncelle' : 'Taslak Kaydet'}
+            </Button>
           )}
           <div className="flex justify-end gap-2 ml-auto">
             <Button variant="ghost" onClick={handleClose}>İptal</Button>
