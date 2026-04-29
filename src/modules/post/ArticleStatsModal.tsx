@@ -111,7 +111,7 @@ export default function ArticleStatsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full h-full card shadow-2xl flex flex-col overflow-hidden animate-slide-up">
+      <div className="relative w-full h-full card rounded-none shadow-2xl flex flex-col overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
           <h2 className="font-semibold text-white text-sm">İstatistikler</h2>
