@@ -131,44 +131,33 @@ export default function ArticleStatsModal({
           </span>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - sadece ikonlar */}
         <div className="flex border-b border-surface-border">
           <button
             onClick={() => setTab('likes')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === 'likes'
-                ? 'border-red-400 text-red-400'
-                : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
+            className={`flex-1 flex items-center justify-center py-3 border-b-2 -mb-px transition-colors ${tab === 'likes' ? 'border-red-400 text-red-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
           >
             <IconHeart className="w-4 h-4" />
-            Beğenenler
-            <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{likesCount}</span>
           </button>
           <button
             onClick={() => setTab('saves')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === 'saves'
-                ? 'border-brand-400 text-brand-400'
-                : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
+            className={`flex-1 flex items-center justify-center py-3 border-b-2 -mb-px transition-colors ${tab === 'saves' ? 'border-brand-400 text-brand-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
           >
             <IconBookmark className="w-4 h-4" />
-            Kaydeden
-            <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{savesCount}</span>
           </button>
           <button
             onClick={() => setTab('collections')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === 'collections'
-                ? 'border-purple-400 text-purple-400'
-                : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
+            className={`flex-1 flex items-center justify-center py-3 border-b-2 -mb-px transition-colors ${tab === 'collections' ? 'border-purple-400 text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
           >
             <IconFolderPlus className="w-4 h-4" />
-            Koleksiyon
-            <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{collectors.length}</span>
           </button>
+        </div>
+
+        {/* Aktif sekme etiketi + sayı */}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-surface-border">
+          {tab === 'likes'       && <><span className="text-sm font-medium text-red-400">Beğenenler</span><span className="text-xs text-gray-500 bg-surface-raised px-1.5 py-0.5 rounded-full">{likesCount}</span></>}
+          {tab === 'saves'       && <><span className="text-sm font-medium text-brand-400">Kaydeden</span><span className="text-xs text-gray-500 bg-surface-raised px-1.5 py-0.5 rounded-full">{savesCount}</span></>}
+          {tab === 'collections' && <><span className="text-sm font-medium text-purple-400">Koleksiyon</span><span className="text-xs text-gray-500 bg-surface-raised px-1.5 py-0.5 rounded-full">{collectors.length}</span></>}
         </div>
 
         {/* List */}

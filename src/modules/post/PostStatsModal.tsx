@@ -90,23 +90,31 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - sadece ikonlar */}
         <div className="flex border-b border-surface-border">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-xs font-medium border-b-2 -mb-px transition-colors ${
+              className={`flex-1 flex items-center justify-center py-3 border-b-2 -mb-px transition-colors ${
                 tab === t.id ? tabColors[t.id] : 'border-transparent text-gray-500 hover:text-gray-300'
               }`}
             >
-              <span className="flex items-center gap-1">{t.icon}{t.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${tab === t.id ? 'bg-surface-raised' : 'bg-surface-raised/60'}`}>
-                {t.count}
-              </span>
+              {t.icon}
             </button>
           ))}
         </div>
+
+        {/* Aktif sekme etiketi + sayı */}
+        {(() => {
+          const active = tabs.find((t) => t.id === tab)!
+          return (
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-surface-border">
+              <span className={`text-sm font-medium ${tabColors[tab].split(' ')[1]}`}>{active.label}</span>
+              <span className="text-xs text-gray-500 bg-surface-raised px-1.5 py-0.5 rounded-full">{active.count}</span>
+            </div>
+          )
+        })()}
 
         {/* List */}
         <div className="overflow-y-auto flex-1">
