@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { IconArrowLeft, IconHeart, IconMessageCircle, IconBookmark, IconShare, IconRepeat, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2, IconFolderPlus } from '@tabler/icons-react'
+import { IconArrowLeft, IconHeart, IconMessageCircle, IconBookmark, IconShare, IconRepeat, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2, IconFolderPlus, IconStack2 } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
@@ -237,7 +237,7 @@ export default function PostDetailPage() {
                           onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                         >
-                          <IconBook2 className="w-4 h-4 text-gray-400" />
+                          <IconStack2 className="w-4 h-4 text-gray-400" />
                           <span className="text-white">Seriye ekle</span>
                         </button>
                       )}
