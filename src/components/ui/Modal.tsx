@@ -7,6 +7,7 @@ interface ModalProps {
   onClose: () => void
   title?: string
   titleAction?: ReactNode
+  subheader?: ReactNode
   children: ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'fullscreen'
   className?: string
@@ -21,7 +22,7 @@ const sizes: Record<string, string> = {
   fullscreen: '',
 }
 
-export default function Modal({ open, onClose, title, titleAction, children, size = 'md', className }: ModalProps) {
+export default function Modal({ open, onClose, title, titleAction, subheader, children, size = 'md', className }: ModalProps) {
   const isFullscreen = size === 'fullscreen'
 
   useEffect(() => {
@@ -74,6 +75,11 @@ export default function Modal({ open, onClose, title, titleAction, children, siz
                 <X className="w-4 h-4" />
               </button>
             </div>
+          </div>
+        )}
+        {subheader && (
+          <div className="shrink-0 border-b border-surface-border">
+            {subheader}
           </div>
         )}
         <div className={cn('overflow-y-auto', isFullscreen ? 'flex-1 flex flex-col p-4' : 'p-5')}>

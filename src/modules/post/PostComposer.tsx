@@ -494,27 +494,27 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             Taslaklar
           </Button>
         ) : undefined}
+        subheader={
+          <div className="flex px-1">
+            <button
+              type="button"
+              onClick={() => setComposerMode('edit')}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'edit' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Düzenle
+            </button>
+            <button
+              type="button"
+              onClick={() => setComposerMode('preview')}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'preview' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Önizleme
+            </button>
+          </div>
+        }
       >
-        {/* Edit / Preview tabs */}
-        <div className="sticky top-0 -mx-4 -mt-4 px-4 flex gap-0 border-b border-surface-border bg-surface-card z-10 mb-4">
-          <button
-            type="button"
-            onClick={() => setComposerMode('edit')}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'edit' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            Düzenle
-          </button>
-          <button
-            type="button"
-            onClick={() => setComposerMode('preview')}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'preview' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-          >
-            <Eye className="w-3.5 h-3.5" />
-            Önizleme
-          </button>
-        </div>
-
         {composerMode === 'edit' && (
         <div className="flex flex-col gap-4 flex-1">
           <Textarea
