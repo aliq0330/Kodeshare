@@ -467,13 +467,12 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             {menuDropdown}
           </div>
 
-          {/* Title & description */}
-          <Link to={primaryLink} className="block mb-2">
-            <p className="text-sm text-white line-clamp-3 leading-relaxed">{display.title}</p>
-            {display.description && (
-              <p className="text-sm text-gray-400 line-clamp-2 mt-0.5">{display.description}</p>
-            )}
-          </Link>
+          {/* Description */}
+          {display.description && (
+            <Link to={primaryLink} className="block mb-2">
+              <p className="text-sm text-white line-clamp-3 leading-relaxed whitespace-pre-wrap">{display.description}</p>
+            </Link>
+          )}
 
           {/* Blocks (compact mode) */}
           {display.blocks.length > 0 && (

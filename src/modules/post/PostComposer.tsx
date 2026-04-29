@@ -14,12 +14,12 @@ import { useComposerStore } from '@store/composerStore'
 import { projectService, type SavedProject } from '@services/projectService'
 import { articleService } from '@services/articleService'
 import { draftService, type CloudDraft } from '@services/draftService'
-import { searchTags } from '@services/postService'
+import { searchTags, postService } from '@services/postService'
 import type { ArticleRecord } from '@services/articleService'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { timeAgo } from '@utils/formatters'
 import toast from 'react-hot-toast'
-import type { PostBlock, PostBlockType } from '@/types'
+import type { PostBlock, PostBlockType, EditorFile, EditorLanguage } from '@/types'
 
 const DRAFT_KEY = 'kodeshare:composer-draft-v3'
 const DEFAULT_LANG: SnippetLang = 'javascript'
@@ -113,6 +113,31 @@ function makeBlock(type: PostBlockType): ComposerBlock {
   }
 }
 
+function postBlockToComposerBlock(b: PostBlock): ComposerBlock {
+  switch (b.type) {
+    case 'snippet':
+      return { localId: b.id, type: 'snippet', code: (b.data.content as string) ?? '', language: toSnippetLang((b.data.language as string) ?? DEFAULT_LANG), manual: true }
+    case 'project':
+      return {
+        localId: b.id,
+        type: 'project',
+        project: {
+          id: b.id,
+          title: 'Proje',
+          files: ((b.data.files as { name: string; language: EditorLanguage; content: string }[]) ?? []).map((f, i): EditorFile => ({
+            id: String(i), name: f.name, language: f.language, content: f.content, isModified: false,
+          })),
+          updatedAt: '',
+        },
+      }
+    case 'image':   return { localId: b.id, type: 'image',   url: (b.data.url as string) ?? '' }
+    case 'link':    return { localId: b.id, type: 'link',    url: (b.data.url as string) ?? '', title: (b.data.title as string) ?? '' }
+    case 'video':   return { localId: b.id, type: 'video',   url: (b.data.url as string) ?? '' }
+    case 'article': return { localId: b.id, type: 'article', articleId: (b.data.articleId as string) ?? null, articleTitle: (b.data.title as string) ?? '', coverImage: (b.data.coverImage as string) ?? null, content: (b.data.content as string) ?? '' }
+    default:        return { localId: b.id, type: 'snippet', code: '', language: DEFAULT_LANG, manual: false }
+  }
+}
+
 function blockToPayload(b: ComposerBlock, position: number) {
   switch (b.type) {
     case 'snippet': return { type: 'snippet' as const, position, data: { language: b.language, content: b.code, name: `snippet.${EXT_MAP[b.language]}` } }
@@ -148,7 +173,7 @@ interface PostComposerProps {
 export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { user, isAuthenticated } = useAuthStore()
   const { createPost } = usePostStore()
-  const { open, prefilledProject, prefilledSnippet, prefilledArticle, openComposer, closeComposer } = useComposerStore()
+  const { open, prefilledProject, prefilledSnippet, prefilledArticle, editingPost, onEditSaved, openComposer, closeComposer } = useComposerStore()
 
   const [composerMode, setComposerMode] = useState<'edit' | 'preview'>('edit')
   const [description, setDescription] = useState('')
@@ -189,6 +214,12 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   useEffect(() => {
     if (!open || hydratedRef.current) return
     hydratedRef.current = true
+    if (editingPost) {
+      setDescription(editingPost.description ?? '')
+      setTags(editingPost.tags)
+      setBlocks(editingPost.blocks.map(postBlockToComposerBlock))
+      return
+    }
     if (prefilledSnippet) {
       const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
       setBlocks([b])
@@ -209,33 +240,33 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     if (d.description) setDescription(d.description)
     if (d.tags?.length) setTags(d.tags)
     if (d.blocks?.length) setBlocks(d.blocks)
-  }, [open, prefilledProject, prefilledSnippet, prefilledArticle])
+  }, [open, editingPost, prefilledProject, prefilledSnippet, prefilledArticle])
 
   useEffect(() => {
-    if (!open || !prefilledSnippet) return
+    if (!open || !prefilledSnippet || editingPost) return
     const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
     setBlocks([b])
-  }, [prefilledSnippet, open])
+  }, [prefilledSnippet, open, editingPost])
 
   useEffect(() => {
-    if (!open || !prefilledProject) return
+    if (!open || !prefilledProject || editingPost) return
     const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
     setBlocks([b])
-  }, [prefilledProject, open])
+  }, [prefilledProject, open, editingPost])
 
   useEffect(() => {
-    if (!open || !prefilledArticle) return
+    if (!open || !prefilledArticle || editingPost) return
     const b: ComposerBlock = { localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }
     setBlocks([b])
-  }, [prefilledArticle, open])
+  }, [prefilledArticle, open, editingPost])
 
-  // Auto-save draft to localStorage
+  // Auto-save draft to localStorage (only in create mode)
   useEffect(() => {
-    if (!open) return
+    if (!open || editingPost) return
     const hasContent = description || tags.length > 0 || blocks.length > 0
     if (!hasContent) return
     saveDraft({ description, tags, blocks })
-  }, [open, description, tags, blocks])
+  }, [open, editingPost, description, tags, blocks])
 
   // ESC closes expanded editor
   useEffect(() => {
@@ -444,21 +475,30 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         .map((b, i) => blockToPayload(b, i))
 
       const desc = description.trim()
-      const autoTitle = desc.split('\n')[0].slice(0, 100) || 'Gönderi'
 
-      await createPost({
-        type: 'post',
-        title: autoTitle,
-        description: desc || undefined,
-        tags,
-        blocks: validBlocks,
-      })
-      // Delete cloud draft on successful publish
-      if (cloudDraftId) {
-        void draftService.delete(cloudDraftId).catch(() => { /* noop */ })
+      if (editingPost) {
+        await postService.editPost(editingPost.id, {
+          title:       desc.split('\n')[0].slice(0, 100) || editingPost.title,
+          description: desc || undefined,
+          tags,
+          blocks:      validBlocks as unknown as PostBlock[],
+        })
+        const updatedBlocks: PostBlock[] = validBlocks.map((b, i) => ({ id: newId(), type: b.type, position: i, data: b.data }))
+        onEditSaved?.({ description: desc || null, tags, blocks: updatedBlocks })
+        toast.success('Gönderi güncellendi!')
+        reset(); closeComposer()
+      } else {
+        await createPost({
+          type: 'post',
+          title: desc.split('\n')[0].slice(0, 100) || 'Gönderi',
+          description: desc || undefined,
+          tags,
+          blocks: validBlocks,
+        })
+        if (cloudDraftId) void draftService.delete(cloudDraftId).catch(() => {})
+        toast.success('Gönderi paylaşıldı!')
+        clearDraft(); reset(); closeComposer()
       }
-      toast.success('Gönderi paylaşıldı!')
-      clearDraft(); reset(); closeComposer()
     } catch (err) {
       toast.error((err as Error).message || 'Bir hata oluştu')
     } finally {
@@ -486,7 +526,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       <Modal
         open={open}
         onClose={handleClose}
-        title="Yeni Gönderi"
+        title={editingPost ? 'Gönderiyi Düzenle' : 'Yeni Gönderi'}
         size="fullscreen"
         titleAction={isAuthenticated ? (
           <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
@@ -829,7 +869,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
         {/* Sticky footer */}
         <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card flex-wrap">
-          {isAuthenticated && (
+          {isAuthenticated && !editingPost && (
             <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleCloudSave} loading={cloudSaving}>
               <UploadCloud className="w-4 h-4" />
               {cloudDraftId ? 'Taslağı Güncelle' : 'Taslak Kaydet'}
@@ -837,7 +877,9 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           )}
           <div className="flex justify-end gap-2 ml-auto">
             <Button variant="ghost" onClick={handleClose}>İptal</Button>
-            <Button variant="primary" onClick={handleSubmit} loading={loading}>Paylaş</Button>
+            <Button variant="primary" onClick={handleSubmit} loading={loading}>
+              {editingPost ? 'Güncelle' : 'Paylaş'}
+            </Button>
           </div>
         </div>
       </Modal>

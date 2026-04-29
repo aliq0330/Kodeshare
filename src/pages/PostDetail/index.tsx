@@ -10,7 +10,6 @@ import CommentThread from '@modules/social/CommentThread'
 import RepostMenu from '@modules/post/RepostMenu'
 import QuoteComposer from '@modules/post/QuoteComposer'
 import PostStatsModal from '@modules/post/PostStatsModal'
-import EditPostModal from '@modules/post/EditPostModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
 import { timeAgo, compactNumber } from '@utils/formatters'
@@ -18,6 +17,7 @@ import { postService } from '@services/postService'
 import { projectService } from '@services/projectService'
 import { useAuthStore } from '@store/authStore'
 import { useCommentStore } from '@store/commentStore'
+import { useComposerStore } from '@store/composerStore'
 import toast from 'react-hot-toast'
 import type { Post, PostBlock } from '@/types'
 
@@ -34,10 +34,10 @@ export default function PostDetailPage() {
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
-  const [editOpen, setEditOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const { hash } = useLocation()
+  const openEditComposer = useComposerStore((s) => s.openEditComposer)
 
   const loadedComments = useCommentStore((s) => (post ? s.commentsByPost[post.id] : undefined))
   const liveCommentCount = loadedComments
@@ -56,7 +56,7 @@ export default function PostDetailPage() {
     return () => document.removeEventListener('mousedown', h)
   }, [menuOpen])
 
-  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[]; blocks: PostBlock[] }) => {
+  const handleEditSaved = (updated: { description: string | null; tags: string[]; blocks: PostBlock[] }) => {
     setPost((p) => p ? { ...p, ...updated, isEdited: true } : p)
   }
 
@@ -244,7 +244,7 @@ export default function PostDetailPage() {
                       {isOwner && (
                         <button
                           type="button"
-                          onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+                          onClick={() => { setMenuOpen(false); openEditComposer(post, handleEditSaved) }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                         >
                           <Pencil className="w-4 h-4 text-gray-400" />
@@ -267,8 +267,7 @@ export default function PostDetailPage() {
               )}
             </div>
 
-            {/* Title & tags */}
-            <h1 className="text-xl font-bold text-white mb-1.5">{post.title}</h1>
+            {/* Tags */}
             {post.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {post.tags.map((tag) => (
@@ -277,7 +276,7 @@ export default function PostDetailPage() {
               </div>
             )}
 
-            {post.description && <p className="text-sm text-gray-400 mb-3">{post.description}</p>}
+            {post.description && <p className="text-sm text-white mb-3 whitespace-pre-wrap leading-relaxed">{post.description}</p>}
 
             {/* Blocks */}
             {post.blocks.length > 0 && (
@@ -397,14 +396,6 @@ export default function PostDetailPage() {
           open={quoteOpen}
           onClose={() => setQuoteOpen(false)}
           post={post}
-        />
-      )}
-      {isOwner && (
-        <EditPostModal
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          post={post}
-          onSaved={handleEditSaved}
         />
       )}
       <PostEditHistoryModal
