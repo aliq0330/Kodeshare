@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Globe, Lock, ImageIcon, X } from 'lucide-react'
+import { IconWorld, IconLock, IconPhoto, IconX } from '@tabler/icons-react'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
 import Textarea from '@components/ui/Textarea'
@@ -71,7 +71,7 @@ export default function CollectionModal({ open, onClose, onSave, initial }: Coll
                 onClick={() => setCoverUrl('')}
                 className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
               >
-                <X className="w-3.5 h-3.5" />
+                <IconX className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -79,7 +79,7 @@ export default function CollectionModal({ open, onClose, onSave, initial }: Coll
             value={coverUrl}
             onChange={(e) => setCoverUrl(e.target.value)}
             placeholder="https://örnek.com/kapak.jpg"
-            leftIcon={<ImageIcon className="w-4 h-4" />}
+            leftIcon={<IconPhoto className="w-4 h-4" />}
           />
           {imgError && coverUrl.trim() && (
             <p className="text-xs text-red-400 mt-1">Görsel yüklenemedi, URL'yi kontrol et.</p>
@@ -105,8 +105,8 @@ export default function CollectionModal({ open, onClose, onSave, initial }: Coll
           <p className="text-sm font-medium text-gray-300 mb-2">Görünürlük</p>
           <div className="grid grid-cols-2 gap-2">
             {([
-              { id: 'public',  icon: Globe, label: 'Herkese Açık' },
-              { id: 'private', icon: Lock,  label: 'Gizli' },
+              { id: 'public',  icon: IconWorld, label: 'Herkese Açık' },
+              { id: 'private', icon: IconLock,  label: 'Gizli' },
             ] as const).map(({ id, icon: Icon, label }) => (
               <button
                 key={id}

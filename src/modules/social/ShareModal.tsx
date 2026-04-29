@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, X, Check, Copy, Share2, RotateCcw } from 'lucide-react'
+import { IconSearch, IconX, IconCheck, IconCopy, IconShare, IconRotate2 } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import Modal from '@components/ui/Modal'
@@ -83,7 +83,7 @@ function UserRow({
         }`}
       >
         {sent ? (
-          <><Check className="w-3 h-3" /> Gönderildi</>
+          <><IconCheck className="w-3 h-3" /> Gönderildi</>
         ) : sending ? (
           <Spinner />
         ) : (
@@ -251,7 +251,7 @@ export default function ShareModal({ open, onClose, post, onRepost }: ShareModal
           <div className="flex flex-col gap-2">
             {/* Search input */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               <input
                 type="text"
                 value={query}
@@ -265,7 +265,7 @@ export default function ShareModal({ open, onClose, post, onRepost }: ShareModal
                   onClick={() => setQuery('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <IconX className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -309,12 +309,12 @@ export default function ShareModal({ open, onClose, post, onRepost }: ShareModal
         {/* ── Paylaşım butonları ── */}
         <div className="flex items-start justify-around px-1">
           <RoundBtn
-            icon={<Share2 className="w-5 h-5 text-gray-300" />}
+            icon={<IconShare className="w-5 h-5 text-gray-300" />}
             label="Paylaş"
             onClick={deviceShare}
           />
           <RoundBtn
-            icon={<RotateCcw className="w-5 h-5 text-green-400" />}
+            icon={<IconRotate2 className="w-5 h-5 text-green-400" />}
             label="Repost"
             onClick={handleRepost}
           />
@@ -329,7 +329,7 @@ export default function ShareModal({ open, onClose, post, onRepost }: ShareModal
             onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(post.title)}`, '_blank')}
           />
           <RoundBtn
-            icon={copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5 text-gray-300" />}
+            icon={copied ? <IconCheck className="w-5 h-5 text-green-400" /> : <IconCopy className="w-5 h-5 text-gray-300" />}
             label="Kopyala"
             onClick={copyLink}
             active={copied}

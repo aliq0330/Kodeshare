@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Code2, Share2, ArrowLeft, History } from 'lucide-react'
+import { IconCode, IconShare, IconArrowLeft, IconHistory } from '@tabler/icons-react'
 import Button from '@components/ui/Button'
 import Avatar from '@components/ui/Avatar'
 import { useAuthStore } from '@store/authStore'
@@ -30,10 +30,10 @@ export default function EditorNavbar() {
           to="/"
           className="p-1.5 rounded hover:bg-[#1e2535] text-gray-400 hover:text-white transition-colors shrink-0"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <IconArrowLeft className="w-4 h-4" />
         </Link>
         <div className="hidden sm:block w-px h-4 bg-[#2a3347] shrink-0" />
-        <Code2 className="hidden sm:block w-4 h-4 text-brand-400 shrink-0" />
+        <IconCode className="hidden sm:block w-4 h-4 text-brand-400 shrink-0" />
         <input
           type="text"
           value={projectTitle}
@@ -63,12 +63,12 @@ export default function EditorNavbar() {
               border: showVersionPanel ? '1px solid rgba(138,168,255,0.3)' : '1px solid transparent',
             }}
           >
-            <History className="w-3.5 h-3.5" />
+            <IconHistory className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Geçmiş</span>
           </button>
         )}
         <Button variant="primary" size="sm" onClick={handlePublish}>
-          <Share2 className="w-4 h-4" />
+          <IconShare className="w-4 h-4" />
           <span className="hidden md:inline ml-1">Paylaş</span>
         </Button>
         {user && (

@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Bookmark, GitFork } from 'lucide-react'
+import { IconHeart, IconMessageCircle, IconBookmark, IconGitFork } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { compactNumber } from '@utils/formatters'
 import type { PostPreview } from '@/types'
@@ -22,12 +22,12 @@ export default function PostActions({ post, onLike, onSave, onShare, onRepost, s
           post.isLiked ? 'text-red-400' : 'text-gray-500 hover:text-red-400',
         )}
       >
-        <Heart className={cn('w-4 h-4', post.isLiked && 'fill-current')} />
+        <IconHeart className={cn('w-4 h-4', post.isLiked && 'fill-current')} />
         {showCounts && compactNumber(post.likesCount)}
       </button>
 
       <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-400 transition-colors">
-        <MessageCircle className="w-4 h-4" />
+        <IconMessageCircle className="w-4 h-4" />
         {showCounts && compactNumber(post.commentsCount)}
       </button>
 
@@ -38,7 +38,7 @@ export default function PostActions({ post, onLike, onSave, onShare, onRepost, s
           post.isReposted ? 'text-green-400' : 'text-gray-500 hover:text-green-400',
         )}
       >
-        <GitFork className="w-4 h-4" />
+        <IconGitFork className="w-4 h-4" />
         {showCounts && compactNumber(post.sharesCount)}
       </button>
 
@@ -49,7 +49,7 @@ export default function PostActions({ post, onLike, onSave, onShare, onRepost, s
           post.isSaved ? 'text-brand-400' : 'text-gray-500 hover:text-brand-400',
         )}
       >
-        <Bookmark className={cn('w-4 h-4', post.isSaved && 'fill-current')} />
+        <IconBookmark className={cn('w-4 h-4', post.isSaved && 'fill-current')} />
       </button>
     </div>
   )

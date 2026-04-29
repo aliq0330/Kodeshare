@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Folder, Lock, Search, Pencil } from 'lucide-react'
+import { IconArrowLeft, IconFolder, IconLock, IconSearch, IconPencil } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import PostCard from '@components/shared/PostCard'
@@ -110,7 +110,7 @@ export default function CollectionDetailPage() {
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
       <Link to="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit">
-        <ArrowLeft className="w-4 h-4" />
+        <IconArrowLeft className="w-4 h-4" />
         Geri Dön
       </Link>
 
@@ -124,19 +124,19 @@ export default function CollectionDetailPage() {
         <div className="p-5">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-brand-900/40 flex items-center justify-center shrink-0">
-            <Folder className="w-6 h-6 text-brand-400" />
+            <IconFolder className="w-6 h-6 text-brand-400" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-white">{collection.name}</h1>
-              {collection.visibility === 'private' && <Lock className="w-4 h-4 text-gray-500" />}
+              {collection.visibility === 'private' && <IconLock className="w-4 h-4 text-gray-500" />}
               {isOwner && (
                 <button
                   onClick={() => setEditOpen(true)}
                   className="p-1 rounded-md text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
                   title="Düzenle"
                 >
-                  <Pencil className="w-3.5 h-3.5" />
+                  <IconPencil className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -170,13 +170,13 @@ export default function CollectionDetailPage() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Koleksiyon içinde ara..."
-        leftIcon={<Search className="w-4 h-4" />}
+        leftIcon={<IconSearch className="w-4 h-4" />}
       />
 
       {/* Empty state */}
       {isEmpty ? (
         <div className="card p-12 text-center text-gray-500">
-          <Folder className="w-10 h-10 mx-auto mb-3 text-gray-700" />
+          <IconFolder className="w-10 h-10 mx-auto mb-3 text-gray-700" />
           <p className="font-medium">Koleksiyon boş</p>
           <p className="text-sm mt-1">Gönderi veya makaleleri buraya ekleyebilirsin</p>
         </div>

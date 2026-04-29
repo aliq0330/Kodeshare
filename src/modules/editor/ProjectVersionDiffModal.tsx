@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { X, GitCompare } from 'lucide-react'
+import { IconX, IconGitCompare } from '@tabler/icons-react'
 import { diffLines } from '@utils/diffUtils'
 import type { ProjectVersion, ProjectVersionFile } from '@services/projectVersionService'
 import type { UiColors } from '@editor/themes'
@@ -92,7 +92,7 @@ export default function ProjectVersionDiffModal({ open, onClose, versionA, curre
           style={{ borderBottom: `1px solid ${ui.border}` }}
         >
           <div className="flex items-center gap-2 min-w-0">
-            <GitCompare className="w-4 h-4 shrink-0" style={{ color: '#8aa8ff' }} />
+            <IconGitCompare className="w-4 h-4 shrink-0" style={{ color: '#8aa8ff' }} />
             <span className="text-sm font-semibold truncate" style={{ color: ui.text }}>
               v{versionA.versionNumber} karşılaştırması
             </span>
@@ -118,7 +118,7 @@ export default function ProjectVersionDiffModal({ open, onClose, versionA, curre
               className="p-1.5 rounded transition-colors"
               style={{ color: ui.textMuted }}
             >
-              <X className="w-4 h-4" />
+              <IconX className="w-4 h-4" />
             </button>
           </div>
         </div>

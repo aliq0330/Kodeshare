@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Heart, MessageCircle, Eye, Bookmark,
-  ExternalLink, Loader2, AlertCircle, X,
-} from 'lucide-react'
+import { IconHeart, IconMessageCircle, IconEye, IconBookmark, IconExternalLink, IconLoader2, IconAlertCircle, IconX } from '@tabler/icons-react'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleBlock } from '@store/articleStore'
 import { postService } from '@services/postService'
@@ -32,7 +29,7 @@ export default function PostEmbedBlock({ block }: { block: ArticleBlock }) {
   if (loading) {
     return (
       <div className="rounded-xl border border-surface-border p-6 flex items-center justify-center gap-2 text-gray-500">
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <IconLoader2 className="w-4 h-4 animate-spin" />
         <span className="text-sm">Gönderi yükleniyor...</span>
       </div>
     )
@@ -42,7 +39,7 @@ export default function PostEmbedBlock({ block }: { block: ArticleBlock }) {
     return (
       <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-red-400">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+          <IconAlertCircle className="w-4 h-4 shrink-0" />
           {error ?? 'Gönderi bulunamadı'}
         </div>
         {blocks.length > 1 && (
@@ -50,7 +47,7 @@ export default function PostEmbedBlock({ block }: { block: ArticleBlock }) {
             onClick={() => removeBlock(block.id)}
             className="text-gray-600 hover:text-red-400 transition-colors"
           >
-            <X className="w-4 h-4" />
+            <IconX className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -132,19 +129,19 @@ export default function PostEmbedBlock({ block }: { block: ArticleBlock }) {
         {/* Stats + link */}
         <div className="flex items-center gap-4 text-xs text-gray-500 border-t border-surface-border pt-3">
           <span className="flex items-center gap-1">
-            <Heart className="w-3.5 h-3.5" />
+            <IconHeart className="w-3.5 h-3.5" />
             {compactNumber(post.likesCount)}
           </span>
           <span className="flex items-center gap-1">
-            <MessageCircle className="w-3.5 h-3.5" />
+            <IconMessageCircle className="w-3.5 h-3.5" />
             {compactNumber(post.commentsCount)}
           </span>
           <span className="flex items-center gap-1">
-            <Eye className="w-3.5 h-3.5" />
+            <IconEye className="w-3.5 h-3.5" />
             {compactNumber(post.viewsCount)}
           </span>
           <span className="flex items-center gap-1">
-            <Bookmark className="w-3.5 h-3.5" />
+            <IconBookmark className="w-3.5 h-3.5" />
             {compactNumber(post.savesCount)}
           </span>
           <a
@@ -154,7 +151,7 @@ export default function PostEmbedBlock({ block }: { block: ArticleBlock }) {
             onClick={e => e.stopPropagation()}
             className="ml-auto flex items-center gap-1 text-brand-400 hover:text-brand-300 transition-colors"
           >
-            <ExternalLink className="w-3 h-3" />
+            <IconExternalLink className="w-3 h-3" />
             Gönderiyi Görüntüle
           </a>
         </div>

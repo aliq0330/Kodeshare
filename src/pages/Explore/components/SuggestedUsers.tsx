@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Avatar from '@components/ui/Avatar'
-import { BadgeCheck } from 'lucide-react'
+import { IconRosetteFilled } from '@tabler/icons-react'
 import FollowButton from '@modules/social/FollowButton'
 import { userService } from '@services/userService'
 import { useAuthStore } from '@store/authStore'
@@ -60,7 +60,7 @@ export default function SuggestedUsers({ query }: SuggestedUsersProps) {
                 className="flex items-center gap-1 justify-center text-sm font-medium text-white hover:text-brand-300 transition-colors"
               >
                 {user.displayName}
-                {user.isVerified && <BadgeCheck className="w-3.5 h-3.5 text-brand-400" />}
+                {user.isVerified && <IconRosetteFilled className="w-3.5 h-3.5 text-brand-400" />}
               </Link>
               <p className="text-xs text-gray-500">{(user.followersCount ?? 0).toLocaleString()} takipçi</p>
             </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock } from 'lucide-react'
+import { IconMail, IconLock } from '@tabler/icons-react'
 import Input from '@components/ui/Input'
 import Button from '@components/ui/Button'
 import { useAuthStore } from '@store/authStore'
@@ -57,7 +57,7 @@ export default function LoginPage() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="ornek@mail.com"
-        leftIcon={<Mail className="w-4 h-4" />}
+        leftIcon={<IconMail className="w-4 h-4" />}
         required
       />
 
@@ -67,7 +67,7 @@ export default function LoginPage() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="••••••••"
-        leftIcon={<Lock className="w-4 h-4" />}
+        leftIcon={<IconLock className="w-4 h-4" />}
         required
       />
 

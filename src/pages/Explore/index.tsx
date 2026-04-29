@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search } from 'lucide-react'
+import { IconSearch } from '@tabler/icons-react'
 import { useSearchParams, useLocation } from 'react-router-dom'
 import Input from '@components/ui/Input'
 import TagFilter from '@components/shared/TagFilter'
@@ -39,7 +39,7 @@ export default function ExplorePage() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Proje, kullanıcı veya etiket ara..."
-        leftIcon={<Search className="w-4 h-4" />}
+        leftIcon={<IconSearch className="w-4 h-4" />}
       />
 
       {/* Category filter */}

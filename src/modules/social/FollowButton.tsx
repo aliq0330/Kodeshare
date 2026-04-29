@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { UserPlus, UserMinus, Clock } from 'lucide-react'
+import { IconUserPlus, IconUserMinus, IconClock } from '@tabler/icons-react'
 import Button from '@components/ui/Button'
 import { cn } from '@utils/cn'
 import { useFollow } from '@hooks/useFollow'
@@ -28,8 +28,8 @@ export default function FollowButton({ userId, isFollowing: initial, isPendingRe
         className={cn(hovered && 'border-red-500 text-red-400 hover:bg-red-900/20', className)}
       >
         {hovered
-          ? <><UserMinus className="w-3.5 h-3.5" />İsteği Geri Çek</>
-          : <><Clock className="w-3.5 h-3.5" />İstek Gönderildi</>
+          ? <><IconUserMinus className="w-3.5 h-3.5" />İsteği Geri Çek</>
+          : <><IconClock className="w-3.5 h-3.5" />İstek Gönderildi</>
         }
       </Button>
     )
@@ -47,12 +47,12 @@ export default function FollowButton({ userId, isFollowing: initial, isPendingRe
     >
       {isFollowing ? (
         hovered ? (
-          <><UserMinus className="w-3.5 h-3.5" />Takipten Çık</>
+          <><IconUserMinus className="w-3.5 h-3.5" />Takipten Çık</>
         ) : (
-          <><UserPlus className="w-3.5 h-3.5" />Takip Ediliyor</>
+          <><IconUserPlus className="w-3.5 h-3.5" />Takip Ediliyor</>
         )
       ) : (
-        <><UserPlus className="w-3.5 h-3.5" />Takip Et</>
+        <><IconUserPlus className="w-3.5 h-3.5" />Takip Et</>
       )}
     </Button>
   )

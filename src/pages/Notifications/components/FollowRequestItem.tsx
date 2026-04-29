@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, X } from 'lucide-react'
+import { IconCheck, IconX } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { useNotificationStore } from '@store/notificationStore'
@@ -68,7 +68,7 @@ export default function FollowRequestItem({ requester, createdAt, onHandled }: F
           disabled={loading !== null}
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-medium transition-colors disabled:opacity-50"
         >
-          <Check className="w-3.5 h-3.5" />
+          <IconCheck className="w-3.5 h-3.5" />
           {loading === 'approve' ? '...' : 'Onayla'}
         </button>
         <button
@@ -76,7 +76,7 @@ export default function FollowRequestItem({ requester, createdAt, onHandled }: F
           disabled={loading !== null}
           className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-900/60 hover:bg-red-600 text-red-300 hover:text-white transition-colors disabled:opacity-50"
         >
-          <X className="w-4 h-4" />
+          <IconX className="w-4 h-4" />
         </button>
       </div>
     </div>

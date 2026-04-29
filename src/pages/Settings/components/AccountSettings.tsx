@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Camera } from 'lucide-react'
+import { IconCamera } from '@tabler/icons-react'
 import Input from '@components/ui/Input'
 import Textarea from '@components/ui/Textarea'
 import Button from '@components/ui/Button'
@@ -73,7 +73,7 @@ export default function AccountSettings() {
             disabled={uploading}
             className="absolute bottom-0 right-0 w-7 h-7 bg-brand-500 rounded-full flex items-center justify-center hover:bg-brand-600 transition-colors disabled:opacity-60"
           >
-            <Camera className="w-3.5 h-3.5 text-white" />
+            <IconCamera className="w-3.5 h-3.5 text-white" />
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
         </div>

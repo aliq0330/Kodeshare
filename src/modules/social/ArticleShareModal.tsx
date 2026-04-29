@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, Check, Share2 } from 'lucide-react'
+import { IconCopy, IconCheck, IconShare } from '@tabler/icons-react'
 import Modal from '@components/ui/Modal'
 import toast from 'react-hot-toast'
 
@@ -67,7 +67,7 @@ export default function ArticleShareModal({ open, onClose, title, articleId }: P
     <Modal open={open} onClose={onClose} title="Paylaş" size="sm">
       <div className="flex items-start justify-around px-1 py-2">
         <RoundBtn
-          icon={<Share2 className="w-5 h-5 text-gray-300" />}
+          icon={<IconShare className="w-5 h-5 text-gray-300" />}
           label="Paylaş"
           onClick={deviceShare}
         />
@@ -94,8 +94,8 @@ export default function ArticleShareModal({ open, onClose, title, articleId }: P
         <RoundBtn
           icon={
             copied
-              ? <Check className="w-5 h-5 text-green-400" />
-              : <Copy className="w-5 h-5 text-gray-300" />
+              ? <IconCheck className="w-5 h-5 text-green-400" />
+              : <IconCopy className="w-5 h-5 text-gray-300" />
           }
           label="Kopyala"
           onClick={copyLink}

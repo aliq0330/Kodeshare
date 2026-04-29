@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Send, Smile, ExternalLink } from 'lucide-react'
+import { IconArrowLeft, IconSend, IconMoodSmile, IconExternalLink } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import BlockView from '@modules/post/BlockView'
@@ -29,7 +29,7 @@ function PostShareCard({ data }: { data: PostShareData }) {
       <div className="card p-3 w-72 hover:border-brand-500/40 transition-colors">
         {/* Header */}
         <div className="flex items-center gap-1.5 mb-2 text-[11px] text-gray-500">
-          <ExternalLink className="w-3 h-3" />
+          <IconExternalLink className="w-3 h-3" />
           <span>Gönderi paylaşıldı</span>
         </div>
 
@@ -144,7 +144,7 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-surface-border shrink-0">
         <button onClick={onBack} className="lg:hidden p-1.5 rounded-lg hover:bg-surface-raised text-gray-400">
-          <ArrowLeft className="w-4 h-4" />
+          <IconArrowLeft className="w-4 h-4" />
         </button>
         {other && (
           <>
@@ -208,7 +208,7 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
       <div className="p-3 border-t border-surface-border shrink-0">
         <div className="flex items-center gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
           <button className="text-gray-500 hover:text-gray-300 transition-colors">
-            <Smile className="w-5 h-5" />
+            <IconMoodSmile className="w-5 h-5" />
           </button>
           <input
             value={text}
@@ -222,7 +222,7 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
             disabled={!text.trim() || sending}
             className="p-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            {sending ? <Spinner className="w-3.5 h-3.5" /> : <Send className="w-3.5 h-3.5" />}
+            {sending ? <Spinner className="w-3.5 h-3.5" /> : <IconSend className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>

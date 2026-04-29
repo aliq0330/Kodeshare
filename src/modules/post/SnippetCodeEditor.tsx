@@ -8,7 +8,7 @@ import { css } from '@codemirror/lang-css'
 import { html } from '@codemirror/lang-html'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { githubLight } from '@uiw/codemirror-theme-github'
-import { Check, ChevronDown, Copy, Maximize2, Minimize2 } from 'lucide-react'
+import { IconCheck, IconChevronDown, IconCopy, IconMaximize, IconMinimize } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useIsLightMode } from '@hooks/useIsLightMode'
@@ -180,7 +180,7 @@ export default function SnippetCodeEditor({
           >
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: dotColor }} />
             {currentLabel}
-            <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+            <IconChevronDown className="w-3.5 h-3.5 opacity-60" />
           </button>
           {langOpen && (
             <div className="absolute left-0 top-full mt-1 w-36 card shadow-xl py-1 z-10 animate-slide-down">
@@ -217,7 +217,7 @@ export default function SnippetCodeEditor({
             )}
             title="Kodu kopyala"
           >
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <IconCheck className="w-3.5 h-3.5" /> : <IconCopy className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">{copied ? 'Kopyalandı!' : 'Kopyala'}</span>
           </button>
           <button
@@ -226,7 +226,7 @@ export default function SnippetCodeEditor({
             className={cn('p-1.5 rounded-md transition-colors', actionBtnBase)}
             title={expanded ? 'Küçült' : 'Genişlet'}
           >
-            {expanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {expanded ? <IconMinimize className="w-3.5 h-3.5" /> : <IconMaximize className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>

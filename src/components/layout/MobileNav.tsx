@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Compass, Star, User, Code2, FileText } from 'lucide-react'
+import { IconHome, IconCompass, IconStar, IconUser, IconCode, IconFileText } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 
 const NAV_ITEMS = [
-  { to: '/',          icon: Home,     label: 'Ana Sayfa', end: true },
-  { to: '/explore',   icon: Compass,  label: 'Keşfet' },
-  { to: '/editor',    icon: Code2,    label: 'Editör' },
-  { to: '/featured',  icon: Star,     label: 'Öne Çıkanlar' },
+  { to: '/',          icon: IconHome,     label: 'Ana Sayfa', end: true },
+  { to: '/explore',   icon: IconCompass,  label: 'Keşfet' },
+  { to: '/editor',    icon: IconCode,    label: 'Editör' },
+  { to: '/featured',  icon: IconStar,     label: 'Öne Çıkanlar' },
 ]
 
 export default function MobileNav() {
@@ -42,7 +42,7 @@ export default function MobileNav() {
         >
           {({ isActive }) => (
             <>
-              <FileText className={cn('w-5 h-5', isActive && 'text-brand-400')} />
+              <IconFileText className={cn('w-5 h-5', isActive && 'text-brand-400')} />
               <span className="text-[10px] font-medium">Makale</span>
             </>
           )}
@@ -56,7 +56,7 @@ export default function MobileNav() {
             cn('flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors', isActive ? 'text-brand-400' : 'text-gray-500')
           }
         >
-          <User className="w-5 h-5" />
+          <IconUser className="w-5 h-5" />
           <span className="text-[10px] font-medium">Profil</span>
         </NavLink>
       )}

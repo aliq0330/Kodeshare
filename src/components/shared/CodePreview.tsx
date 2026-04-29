@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Maximize2, RefreshCw } from 'lucide-react'
+import { IconMaximize, IconRefresh } from '@tabler/icons-react'
 import Button from '@components/ui/Button'
 interface FileEntry {
   language: string
@@ -33,10 +33,10 @@ export default function CodePreview({ files, className }: CodePreviewProps) {
     <div className={`relative bg-white rounded-lg overflow-hidden ${className ?? ''}`}>
       <div className="absolute top-2 right-2 z-10 flex gap-1">
         <Button variant="ghost" size="xs" className="bg-black/20 backdrop-blur-sm" onClick={refresh}>
-          <RefreshCw className="w-3 h-3" />
+          <IconRefresh className="w-3 h-3" />
         </Button>
         <Button variant="ghost" size="xs" className="bg-black/20 backdrop-blur-sm">
-          <Maximize2 className="w-3 h-3" />
+          <IconMaximize className="w-3 h-3" />
         </Button>
       </div>
       <iframe

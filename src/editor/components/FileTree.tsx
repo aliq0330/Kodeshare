@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { IconPlus, IconTrash } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import type { EditorFile } from '@/types'
@@ -35,7 +35,7 @@ export default function FileTree({ files, activeFileId, onSelect, onAddFile, onD
           title="Yeni Dosya"
           className="p-1 rounded hover:bg-[#1e2535] text-gray-500 hover:text-gray-300 transition-colors"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <IconPlus className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -59,7 +59,7 @@ export default function FileTree({ files, activeFileId, onSelect, onAddFile, onD
               onClick={(e) => { e.stopPropagation(); onDeleteFile(file.id) }}
               className="p-0.5 rounded hover:bg-red-900/40 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
             >
-              <Trash2 className="w-3 h-3" />
+              <IconTrash className="w-3 h-3" />
             </button>
           )}
         </div>

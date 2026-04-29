@@ -1,4 +1,4 @@
-import { Moon, Sun, Monitor, Check } from 'lucide-react'
+import { IconMoon, IconSun, IconDeviceDesktop, IconCheck } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useEditorStore } from '@store/editorStore'
 import { EDITOR_THEMES } from '@editor/themes'
@@ -6,9 +6,9 @@ import type { EditorTheme } from '@/types'
 import type { PreviewColors } from '@editor/themes'
 
 const appThemes = [
-  { id: 'dark',   label: 'Koyu',   icon: Moon },
-  { id: 'light',  label: 'Açık',   icon: Sun },
-  { id: 'system', label: 'Sistem', icon: Monitor },
+  { id: 'dark',   label: 'Koyu',   icon: IconMoon },
+  { id: 'light',  label: 'Açık',   icon: IconSun },
+  { id: 'system', label: 'Sistem', icon: IconDeviceDesktop },
 ] as const
 
 // Static mini code preview rendered with the theme's color palette
@@ -113,7 +113,7 @@ export default function AppearanceSettings() {
                     {t.name}
                   </span>
                   {active && (
-                    <Check className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                    <IconCheck className="w-3.5 h-3.5 text-brand-400 shrink-0" />
                   )}
                 </div>
               </button>

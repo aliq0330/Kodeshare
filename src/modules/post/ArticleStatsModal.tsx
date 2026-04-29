@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { X, Heart, Bookmark, Eye, FolderPlus } from 'lucide-react'
+import { IconX, IconHeart, IconBookmark, IconEye, IconFolderPlus } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import { supabase } from '@/lib/supabase'
@@ -119,13 +119,13 @@ export default function ArticleStatsModal({
             onClick={onClose}
             className="p-1 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
           >
-            <X className="w-4 h-4" />
+            <IconX className="w-4 h-4" />
           </button>
         </div>
 
         {/* Views stat */}
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-surface-border bg-surface-raised/40">
-          <Eye className="w-4 h-4 text-gray-500" />
+          <IconEye className="w-4 h-4 text-gray-500" />
           <span className="text-sm text-gray-400">
             <span className="font-semibold text-white">{viewsCount}</span> görüntülenme
           </span>
@@ -141,7 +141,7 @@ export default function ArticleStatsModal({
                 : 'border-transparent text-gray-500 hover:text-gray-300'
             }`}
           >
-            <Heart className="w-4 h-4" />
+            <IconHeart className="w-4 h-4" />
             Beğenenler
             <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{likesCount}</span>
           </button>
@@ -153,7 +153,7 @@ export default function ArticleStatsModal({
                 : 'border-transparent text-gray-500 hover:text-gray-300'
             }`}
           >
-            <Bookmark className="w-4 h-4" />
+            <IconBookmark className="w-4 h-4" />
             Kaydeden
             <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{savesCount}</span>
           </button>
@@ -165,7 +165,7 @@ export default function ArticleStatsModal({
                 : 'border-transparent text-gray-500 hover:text-gray-300'
             }`}
           >
-            <FolderPlus className="w-4 h-4" />
+            <IconFolderPlus className="w-4 h-4" />
             Koleksiyon
             <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{collectors.length}</span>
           </button>

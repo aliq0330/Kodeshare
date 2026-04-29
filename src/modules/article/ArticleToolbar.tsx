@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  Bold, Italic, Underline, Strikethrough,
-  Heading1, Heading2, Heading3,
-  Image, Code2, Quote, Minus, Lightbulb,
-  Plus, AlignLeft, ChevronDown, AtSign, Hash, Loader2,
-} from 'lucide-react'
+import { IconBold, IconItalic, IconUnderline, IconStrikethrough, IconH1, IconH2, IconH3, IconPhoto, IconCode, IconQuote, IconMinus, IconBulb, IconPlus, IconAlignLeft, IconChevronDown, IconAt, IconHash, IconLoader2 } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { BlockType } from '@store/articleStore'
@@ -12,15 +7,15 @@ import { userService } from '@services/userService'
 import type { User } from '@/types'
 
 export const ADD_BLOCKS: { type: BlockType; label: string; icon: React.ReactNode; desc: string }[] = [
-  { type: 'paragraph',  label: 'Paragraf',      icon: <AlignLeft className="w-4 h-4" />,   desc: 'Düz metin paragrafı' },
-  { type: 'heading1',   label: 'Büyük Başlık',  icon: <Heading1 className="w-4 h-4" />,    desc: 'H1 — Ana başlık' },
-  { type: 'heading2',   label: 'Orta Başlık',   icon: <Heading2 className="w-4 h-4" />,    desc: 'H2 — Alt başlık' },
-  { type: 'heading3',   label: 'Küçük Başlık',  icon: <Heading3 className="w-4 h-4" />,    desc: 'H3 — Bölüm başlığı' },
-  { type: 'image',      label: 'Görsel',         icon: <Image    className="w-4 h-4" />,    desc: 'Fotoğraf veya görsel ekle' },
-  { type: 'code',       label: 'Kod Bloğu',      icon: <Code2    className="w-4 h-4" />,    desc: 'Syntax highlighted kod' },
-  { type: 'quote',      label: 'Alıntı',         icon: <Quote    className="w-4 h-4" />,    desc: 'Blok alıntı' },
-  { type: 'callout',    label: 'Çağrı Kutusu',   icon: <Lightbulb className="w-4 h-4" />,  desc: 'Renkli bildirim kutusu' },
-  { type: 'divider',    label: 'Ayırıcı',        icon: <Minus    className="w-4 h-4" />,    desc: 'Bölüm ayırıcı' },
+  { type: 'paragraph',  label: 'Paragraf',      icon: <IconAlignLeft className="w-4 h-4" />,   desc: 'Düz metin paragrafı' },
+  { type: 'heading1',   label: 'Büyük Başlık',  icon: <IconH1 className="w-4 h-4" />,    desc: 'H1 — Ana başlık' },
+  { type: 'heading2',   label: 'Orta Başlık',   icon: <IconH2 className="w-4 h-4" />,    desc: 'H2 — Alt başlık' },
+  { type: 'heading3',   label: 'Küçük Başlık',  icon: <IconH3 className="w-4 h-4" />,    desc: 'H3 — Bölüm başlığı' },
+  { type: 'image',      label: 'Görsel',         icon: <IconPhoto    className="w-4 h-4" />,    desc: 'Fotoğraf veya görsel ekle' },
+  { type: 'code',       label: 'Kod Bloğu',      icon: <IconCode    className="w-4 h-4" />,    desc: 'Syntax highlighted kod' },
+  { type: 'quote',      label: 'Alıntı',         icon: <IconQuote    className="w-4 h-4" />,    desc: 'Blok alıntı' },
+  { type: 'callout',    label: 'Çağrı Kutusu',   icon: <IconBulb className="w-4 h-4" />,  desc: 'Renkli bildirim kutusu' },
+  { type: 'divider',    label: 'Ayırıcı',        icon: <IconMinus    className="w-4 h-4" />,    desc: 'Bölüm ayırıcı' },
 ]
 
 interface FormatBtnProps {
@@ -193,16 +188,16 @@ export default function ArticleToolbar() {
             {/* ── Scrollable format buttons ─────────────────────────────── */}
             <div className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-hide min-w-0">
               <FormatBtn label="Kalın (⌘B)" active={fmt.bold} onClick={() => execFormat('bold')}>
-                <Bold className="w-4 h-4" />
+                <IconBold className="w-4 h-4" />
               </FormatBtn>
               <FormatBtn label="İtalik (⌘I)" active={fmt.italic} onClick={() => execFormat('italic')}>
-                <Italic className="w-4 h-4" />
+                <IconItalic className="w-4 h-4" />
               </FormatBtn>
               <FormatBtn label="Altı Çizili (⌘U)" active={fmt.underline} onClick={() => execFormat('underline')}>
-                <Underline className="w-4 h-4" />
+                <IconUnderline className="w-4 h-4" />
               </FormatBtn>
               <FormatBtn label="Üstü Çizili" active={fmt.strikeThrough} onClick={() => execFormat('strikeThrough')}>
-                <Strikethrough className="w-4 h-4" />
+                <IconStrikethrough className="w-4 h-4" />
               </FormatBtn>
 
               <div className="w-px h-5 bg-surface-border mx-1 shrink-0" />
@@ -229,7 +224,7 @@ export default function ArticleToolbar() {
                   if (el) updateBlock(activeBlockId, { content: el.innerHTML })
                 }
               }}>
-                <Code2 className="w-4 h-4" />
+                <IconCode className="w-4 h-4" />
               </FormatBtn>
             </div>
 
@@ -241,7 +236,7 @@ export default function ArticleToolbar() {
                 onClick={() => { saveRange(); setMentionOpen((v) => !v); setTagOpen(false) }}
                 className="w-8"
               >
-                <AtSign className="w-4 h-4" />
+                <IconAt className="w-4 h-4" />
               </FormatBtn>
 
               {mentionOpen && (
@@ -258,7 +253,7 @@ export default function ArticleToolbar() {
                   <div className="max-h-52 overflow-y-auto p-1.5">
                     {mentionLoading && (
                       <div className="flex items-center justify-center py-4">
-                        <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                        <IconLoader2 className="w-4 h-4 animate-spin text-gray-500" />
                       </div>
                     )}
                     {!mentionLoading && mentionResults.length === 0 && (
@@ -298,7 +293,7 @@ export default function ArticleToolbar() {
                 onClick={() => { saveRange(); setTagOpen((v) => !v); setMentionOpen(false) }}
                 className="w-8"
               >
-                <Hash className="w-4 h-4" />
+                <IconHash className="w-4 h-4" />
               </FormatBtn>
 
               {tagOpen && (
@@ -330,9 +325,9 @@ export default function ArticleToolbar() {
                   'bg-brand-500 hover:bg-brand-600 text-white',
                 )}
               >
-                <Plus className="w-3.5 h-3.5" />
+                <IconPlus className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Blok Ekle</span>
-                <ChevronDown className={cn('w-3 h-3 transition-transform', addOpen && 'rotate-180')} />
+                <IconChevronDown className={cn('w-3 h-3 transition-transform', addOpen && 'rotate-180')} />
               </button>
 
               {addOpen && (

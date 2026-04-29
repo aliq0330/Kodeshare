@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { Image, Upload, X } from 'lucide-react'
+import { IconPhoto, IconUpload, IconX } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleBlock } from '@store/articleStore'
@@ -38,7 +38,7 @@ export default function ImageBlock({ block }: Props) {
             onClick={() => updateBlock(block.id, { src: undefined })}
             className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-black/80"
           >
-            <X className="w-4 h-4" />
+            <IconX className="w-4 h-4" />
           </button>
         </div>
         <figcaption className="mt-2 text-center">
@@ -66,14 +66,14 @@ export default function ImageBlock({ block }: Props) {
       )}
     >
       <div className="p-4 rounded-full bg-surface-raised group-hover:bg-brand-500/10 transition-colors">
-        <Image className="w-8 h-8 text-gray-500 group-hover:text-brand-400 transition-colors" />
+        <IconPhoto className="w-8 h-8 text-gray-500 group-hover:text-brand-400 transition-colors" />
       </div>
       <div className="text-center">
         <p className="text-sm font-medium text-gray-300">Görsel ekle</p>
         <p className="text-xs text-gray-600 mt-1">Sürükle bırak veya tıkla · JPG, PNG, GIF, WebP</p>
       </div>
       <div className="flex items-center gap-2 mt-1 px-4 py-2 rounded-lg bg-surface-raised border border-surface-border text-xs text-gray-400 hover:bg-surface-raised/80">
-        <Upload className="w-3.5 h-3.5" />
+        <IconUpload className="w-3.5 h-3.5" />
         Dosya Seç
       </div>
       <input

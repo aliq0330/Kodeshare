@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Repeat2, Repeat, Quote } from 'lucide-react'
+import { IconRepeatOnce, IconRepeat, IconQuote } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { compactNumber } from '@utils/formatters'
 import type { PostPreview } from '@/types'
@@ -36,7 +36,7 @@ export default function RepostMenu({ post, onRepost, onQuote, showCount = true, 
         )}
         title="Yeniden paylaş"
       >
-        <Repeat2 className="w-[18px] h-[18px]" />
+        <IconRepeatOnce className="w-[18px] h-[18px]" />
         {showCount && compactNumber(post.repostCount)}
       </button>
 
@@ -47,7 +47,7 @@ export default function RepostMenu({ post, onRepost, onQuote, showCount = true, 
             onClick={() => { setOpen(false); onRepost() }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <Repeat className="w-4 h-4 text-green-400" />
+            <IconRepeat className="w-4 h-4 text-green-400" />
             <span className="text-white">
               {post.isReposted ? 'Repost\'u kaldır' : 'Yeniden Gönder'}
             </span>
@@ -57,7 +57,7 @@ export default function RepostMenu({ post, onRepost, onQuote, showCount = true, 
             onClick={() => { setOpen(false); onQuote() }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <Quote className="w-4 h-4 text-brand-400" />
+            <IconQuote className="w-4 h-4 text-brand-400" />
             <span className="text-white">Alıntı yap</span>
           </button>
         </div>

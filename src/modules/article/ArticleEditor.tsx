@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  ImagePlus, X, ChevronUp, ChevronDown, Trash2,
-  Plus, Camera, Heading1, Heading2, Heading3, Code2, Quote, Lightbulb, Minus,
-  Newspaper, Loader2,
-} from 'lucide-react'
+import { IconPhotoPlus, IconX, IconChevronUp, IconChevronDown, IconTrash, IconPlus, IconCamera, IconH1, IconH2, IconH3, IconCode, IconQuote, IconBulb, IconMinus, IconNews, IconLoader2 } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { BlockType } from '@store/articleStore'
@@ -19,13 +15,13 @@ import PostEmbedBlock from './blocks/PostEmbedBlock'
 
 // Block types shown in the Medium-style circle menu
 const CIRCLE_BLOCKS: { type: BlockType; icon: React.ReactNode; label: string }[] = [
-  { type: 'image',      icon: <Camera    className="w-4 h-4" />,   label: 'Görsel' },
-  { type: 'heading2',   icon: <Heading2  className="w-4 h-4" />,   label: 'Başlık' },
-  { type: 'code',       icon: <Code2     className="w-4 h-4" />,   label: 'Kod Bloğu' },
-  { type: 'quote',      icon: <Quote     className="w-4 h-4" />,   label: 'Alıntı' },
-  { type: 'callout',    icon: <Lightbulb className="w-4 h-4" />,   label: 'Çağrı Kutusu' },
-  { type: 'divider',    icon: <Minus     className="w-4 h-4" />,   label: 'Ayırıcı' },
-  { type: 'post-embed', icon: <Newspaper className="w-4 h-4" />,   label: 'Gönderi Postu' },
+  { type: 'image',      icon: <IconCamera    className="w-4 h-4" />,   label: 'Görsel' },
+  { type: 'heading2',   icon: <IconH2  className="w-4 h-4" />,   label: 'Başlık' },
+  { type: 'code',       icon: <IconCode     className="w-4 h-4" />,   label: 'Kod Bloğu' },
+  { type: 'quote',      icon: <IconQuote     className="w-4 h-4" />,   label: 'Alıntı' },
+  { type: 'callout',    icon: <IconBulb className="w-4 h-4" />,   label: 'Çağrı Kutusu' },
+  { type: 'divider',    icon: <IconMinus     className="w-4 h-4" />,   label: 'Ayırıcı' },
+  { type: 'post-embed', icon: <IconNews className="w-4 h-4" />,   label: 'Gönderi Postu' },
 ]
 
 function CircleBtn({
@@ -101,23 +97,23 @@ function BlockWrapper({
             // Heading sub-circles: H1 / H2 / H3
             <div className="flex items-center gap-1 animate-circle-menu">
               <CircleBtn onClick={() => setSubmenu(null)} title="Geri" className="border-gray-400 hover:border-gray-200">
-                <X className="w-3.5 h-3.5" />
+                <IconX className="w-3.5 h-3.5" />
               </CircleBtn>
               <CircleBtn onClick={() => handleAddBlock('heading1')} title="H1 – Büyük Başlık">
-                <Heading1 className="w-4 h-4" />
+                <IconH1 className="w-4 h-4" />
               </CircleBtn>
               <CircleBtn onClick={() => handleAddBlock('heading2')} title="H2 – Orta Başlık">
-                <Heading2 className="w-4 h-4" />
+                <IconH2 className="w-4 h-4" />
               </CircleBtn>
               <CircleBtn onClick={() => handleAddBlock('heading3')} title="H3 – Küçük Başlık">
-                <Heading3 className="w-4 h-4" />
+                <IconH3 className="w-4 h-4" />
               </CircleBtn>
             </div>
           ) : (
           // Main circle row
           <div className="flex items-center gap-1 animate-circle-menu">
             <CircleBtn onClick={() => { setMenuOpen(false); setSubmenu(null) }} title="Kapat" className="border-gray-400 hover:border-red-400 hover:text-red-400">
-              <X className="w-3.5 h-3.5" />
+              <IconX className="w-3.5 h-3.5" />
             </CircleBtn>
             {CIRCLE_BLOCKS.map((b) => (
               <CircleBtn
@@ -142,7 +138,7 @@ function BlockWrapper({
               className="w-7 h-7 rounded-full border border-gray-700 hover:border-brand-500 flex items-center justify-center text-gray-600 hover:text-brand-400 transition-all"
               title="Blok ekle"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <IconPlus className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => moveBlock(id, 'up')}
@@ -150,7 +146,7 @@ function BlockWrapper({
               className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
               title="Yukarı taşı"
             >
-              <ChevronUp className="w-3.5 h-3.5" />
+              <IconChevronUp className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => moveBlock(id, 'down')}
@@ -158,7 +154,7 @@ function BlockWrapper({
               className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
               title="Aşağı taşı"
             >
-              <ChevronDown className="w-3.5 h-3.5" />
+              <IconChevronDown className="w-3.5 h-3.5" />
             </button>
             {blocks.length > 1 && (
               <button
@@ -166,7 +162,7 @@ function BlockWrapper({
                 className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 title="Bloğu sil"
               >
-                <X className="w-3 h-3" />
+                <IconX className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -182,21 +178,21 @@ function BlockWrapper({
           disabled={idx === 0}
           className="w-7 h-7 flex items-center justify-center rounded-md text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
         >
-          <ChevronUp className="w-3.5 h-3.5" />
+          <IconChevronUp className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => moveBlock(id, 'down')}
           disabled={idx === blocks.length - 1}
           className="w-7 h-7 flex items-center justify-center rounded-md text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors disabled:opacity-20"
         >
-          <ChevronDown className="w-3.5 h-3.5" />
+          <IconChevronDown className="w-3.5 h-3.5" />
         </button>
         {blocks.length > 1 && (
           <button
             onClick={() => removeBlock(id)}
             className="w-7 h-7 flex items-center justify-center rounded-md text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <IconTrash className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
@@ -302,7 +298,7 @@ export default function ArticleEditor() {
               onClick={() => setCoverImage(null)}
               className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 px-4 py-2 rounded-lg bg-black/60 text-white text-sm hover:bg-black/80"
             >
-              <X className="w-4 h-4" />
+              <IconX className="w-4 h-4" />
               Kapak görselini kaldır
             </button>
           </div>
@@ -311,7 +307,7 @@ export default function ArticleEditor() {
         <div className="flex flex-col items-center gap-2 mx-4 sm:mx-6 mt-6 mb-2">
           <div className="flex items-center gap-2 w-full max-w-md">
             <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-lg border border-dashed border-surface-border hover:border-brand-500 transition-colors text-sm">
-              <ImagePlus className="w-4 h-4 text-gray-600 shrink-0" />
+              <IconPhotoPlus className="w-4 h-4 text-gray-600 shrink-0" />
               <input
                 type="url"
                 value={coverUrlInput}
@@ -412,7 +408,7 @@ export default function ArticleEditor() {
                 // Heading sub-circles for bottom menu
                 <div className="flex items-center gap-1 animate-circle-menu">
                   <CircleBtn onClick={() => setAddSubmenu(null)} title="Geri" className="border-gray-400 hover:border-gray-200">
-                    <X className="w-3.5 h-3.5" />
+                    <IconX className="w-3.5 h-3.5" />
                   </CircleBtn>
                   {(['heading1', 'heading2', 'heading3'] as BlockType[]).map((t, i) => (
                     <CircleBtn
@@ -427,7 +423,7 @@ export default function ArticleEditor() {
                         })
                       }}
                     >
-                      {[<Heading1 className="w-4 h-4" />, <Heading2 className="w-4 h-4" />, <Heading3 className="w-4 h-4" />][i]}
+                      {[<IconH1 className="w-4 h-4" />, <IconH2 className="w-4 h-4" />, <IconH3 className="w-4 h-4" />][i]}
                     </CircleBtn>
                   ))}
                 </div>
@@ -438,7 +434,7 @@ export default function ArticleEditor() {
                   title="Kapat"
                   className="border-gray-400 hover:border-red-400 hover:text-red-400"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <IconX className="w-3.5 h-3.5" />
                 </CircleBtn>
                 {CIRCLE_BLOCKS.map((b) => (
                   <CircleBtn
@@ -526,7 +522,7 @@ export default function ArticleEditor() {
                 className="flex-1 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {postEmbedLoading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Yükleniyor...</>
+                  <><IconLoader2 className="w-4 h-4 animate-spin" /> Yükleniyor...</>
                 ) : 'Ekle'}
               </button>
             </div>

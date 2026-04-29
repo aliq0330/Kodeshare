@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Clock, ChevronDown, ChevronUp, Code2, FolderOpen, FileText, Image, Link2, Video, Copy, Check } from 'lucide-react'
+import { IconX, IconClock, IconChevronDown, IconChevronUp, IconCode, IconFolderOpen, IconFileText, IconPhoto, IconLink, IconVideo, IconCopy, IconCheck } from '@tabler/icons-react'
 import Spinner from '@components/ui/Spinner'
 import CMHighlight from '@components/shared/CMHighlight'
 import { postService } from '@services/postService'
@@ -76,7 +76,7 @@ function CopyBtn({ text, className = '' }: { text: string; className?: string })
       title="Kopyala"
       className={`p-1 rounded transition-colors ${copied ? 'text-green-400' : 'text-gray-500 hover:text-gray-300'} ${className}`}
     >
-      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+      {copied ? <IconCheck className="w-3 h-3" /> : <IconCopy className="w-3 h-3" />}
     </button>
   )
 }
@@ -98,7 +98,7 @@ function FileBadge({ file }: { file: { name: string; language: string; content?:
           title={`${file.name} kopyala`}
           className="opacity-0 group-hover/badge:opacity-100 transition-opacity"
         >
-          {copied ? <Check className="w-2.5 h-2.5 text-green-400" /> : <Copy className="w-2.5 h-2.5 text-gray-500 hover:text-gray-300" />}
+          {copied ? <IconCheck className="w-2.5 h-2.5 text-green-400" /> : <IconCopy className="w-2.5 h-2.5 text-gray-500 hover:text-gray-300" />}
         </button>
       )}
     </span>
@@ -119,7 +119,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
           className="w-full flex items-center justify-between px-3 py-1.5 border-b border-surface-border bg-surface-card/60 hover:bg-surface-raised/40 transition-colors"
         >
           <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-            <Code2 className="w-3 h-3" />
+            <IconCode className="w-3 h-3" />
             {lang}
             {block.data.name ? ` · ${block.data.name}` : ''}
           </span>
@@ -127,7 +127,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
             <span className="opacity-0 group-hover:opacity-100 transition-opacity">
               <CopyBtn text={content} />
             </span>
-            {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+            {open ? <IconChevronUp className="w-3 h-3 text-gray-500" /> : <IconChevronDown className="w-3 h-3 text-gray-500" />}
           </span>
         </button>
         {open ? (
@@ -146,7 +146,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
     const copyText = files.map((f) => f.content ? `// ${f.name}\n${f.content}` : f.name).join('\n\n')
     return (
       <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2 flex-wrap relative">
-        <FolderOpen className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+        <IconFolderOpen className="w-3.5 h-3.5 text-brand-400 shrink-0" />
         {files.length === 0 ? (
           <span className="text-xs text-gray-500">Boş proje</span>
         ) : (
@@ -173,7 +173,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
           className="w-full flex items-center justify-between px-3 py-1.5 border-b border-surface-border bg-surface-card/60 hover:bg-surface-raised/40 transition-colors"
         >
           <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-            <FileText className="w-3 h-3" />
+            <IconFileText className="w-3 h-3" />
             Makale
           </span>
           <span className="flex items-center gap-1">
@@ -182,7 +182,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
                 <CopyBtn text={content} />
               </span>
             )}
-            {open ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+            {open ? <IconChevronUp className="w-3 h-3 text-gray-500" /> : <IconChevronDown className="w-3 h-3 text-gray-500" />}
           </span>
         </button>
         <p className={`px-3 py-2 text-xs text-gray-300 whitespace-pre-wrap ${open ? '' : 'line-clamp-2'}`}>
@@ -196,7 +196,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
     const url = (block.data.url as string) ?? ''
     return (
       <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
-        <Image className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+        <IconPhoto className="w-3.5 h-3.5 text-gray-500 shrink-0" />
         <span className="text-xs text-gray-400 truncate flex-1">{url || <span className="italic text-gray-600">URL yok</span>}</span>
         {url && (
           <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -213,7 +213,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
     return (
       <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <Link2 className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+          <IconLink className="w-3.5 h-3.5 text-gray-500 shrink-0" />
           <span className="text-xs text-gray-400 truncate flex-1">{url || <span className="italic text-gray-600">URL yok</span>}</span>
           {url && (
             <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -230,7 +230,7 @@ function BlockPreview({ block }: { block: PostBlock }) {
     const url = (block.data.url as string) ?? ''
     return (
       <div className="group rounded-lg border border-surface-border bg-surface-card/60 px-3 py-2 flex items-center gap-2">
-        <Video className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+        <IconVideo className="w-3.5 h-3.5 text-gray-500 shrink-0" />
         <span className="text-xs text-gray-400 truncate flex-1">{url || <span className="italic text-gray-600">URL yok</span>}</span>
         {url && (
           <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -263,7 +263,7 @@ function VersionCard({ version, index, total }: { version: Version; index: numbe
           </span>
           {version.sublabel && (
             <span className="flex items-center gap-1 text-[11px] text-gray-600">
-              <Clock className="w-3 h-3" />
+              <IconClock className="w-3 h-3" />
               {version.sublabel}
             </span>
           )}
@@ -334,7 +334,7 @@ export default function PostEditHistoryModal({ open, onClose, post }: PostEditHi
       <div className="relative w-full max-w-xl card shadow-2xl flex flex-col overflow-hidden animate-slide-up max-h-[85vh]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border shrink-0">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-brand-400" />
+            <IconClock className="w-4 h-4 text-brand-400" />
             <h2 className="font-semibold text-white">Düzenleme Geçmişi</h2>
             {!loading && edits.length > 0 && (
               <span className="text-xs text-gray-500 bg-surface-raised px-2 py-0.5 rounded-full">
@@ -343,7 +343,7 @@ export default function PostEditHistoryModal({ open, onClose, post }: PostEditHi
             )}
           </div>
           <button onClick={onClose} className="p-1 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors">
-            <X className="w-4 h-4" />
+            <IconX className="w-4 h-4" />
           </button>
         </div>
 

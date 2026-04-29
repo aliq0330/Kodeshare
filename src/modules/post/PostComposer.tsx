@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Cloud, UploadCloud, Clock, Hash, Eye, Pencil } from 'lucide-react'
+import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconPlus, IconChevronDown, IconX, IconTrash, IconCloud, IconCloudUpload, IconClock, IconHash, IconEye, IconPencil } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
@@ -74,12 +74,12 @@ function clearDraft() {
 }
 
 const BLOCK_OPTIONS: { type: PostBlockType; label: string; icon: React.ReactNode }[] = [
-  { type: 'snippet', label: 'Snippet', icon: <Code2 className="w-4 h-4" /> },
-  { type: 'project', label: 'Proje',   icon: <FolderOpen className="w-4 h-4" /> },
-  { type: 'article', label: 'Makale',  icon: <FileText className="w-4 h-4" /> },
-  { type: 'image',   label: 'Görsel',  icon: <Image className="w-4 h-4" /> },
-  { type: 'link',    label: 'Link',    icon: <Link2 className="w-4 h-4" /> },
-  { type: 'video',   label: 'Video',   icon: <Video className="w-4 h-4" /> },
+  { type: 'snippet', label: 'Snippet', icon: <IconCode className="w-4 h-4" /> },
+  { type: 'project', label: 'Proje',   icon: <IconFolderOpen className="w-4 h-4" /> },
+  { type: 'article', label: 'Makale',  icon: <IconFileText className="w-4 h-4" /> },
+  { type: 'image',   label: 'Görsel',  icon: <IconPhoto className="w-4 h-4" /> },
+  { type: 'link',    label: 'Link',    icon: <IconLink className="w-4 h-4" /> },
+  { type: 'video',   label: 'Video',   icon: <IconVideo className="w-4 h-4" /> },
 ]
 
 function extractArticleContent(article: ArticleRecord): string {
@@ -513,7 +513,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         Ne paylaşmak istiyorsun?
       </span>
       <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); openComposer() }}>
-        <Code2 className="w-4 h-4" />
+        <IconCode className="w-4 h-4" />
         Paylaş
       </Button>
     </div>
@@ -530,7 +530,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         size="fullscreen"
         titleAction={isAuthenticated ? (
           <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
-            <Cloud className="w-4 h-4" />
+            <IconCloud className="w-4 h-4" />
             Taslaklar
           </Button>
         ) : undefined}
@@ -541,7 +541,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
               onClick={() => setComposerMode('edit')}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'edit' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <IconPencil className="w-3.5 h-3.5" />
               Düzenle
             </button>
             <button
@@ -549,7 +549,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
               onClick={() => setComposerMode('preview')}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'preview' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
             >
-              <Eye className="w-3.5 h-3.5" />
+              <IconEye className="w-3.5 h-3.5" />
               Önizleme
             </button>
           </div>
@@ -576,7 +576,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                   <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 text-xs font-medium border border-brand-500/30">
                     #{tag}
                     <button type="button" onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
-                      <X className="w-3 h-3" />
+                      <IconX className="w-3 h-3" />
                     </button>
                   </span>
                 ))}
@@ -586,7 +586,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
               <div className="relative flex gap-2" ref={tagSuggestRef}>
                 <div className="relative flex-1">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                    <Hash className="w-3.5 h-3.5" />
+                    <IconHash className="w-3.5 h-3.5" />
                   </span>
                   <input
                     value={tagInput}
@@ -604,7 +604,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                           onMouseDown={(e) => { e.preventDefault(); addTag(s) }}
                           className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-raised text-gray-300 hover:text-white transition-colors"
                         >
-                          <Hash className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                          <IconHash className="w-3.5 h-3.5 text-brand-400 shrink-0" />
                           {s}
                         </button>
                       ))}
@@ -633,7 +633,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                       {BLOCK_OPTIONS.find((o) => o.type === block.type)?.label}
                     </span>
                     <button type="button" onClick={() => removeBlock(block.localId)} className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors">
-                      <X className="w-3.5 h-3.5" />
+                      <IconX className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
@@ -654,7 +654,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                     block.project ? (
                       <div className="rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
                         <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
-                          <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
+                          <IconFolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
                           <span className="text-sm font-medium text-white truncate flex-1">{block.project.title}</span>
                           <div className="flex items-center gap-1">
                             {block.project.files.map((f) => (
@@ -663,7 +663,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                               </span>
                             ))}
                             <button onClick={() => updateBlock(block.localId, { project: null })} className="ml-1 p-1 rounded hover:bg-surface-raised text-gray-500 hover:text-gray-300 transition-colors">
-                              <Trash2 className="w-3 h-3" />
+                              <IconTrash className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
@@ -678,9 +678,9 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                           }}
                           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
                         >
-                          <FolderOpen className="w-4 h-4" />
+                          <IconFolderOpen className="w-4 h-4" />
                           Proje Seç
-                          <ChevronDown className="w-3.5 h-3.5" />
+                          <IconChevronDown className="w-3.5 h-3.5" />
                         </button>
                         {pickerBlockId === block.localId && (
                           <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-52 overflow-y-auto">
@@ -696,7 +696,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                                   onClick={() => { updateBlock(block.localId, { project: p }); setPickerBlockId(null) }}
                                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-surface-raised transition-colors"
                                 >
-                                  <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
+                                  <IconFolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
                                   <span className="text-white flex-1 truncate">{p.title}</span>
                                   <span className="text-xs text-gray-500">{p.files.length} dosya</span>
                                 </button>
@@ -713,13 +713,13 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                     block.articleId ? (
                       <div className="rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
                         <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
-                          <FileText className="w-4 h-4 text-brand-400 shrink-0" />
+                          <IconFileText className="w-4 h-4 text-brand-400 shrink-0" />
                           <span className="text-sm font-medium text-white truncate flex-1">{block.articleTitle}</span>
                           <button
                             onClick={() => updateBlock(block.localId, { articleId: null, articleTitle: '', coverImage: null, content: '' } as Partial<ComposerBlock>)}
                             className="ml-1 p-1 rounded hover:bg-surface-raised text-gray-500 hover:text-gray-300 transition-colors"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <IconTrash className="w-3 h-3" />
                           </button>
                         </div>
                         {block.content && (
@@ -736,9 +736,9 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                           }}
                           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
                         >
-                          <FileText className="w-4 h-4" />
+                          <IconFileText className="w-4 h-4" />
                           Makale Seç
-                          <ChevronDown className="w-3.5 h-3.5" />
+                          <IconChevronDown className="w-3.5 h-3.5" />
                         </button>
                         {articlePickerBlockId === block.localId && (
                           <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-52 overflow-y-auto">
@@ -762,7 +762,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                                   }}
                                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-surface-raised transition-colors"
                                 >
-                                  <FileText className="w-4 h-4 text-brand-400 shrink-0" />
+                                  <IconFileText className="w-4 h-4 text-brand-400 shrink-0" />
                                   <span className="text-white flex-1 truncate">{a.title}</span>
                                   <span className="text-xs text-gray-500">{articleWordCount(a)} kelime</span>
                                 </button>
@@ -811,7 +811,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
               onClick={() => setAddMenuOpen((v) => !v)}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
             >
-              <Plus className="w-4 h-4" />
+              <IconPlus className="w-4 h-4" />
               Blok Ekle
             </button>
             {addMenuOpen && (
@@ -859,7 +859,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                 </>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center gap-2 text-gray-600 py-16">
-                  <Eye className="w-8 h-8" />
+                  <IconEye className="w-8 h-8" />
                   <p className="text-sm">Önizlenecek içerik yok</p>
                 </div>
               )}
@@ -871,7 +871,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card flex-wrap">
           {isAuthenticated && !editingPost && (
             <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleCloudSave} loading={cloudSaving}>
-              <UploadCloud className="w-4 h-4" />
+              <IconCloudUpload className="w-4 h-4" />
               {cloudDraftId ? 'Taslağı Güncelle' : 'Taslak Kaydet'}
             </Button>
           )}
@@ -891,7 +891,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             <div className="flex justify-center py-8"><Spinner /></div>
           ) : cloudDrafts.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <Cloud className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+              <IconCloud className="w-8 h-8 mx-auto mb-2 text-gray-600" />
               <p className="text-sm">Kayıtlı taslak yok</p>
             </div>
           ) : (
@@ -910,7 +910,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                       <p className="text-xs text-gray-500 mt-0.5 truncate">{draft.tags}</p>
                     )}
                     <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
+                      <IconClock className="w-3 h-3" />
                       {timeAgo(draft.updatedAt)}
                       {(draft.blocks as unknown[]).length > 0 && (
                         <span className="ml-1">· {(draft.blocks as unknown[]).length} blok</span>
@@ -922,7 +922,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                     className="shrink-0 p-1.5 rounded text-gray-500 hover:text-red-400 transition-colors"
                     title="Taslağı sil"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <IconTrash className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 {cloudDraftId === draft.id && (

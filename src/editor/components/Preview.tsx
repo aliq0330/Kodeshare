@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { RefreshCw, ExternalLink, Smartphone, Monitor, Tablet } from 'lucide-react'
+import { IconRefresh, IconExternalLink, IconDeviceMobile, IconDeviceDesktop, IconDeviceTablet } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import type { EditorFile } from '@/types'
 
@@ -9,10 +9,10 @@ interface PreviewProps {
 
 type Viewport = 'desktop' | 'tablet' | 'mobile'
 
-const VIEWPORTS: { id: Viewport; icon: typeof Monitor; width: string }[] = [
-  { id: 'desktop', icon: Monitor,    width: '100%' },
-  { id: 'tablet',  icon: Tablet,     width: '768px' },
-  { id: 'mobile',  icon: Smartphone, width: '375px' },
+const VIEWPORTS: { id: Viewport; icon: typeof IconDeviceDesktop; width: string }[] = [
+  { id: 'desktop', icon: IconDeviceDesktop,    width: '100%' },
+  { id: 'tablet',  icon: IconDeviceTablet,     width: '768px' },
+  { id: 'mobile',  icon: IconDeviceMobile, width: '375px' },
 ]
 
 function buildSrcdoc(files: EditorFile[]): string {
@@ -54,13 +54,13 @@ export default function Preview({ files }: PreviewProps) {
             className="p-1.5 rounded hover:bg-[#1e2535] text-gray-500 hover:text-gray-300 transition-colors"
             title="Yenile"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <IconRefresh className="w-3.5 h-3.5" />
           </button>
           <button
             className="p-1.5 rounded hover:bg-[#1e2535] text-gray-500 hover:text-gray-300 transition-colors"
             title="Yeni sekmede aç"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            <IconExternalLink className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

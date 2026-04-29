@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { IconLoader2 } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleBlock } from '@store/articleStore'
@@ -288,7 +288,7 @@ export default function TextBlock({ block, onFocusNext, onFocusPrev }: Props) {
           <div className="max-h-52 overflow-y-auto">
             {mentionLoading && (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                <IconLoader2 className="w-4 h-4 animate-spin text-gray-500" />
               </div>
             )}
             {!mentionLoading && mentionResults.length === 0 && (

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, UserPlus, AtSign, GitFork, Reply, Mail } from 'lucide-react'
+import { IconHeart, IconMessageCircle, IconUserPlus, IconAt, IconGitFork, IconArrowBackUp, IconMail } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
@@ -10,16 +10,16 @@ interface NotificationItemProps {
   notification: Notification
 }
 
-const icons: Record<NotificationType, { icon: typeof Heart; color: string }> = {
-  like:            { icon: Heart,          color: 'text-red-400' },
-  comment:         { icon: MessageCircle,  color: 'text-blue-400' },
-  reply:           { icon: Reply,          color: 'text-cyan-400' },
-  follow:          { icon: UserPlus,       color: 'text-green-400' },
-  follow_request:  { icon: UserPlus,       color: 'text-yellow-400' },
-  mention:         { icon: AtSign,         color: 'text-yellow-400' },
-  repost:          { icon: GitFork,        color: 'text-purple-400' },
-  message:         { icon: Mail,           color: 'text-brand-400' },
-  collection_save: { icon: Heart,          color: 'text-orange-400' },
+const icons: Record<NotificationType, { icon: typeof IconHeart; color: string }> = {
+  like:            { icon: IconHeart,          color: 'text-red-400' },
+  comment:         { icon: IconMessageCircle,  color: 'text-blue-400' },
+  reply:           { icon: IconArrowBackUp,          color: 'text-cyan-400' },
+  follow:          { icon: IconUserPlus,       color: 'text-green-400' },
+  follow_request:  { icon: IconUserPlus,       color: 'text-yellow-400' },
+  mention:         { icon: IconAt,         color: 'text-yellow-400' },
+  repost:          { icon: IconGitFork,        color: 'text-purple-400' },
+  message:         { icon: IconMail,           color: 'text-brand-400' },
+  collection_save: { icon: IconHeart,          color: 'text-orange-400' },
 }
 
 function notificationTarget(n: Notification): string {

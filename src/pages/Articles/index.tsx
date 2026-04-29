@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FilePen, Trash2, Clock, Plus, BookOpen, Globe, Link2, EyeOff } from 'lucide-react'
+import { IconFilePencil, IconTrash, IconClock, IconPlus, IconBook2, IconWorld, IconLink, IconEyeOff } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useArticleStore } from '@store/articleStore'
 import { articleService } from '@services/articleService'
@@ -94,7 +94,7 @@ export default function ArticlesPage() {
           onClick={handleNew}
           className="flex items-center gap-2 px-4 h-9 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors"
         >
-          <Plus className="w-4 h-4" />
+          <IconPlus className="w-4 h-4" />
           Yeni Makale
         </button>
       </div>
@@ -110,7 +110,7 @@ export default function ArticlesPage() {
       {!loading && articles.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-16 h-16 rounded-2xl bg-surface-raised flex items-center justify-center mb-4">
-            <BookOpen className="w-8 h-8 text-gray-600" />
+            <IconBook2 className="w-8 h-8 text-gray-600" />
           </div>
           <p className="text-gray-400 font-medium">Henüz makale yok</p>
           <p className="text-gray-600 text-sm mt-1 mb-6">
@@ -120,7 +120,7 @@ export default function ArticlesPage() {
             onClick={handleNew}
             className="flex items-center gap-2 px-5 h-10 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors"
           >
-            <Plus className="w-4 h-4" />
+            <IconPlus className="w-4 h-4" />
             İlk Makaleyi Yaz
           </button>
         </div>
@@ -148,7 +148,7 @@ export default function ArticlesPage() {
                 />
               ) : (
                 <div className="w-20 h-16 rounded-lg bg-surface-raised flex items-center justify-center shrink-0">
-                  <BookOpen className="w-6 h-6 text-gray-700" />
+                  <IconBook2 className="w-6 h-6 text-gray-700" />
                 </div>
               )}
 
@@ -160,7 +160,7 @@ export default function ArticlesPage() {
                   </h2>
                   {article.isPublished && (
                     <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 text-[10px] font-semibold uppercase tracking-wider shrink-0">
-                      <Globe className="w-2.5 h-2.5" />
+                      <IconWorld className="w-2.5 h-2.5" />
                       Yayında
                     </span>
                   )}
@@ -170,7 +170,7 @@ export default function ArticlesPage() {
                 )}
                 <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
+                    <IconClock className="w-3 h-3" />
                     {formatDate(article.updatedAt)}
                   </span>
                   <span>{wordCount(article)} kelime</span>
@@ -187,14 +187,14 @@ export default function ArticlesPage() {
                       className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
                       title="Linki kopyala"
                     >
-                      <Link2 className="w-4 h-4" />
+                      <IconLink className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => handleUnpublish(article.id, e)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-yellow-400 hover:bg-surface-raised transition-colors"
                       title="Yayından kaldır"
                     >
-                      <EyeOff className="w-4 h-4" />
+                      <IconEyeOff className="w-4 h-4" />
                     </button>
                   </>
                 )}
@@ -203,14 +203,14 @@ export default function ArticlesPage() {
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
                   title="Düzenle"
                 >
-                  <FilePen className="w-4 h-4" />
+                  <IconFilePencil className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => handleDelete(article.id, e)}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                   title="Sil"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <IconTrash className="w-4 h-4" />
                 </button>
               </div>
             </div>

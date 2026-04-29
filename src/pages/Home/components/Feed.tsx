@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useInView } from 'react-intersection-observer'
-import { RefreshCw } from 'lucide-react'
+import { IconRefresh } from '@tabler/icons-react'
 import PostCard from '@components/shared/PostCard'
 import PostCardSkeleton from '@components/shared/PostCardSkeleton'
 import Spinner from '@components/ui/Spinner'
@@ -46,7 +46,7 @@ export default function Feed({ tab, tag }: FeedProps) {
           size="sm"
           onClick={() => fetchPosts({ tab, tag, page: 1 })}
         >
-          <RefreshCw className="w-4 h-4" />
+          <IconRefresh className="w-4 h-4" />
           Tekrar Dene
         </Button>
       </div>

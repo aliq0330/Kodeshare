@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Heart, MessageCircle, Repeat2, Bookmark, Share2, FolderPlus, BarChart2, MoreHorizontal, FolderMinus } from 'lucide-react'
+import { IconBook2, IconHeart, IconMessageCircle, IconRepeatOnce, IconBookmark, IconShare, IconFolderPlus, IconChartBar, IconDots, IconFolderMinus } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ArticleShareModal from '@modules/social/ArticleShareModal'
@@ -88,7 +88,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                     onClick={() => setMenuOpen((v) => !v)}
                     className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
                   >
-                    <MoreHorizontal className="w-4 h-4" />
+                    <IconDots className="w-4 h-4" />
                   </button>
                   {menuOpen && (
                     <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
@@ -97,7 +97,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                         onClick={() => { setShareOpen(true); setMenuOpen(false) }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                       >
-                        <Share2 className="w-4 h-4 text-sky-400" />
+                        <IconShare className="w-4 h-4 text-sky-400" />
                         <span className="text-white">Paylaş</span>
                       </button>
                       <button
@@ -105,7 +105,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                         onClick={() => { setCollectOpen(true); setMenuOpen(false) }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                       >
-                        <FolderPlus className="w-4 h-4 text-brand-400" />
+                        <IconFolderPlus className="w-4 h-4 text-brand-400" />
                         <span className="text-white">Koleksiyona ekle</span>
                       </button>
                       {onRemoveFromCollection && (
@@ -114,7 +114,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                           onClick={() => { setMenuOpen(false); onRemoveFromCollection() }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                         >
-                          <FolderMinus className="w-4 h-4 text-red-400" />
+                          <IconFolderMinus className="w-4 h-4 text-red-400" />
                           <span className="text-red-400">Bu koleksiyondan çıkar</span>
                         </button>
                       )}
@@ -123,7 +123,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                         onClick={() => { setStatsOpen(true); setMenuOpen(false) }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                       >
-                        <BarChart2 className="w-4 h-4 text-purple-400" />
+                        <IconChartBar className="w-4 h-4 text-purple-400" />
                         <span className="text-white">İstatistikler</span>
                       </button>
                     </div>
@@ -144,7 +144,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
               <div className="flex items-start gap-2">
                 {!article.coverImage && (
                   <div className="w-7 h-7 rounded-lg bg-surface-raised flex items-center justify-center shrink-0 mt-0.5">
-                    <BookOpen className="w-3.5 h-3.5 text-gray-500" />
+                    <IconBook2 className="w-3.5 h-3.5 text-gray-500" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -162,7 +162,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 onClick={handleLike}
                 className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
               >
-                <Heart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
+                <IconHeart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
                 <span className="text-xs">{compactNumber(article.likesCount)}</span>
               </button>
 
@@ -170,7 +170,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 to={`/makale/${article.id}#comments`}
                 className="flex items-center gap-1.5 hover:text-white transition-colors"
               >
-                <MessageCircle className="w-[18px] h-[18px]" />
+                <IconMessageCircle className="w-[18px] h-[18px]" />
               </Link>
 
               {isAuthenticated ? (
@@ -178,11 +178,11 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                   onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
                   className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
                 >
-                  <Repeat2 className="w-[18px] h-[18px]" />
+                  <IconRepeatOnce className="w-[18px] h-[18px]" />
                 </button>
               ) : (
                 <span className="flex items-center gap-1.5">
-                  <Repeat2 className="w-[18px] h-[18px]" />
+                  <IconRepeatOnce className="w-[18px] h-[18px]" />
                 </span>
               )}
 
@@ -190,7 +190,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 onClick={handleSave}
                 className={`ml-auto flex items-center gap-1.5 transition-colors ${article.isSaved ? 'text-white' : 'hover:text-white'}`}
               >
-                <Bookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
+                <IconBookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
           </div>

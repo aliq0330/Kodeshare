@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Send, Clock, CheckCheck, MoreHorizontal, Eye, Link2, Globe, EyeOff, Copy } from 'lucide-react'
+import { IconArrowLeft, IconDeviceFloppy, IconSend, IconClock, IconChecks, IconDots, IconEye, IconLink, IconWorld, IconEyeOff, IconCopy } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useArticleStore, type ArticleBlock } from '@store/articleStore'
 import ArticleEditor from '@modules/article/ArticleEditor'
@@ -25,9 +25,9 @@ function SaveStatus({ isDirty, isSaving }: { isDirty: boolean; isSaving: boolean
       isSaving      ? 'text-gray-500' :
       savedFlash    ? 'text-green-400' : 'text-gray-500',
     )}>
-      {isSaving    ? <Clock className="w-3.5 h-3.5 animate-pulse" /> :
-       savedFlash  ? <CheckCheck className="w-3.5 h-3.5" /> :
-                     <Clock className="w-3.5 h-3.5 animate-pulse" />}
+      {isSaving    ? <IconClock className="w-3.5 h-3.5 animate-pulse" /> :
+       savedFlash  ? <IconChecks className="w-3.5 h-3.5" /> :
+                     <IconClock className="w-3.5 h-3.5 animate-pulse" />}
       <span className="hidden sm:inline">
         {isSaving ? 'Kaydediliyor...' : savedFlash ? 'Kaydedildi' : 'Kaydediliyor...'}
       </span>
@@ -92,7 +92,7 @@ export default function ArticlePage() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors shrink-0"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <IconArrowLeft className="w-5 h-5" />
             <span className="hidden sm:inline text-sm">Geri</span>
           </button>
 
@@ -100,7 +100,7 @@ export default function ArticlePage() {
           <div className="flex items-center gap-2 min-w-0">
             {isPublished && (
               <span className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 text-[10px] font-semibold uppercase tracking-wider shrink-0">
-                <Globe className="w-3 h-3" />
+                <IconWorld className="w-3 h-3" />
                 Yayında
               </span>
             )}
@@ -119,7 +119,7 @@ export default function ArticlePage() {
                 className="flex items-center gap-1.5 px-3 h-8 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
                 title="Linki kopyala"
               >
-                <Link2 className="w-4 h-4" />
+                <IconLink className="w-4 h-4" />
                 <span className="hidden sm:inline">Link</span>
               </button>
             )}
@@ -134,7 +134,7 @@ export default function ArticlePage() {
                   : 'text-gray-400 hover:text-white hover:bg-surface-raised',
               )}
             >
-              <Eye className="w-4 h-4" />
+              <IconEye className="w-4 h-4" />
               <span className="hidden sm:inline">Önizle</span>
             </button>
 
@@ -145,7 +145,7 @@ export default function ArticlePage() {
                 disabled={isSaving}
                 className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-surface-border text-sm text-gray-300 hover:text-white hover:bg-surface-raised disabled:opacity-50 transition-colors"
               >
-                <Save className="w-4 h-4" />
+                <IconDeviceFloppy className="w-4 h-4" />
                 <span className="hidden sm:inline">Taslak</span>
               </button>
             )}
@@ -156,7 +156,7 @@ export default function ArticlePage() {
                 onClick={() => navigate(`/makale/${supabaseId}`)}
                 className="flex items-center gap-1.5 px-4 h-8 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors"
               >
-                <Globe className="w-3.5 h-3.5" />
+                <IconWorld className="w-3.5 h-3.5" />
                 <span>Görüntüle</span>
               </button>
             ) : (
@@ -165,7 +165,7 @@ export default function ArticlePage() {
                 disabled={isSaving}
                 className="flex items-center gap-1.5 px-4 h-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium disabled:opacity-50 transition-colors"
               >
-                <Send className="w-3.5 h-3.5" />
+                <IconSend className="w-3.5 h-3.5" />
                 <span>Yayınla</span>
               </button>
             )}
@@ -176,7 +176,7 @@ export default function ArticlePage() {
                 onClick={() => setMenuOpen((v) => !v)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
               >
-                <MoreHorizontal className="w-4 h-4" />
+                <IconDots className="w-4 h-4" />
               </button>
               {menuOpen && (
                 <div className="absolute right-0 top-full mt-1 w-44 card shadow-2xl py-1 z-50">
@@ -186,7 +186,7 @@ export default function ArticlePage() {
                         onClick={handleCopyLink}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
                       >
-                        <Copy className="w-4 h-4 text-brand-400 shrink-0" />
+                        <IconCopy className="w-4 h-4 text-brand-400 shrink-0" />
                         Linki Kopyala
                       </button>
                       <button
@@ -194,7 +194,7 @@ export default function ArticlePage() {
                         disabled={isSaving}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors disabled:opacity-50"
                       >
-                        <EyeOff className="w-4 h-4 text-yellow-400 shrink-0" />
+                        <IconEyeOff className="w-4 h-4 text-yellow-400 shrink-0" />
                         Yayından Kaldır
                       </button>
                     </>
@@ -203,7 +203,7 @@ export default function ArticlePage() {
                       onClick={() => { handleSaveDraft(); setMenuOpen(false) }}
                       className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
                     >
-                      <Save className="w-4 h-4 text-brand-400 shrink-0" />
+                      <IconDeviceFloppy className="w-4 h-4 text-brand-400 shrink-0" />
                       Taslak Kaydet
                     </button>
                   )}

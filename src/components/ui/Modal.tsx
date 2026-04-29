@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
-import { X } from 'lucide-react'
+import { IconX } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 
 interface ModalProps {
@@ -72,7 +72,7 @@ export default function Modal({ open, onClose, title, titleAction, subheader, ch
                 onClick={onClose}
                 className="p-1.5 rounded-lg hover:bg-surface-raised text-gray-400 hover:text-white transition-colors"
               >
-                <X className="w-4 h-4" />
+                <IconX className="w-4 h-4" />
               </button>
             </div>
           </div>

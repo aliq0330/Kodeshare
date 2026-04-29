@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Folder, Check, Plus, Minus } from 'lucide-react'
+import { IconFolder, IconCheck, IconPlus, IconMinus } from '@tabler/icons-react'
 import Modal from '@components/ui/Modal'
 import Spinner from '@components/ui/Spinner'
 import { collectionService } from '@services/collectionService'
@@ -77,7 +77,7 @@ export default function AddToCollectionModal({ postId, articleId, open, onClose 
         <div className="flex justify-center py-6"><Spinner /></div>
       ) : collections.length === 0 ? (
         <div className="text-center py-6 text-gray-500">
-          <Folder className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+          <IconFolder className="w-8 h-8 mx-auto mb-2 text-gray-600" />
           <p className="text-sm">Henüz koleksiyonun yok.</p>
           <p className="text-xs mt-1">Profilinden koleksiyon oluşturabilirsin.</p>
         </div>
@@ -100,7 +100,7 @@ export default function AddToCollectionModal({ postId, articleId, open, onClose 
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                   isAdded ? 'bg-brand-500/20' : 'bg-brand-900/40'
                 }`}>
-                  <Folder className={`w-4 h-4 ${isAdded ? 'text-brand-400' : 'text-brand-400'}`} />
+                  <IconFolder className={`w-4 h-4 ${isAdded ? 'text-brand-400' : 'text-brand-400'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{col.name}</p>
@@ -114,9 +114,9 @@ export default function AddToCollectionModal({ postId, articleId, open, onClose 
                   {isSaving ? (
                     <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
                   ) : isAdded ? (
-                    <Check className="w-3.5 h-3.5" />
+                    <IconCheck className="w-3.5 h-3.5" />
                   ) : (
-                    <Plus className="w-3.5 h-3.5" />
+                    <IconPlus className="w-3.5 h-3.5" />
                   )}
                 </div>
               </button>

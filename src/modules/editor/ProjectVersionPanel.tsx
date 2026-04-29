@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import {
-  X, Plus, RotateCcw, GitCompare, Trash2, Clock, Tag, ChevronDown, ChevronUp,
-  CheckCircle2, Loader2, Maximize2, Minimize2, Search, Pin, PinOff, FileCode,
-  Eye, Download, FileText, Hash, ArrowLeft, Copy, Check, RefreshCw,
-} from 'lucide-react'
+import { IconX, IconPlus, IconRotate2, IconGitCompare, IconTrash, IconClock, IconTag, IconChevronDown, IconChevronUp, IconCircleCheck, IconLoader2, IconMaximize, IconMinimize, IconSearch, IconPin, IconPinnedOff, IconFileCode, IconEye, IconDownload, IconFileText, IconHash, IconArrowLeft, IconCopy, IconCheck, IconRefresh } from '@tabler/icons-react'
 import { projectVersionService, type ProjectVersion, type ProjectVersionFile } from '@services/projectVersionService'
 import { fullDate, timeAgo } from '@utils/formatters'
 import ProjectVersionDiffModal from './ProjectVersionDiffModal'
@@ -380,10 +376,10 @@ export default function ProjectVersionPanel({
               style={{ color: ui.text }}
               title="Listeye dön"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <IconArrowLeft className="w-4 h-4" />
             </button>
           ) : (
-            <Clock className="w-4 h-4" style={{ color: '#8aa8ff' }} />
+            <IconClock className="w-4 h-4" style={{ color: '#8aa8ff' }} />
           )}
           <h2 className="text-sm font-semibold truncate" style={{ color: ui.text }}>
             {showBack ? (previewVersion ? `v${previewVersion.versionNumber}` : 'Versiyon') : 'Versiyon Geçmişi'}
@@ -410,7 +406,7 @@ export default function ProjectVersionPanel({
                   : 'Otomatik kayıt (5 dk\'da bir)'
               }
             >
-              <RefreshCw className="w-4 h-4" style={autoSave ? { animation: 'spin 3s linear infinite' } : {}} />
+              <IconRefresh className="w-4 h-4" style={autoSave ? { animation: 'spin 3s linear infinite' } : {}} />
             </button>
           )}
           {!isMobile && (
@@ -420,7 +416,7 @@ export default function ProjectVersionPanel({
               style={{ color: ui.textMuted }}
               title={fullscreen ? 'Yan panele geç' : 'Tam ekran'}
             >
-              {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              {fullscreen ? <IconMinimize className="w-4 h-4" /> : <IconMaximize className="w-4 h-4" />}
             </button>
           )}
           <button
@@ -428,7 +424,7 @@ export default function ProjectVersionPanel({
             className="p-1.5 rounded transition-colors"
             style={{ color: ui.textMuted }}
           >
-            <X className="w-4 h-4" />
+            <IconX className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -463,8 +459,8 @@ export default function ProjectVersionPanel({
               style={{ background: '#2a3a56', color: '#8aa8ff', border: '1px solid #3a4a6a' }}
             >
               {saving
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <><CheckCircle2 className="w-3.5 h-3.5" />Kaydet</>}
+                ? <IconLoader2 className="w-3.5 h-3.5 animate-spin" />
+                : <><IconCircleCheck className="w-3.5 h-3.5" />Kaydet</>}
             </button>
             <button
               onClick={() => setShowSaveForm(false)}
@@ -486,7 +482,7 @@ export default function ProjectVersionPanel({
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#8aa8ff'; e.currentTarget.style.color = '#8aa8ff' }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = ui.border; e.currentTarget.style.color = ui.textMuted }}
         >
-          <Plus className="w-3.5 h-3.5" />
+          <IconPlus className="w-3.5 h-3.5" />
           Şu anki versiyonu kaydet
         </button>
       )}
@@ -547,13 +543,13 @@ export default function ProjectVersionPanel({
             <div className="flex items-center gap-1.5 flex-wrap">
               {v.label ? (
                 <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#8aa8ff' }}>
-                  <Tag className="w-3 h-3" />
+                  <IconTag className="w-3 h-3" />
                   {v.label}
                 </span>
               ) : (
                 <span className="text-xs" style={{ color: ui.textMuted }}>v{v.versionNumber}</span>
               )}
-              {isPinned && <Pin className="w-3 h-3" style={{ color: '#fbbf24', fill: 'rgba(251,191,36,0.4)' }} />}
+              {isPinned && <IconPin className="w-3 h-3" style={{ color: '#fbbf24', fill: 'rgba(251,191,36,0.4)' }} />}
             </div>
             <p className="text-[11px] mt-0.5" style={{ color: ui.border }} title={fullDate(v.createdAt)}>
               {timeAgo(v.createdAt)}
@@ -574,13 +570,13 @@ export default function ProjectVersionPanel({
             style={{ color: isPinned ? '#fbbf24' : ui.border }}
             title={isPinned ? 'Sabitlemeyi kaldır' : 'Sabitle'}
           >
-            {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+            {isPinned ? <IconPinnedOff className="w-3.5 h-3.5" /> : <IconPin className="w-3.5 h-3.5" />}
           </button>
 
           {!fullscreen && (
             isExpanded
-              ? <ChevronUp className="w-3.5 h-3.5 shrink-0 mt-1" style={{ color: ui.border }} />
-              : <ChevronDown className="w-3.5 h-3.5 shrink-0 mt-1" style={{ color: ui.border }} />
+              ? <IconChevronUp className="w-3.5 h-3.5 shrink-0 mt-1" style={{ color: ui.border }} />
+              : <IconChevronDown className="w-3.5 h-3.5 shrink-0 mt-1" style={{ color: ui.border }} />
           )}
         </div>
 
@@ -593,7 +589,7 @@ export default function ProjectVersionPanel({
               onMouseEnter={(e) => { e.currentTarget.style.color = ui.text }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ui.textMuted }}
             >
-              <GitCompare className="w-3.5 h-3.5 shrink-0" style={{ color: '#8aa8ff' }} />
+              <IconGitCompare className="w-3.5 h-3.5 shrink-0" style={{ color: '#8aa8ff' }} />
               Bu versiyon ile mevcut durumu karşılaştır
             </button>
 
@@ -606,8 +602,8 @@ export default function ProjectVersionPanel({
               onMouseLeave={(e) => { e.currentTarget.style.color = ui.textMuted }}
             >
               {restoring === v.id
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                : <RotateCcw className="w-3.5 h-3.5 shrink-0" style={{ color: '#fbbf24' }} />}
+                ? <IconLoader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                : <IconRotate2 className="w-3.5 h-3.5 shrink-0" style={{ color: '#fbbf24' }} />}
               Bu versiyona geri dön
             </button>
 
@@ -618,7 +614,7 @@ export default function ProjectVersionPanel({
               onMouseEnter={(e) => { e.currentTarget.style.color = ui.text }}
               onMouseLeave={(e) => { e.currentTarget.style.color = ui.textMuted }}
             >
-              <Download className="w-3.5 h-3.5 shrink-0" style={{ color: '#34d399' }} />
+              <IconDownload className="w-3.5 h-3.5 shrink-0" style={{ color: '#34d399' }} />
               JSON olarak indir
             </button>
 
@@ -639,8 +635,8 @@ export default function ProjectVersionPanel({
               }}
             >
               {deleting === v.id
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                : <Trash2 className="w-3.5 h-3.5 shrink-0" />}
+                ? <IconLoader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                : <IconTrash className="w-3.5 h-3.5 shrink-0" />}
               Versiyonu sil{pins.has(v.id) ? ' (sabitli)' : ''}
             </button>
           </div>
@@ -653,11 +649,11 @@ export default function ProjectVersionPanel({
     <>
       {loading ? (
         <div className="flex justify-center py-8">
-          <Loader2 className="w-5 h-5 animate-spin" style={{ color: ui.textMuted }} />
+          <IconLoader2 className="w-5 h-5 animate-spin" style={{ color: ui.textMuted }} />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-10 px-4">
-          <Clock className="w-8 h-8 mx-auto mb-2" style={{ color: ui.border }} />
+          <IconClock className="w-8 h-8 mx-auto mb-2" style={{ color: ui.border }} />
           <p className="text-sm font-medium" style={{ color: ui.textMuted }}>
             {search ? 'Eşleşen versiyon yok' : 'Henüz versiyon yok'}
           </p>
@@ -677,7 +673,7 @@ export default function ProjectVersionPanel({
                   borderBottom: `1px solid ${ui.border}66`,
                 }}
               >
-                {g.key === 'pinned' && <Pin className="w-3 h-3" style={{ color: '#fbbf24' }} />}
+                {g.key === 'pinned' && <IconPin className="w-3 h-3" style={{ color: '#fbbf24' }} />}
                 {g.label}
                 <span style={{ color: ui.border }}>· {g.items.length}</span>
               </div>
@@ -756,7 +752,7 @@ export default function ProjectVersionPanel({
           style={{ borderBottom: `1px solid ${ui.border}` }}
         >
           <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: ui.border }} />
+            <IconSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: ui.border }} />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -779,7 +775,7 @@ export default function ProjectVersionPanel({
               className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               style={{ background: '#2a3a56', color: '#8aa8ff', border: '1px solid #3a4a6a' }}
             >
-              <GitCompare className="w-3.5 h-3.5" />
+              <IconGitCompare className="w-3.5 h-3.5" />
               Seçilenleri karşılaştır
             </button>
             {selectedIds.length > 0 && (
@@ -837,12 +833,12 @@ export default function ProjectVersionPanel({
                         </span>
                         {previewVersion.label && (
                           <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#8aa8ff' }}>
-                            <Tag className="w-3 h-3" />{previewVersion.label}
+                            <IconTag className="w-3 h-3" />{previewVersion.label}
                           </span>
                         )}
                         {pins.has(previewVersion.id) && (
                           <span className="flex items-center gap-1 text-[10px]" style={{ color: '#fbbf24' }}>
-                            <Pin className="w-3 h-3" style={{ fill: 'rgba(251,191,36,0.4)' }} />Sabit
+                            <IconPin className="w-3 h-3" style={{ fill: 'rgba(251,191,36,0.4)' }} />Sabit
                           </span>
                         )}
                       </div>
@@ -861,7 +857,7 @@ export default function ProjectVersionPanel({
                         onMouseEnter={(e) => { e.currentTarget.style.color = ui.text }}
                         onMouseLeave={(e) => { e.currentTarget.style.color = ui.textMuted }}
                       >
-                        <GitCompare className="w-3.5 h-3.5" style={{ color: '#8aa8ff' }} />
+                        <IconGitCompare className="w-3.5 h-3.5" style={{ color: '#8aa8ff' }} />
                         <span className="hidden sm:inline">Mevcutla karşılaştır</span>
                         <span className="sm:hidden">Karşılaştır</span>
                       </button>
@@ -872,8 +868,8 @@ export default function ProjectVersionPanel({
                         style={{ background: ui.raisedBg, border: `1px solid ${ui.border}`, color: ui.textMuted }}
                       >
                         {restoring === previewVersion.id
-                          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          : <RotateCcw className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />}
+                          ? <IconLoader2 className="w-3.5 h-3.5 animate-spin" />
+                          : <IconRotate2 className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />}
                         Geri yükle
                       </button>
                       <button
@@ -881,7 +877,7 @@ export default function ProjectVersionPanel({
                         className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs transition-colors"
                         style={{ background: ui.raisedBg, border: `1px solid ${ui.border}`, color: ui.textMuted }}
                       >
-                        <Download className="w-3.5 h-3.5" style={{ color: '#34d399' }} />
+                        <IconDownload className="w-3.5 h-3.5" style={{ color: '#34d399' }} />
                         İndir
                       </button>
                       <button
@@ -891,8 +887,8 @@ export default function ProjectVersionPanel({
                         title={pins.has(previewVersion.id) ? 'Sabitlemeyi kaldır' : 'Sabitle'}
                       >
                         {pins.has(previewVersion.id)
-                          ? <PinOff className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />
-                          : <Pin className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />}
+                          ? <IconPinnedOff className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />
+                          : <IconPin className="w-3.5 h-3.5" style={{ color: '#fbbf24' }} />}
                         <span className="hidden sm:inline">{pins.has(previewVersion.id) ? 'Çıkar' : 'Sabitle'}</span>
                       </button>
                       <button
@@ -903,8 +899,8 @@ export default function ProjectVersionPanel({
                         title={pins.has(previewVersion.id) ? 'Sabitlenmiş versiyon silinemez' : 'Sil'}
                       >
                         {deleting === previewVersion.id
-                          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          : <Trash2 className="w-3.5 h-3.5" />}
+                          ? <IconLoader2 className="w-3.5 h-3.5 animate-spin" />
+                          : <IconTrash className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>
@@ -912,9 +908,9 @@ export default function ProjectVersionPanel({
                   {/* Stats compared to current */}
                   {previewStats && (
                     <div className="flex items-center gap-3 mt-3 flex-wrap">
-                      <StatBadge ui={ui} icon={<FileCode className="w-3 h-3" />} label="Dosya" value={previewStats.fileCount} delta={previewStats.fileCount - currentStats.fileCount} />
-                      <StatBadge ui={ui} icon={<Hash className="w-3 h-3" />} label="Satır" value={previewStats.lineCount} delta={previewStats.lineCount - currentStats.lineCount} />
-                      <StatBadge ui={ui} icon={<FileText className="w-3 h-3" />} label="Boyut" value={formatBytes(previewStats.byteCount)} deltaText={
+                      <StatBadge ui={ui} icon={<IconFileCode className="w-3 h-3" />} label="Dosya" value={previewStats.fileCount} delta={previewStats.fileCount - currentStats.fileCount} />
+                      <StatBadge ui={ui} icon={<IconHash className="w-3 h-3" />} label="Satır" value={previewStats.lineCount} delta={previewStats.lineCount - currentStats.lineCount} />
+                      <StatBadge ui={ui} icon={<IconFileText className="w-3 h-3" />} label="Boyut" value={formatBytes(previewStats.byteCount)} deltaText={
                         previewStats.byteCount === currentStats.byteCount
                           ? '±0'
                           : (previewStats.byteCount > currentStats.byteCount
@@ -945,7 +941,7 @@ export default function ProjectVersionPanel({
                           ? { background: ui.raisedBg, color: ui.text, border: `1px solid ${ui.border}` }
                           : { color: ui.textMuted, border: '1px solid transparent' }}
                       >
-                        <FileCode className="w-3 h-3" />
+                        <IconFileCode className="w-3 h-3" />
                         {f.name}
                       </button>
                     ))}
@@ -967,8 +963,8 @@ export default function ProjectVersionPanel({
                         title="Kodu kopyala"
                       >
                         {copiedFileId === (previewFile.id || previewFile.name)
-                          ? <><Check className="w-3 h-3" /> Kopyalandı</>
-                          : <><Copy className="w-3 h-3" /> Kopyala</>}
+                          ? <><IconCheck className="w-3 h-3" /> Kopyalandı</>
+                          : <><IconCopy className="w-3 h-3" /> Kopyala</>}
                       </button>
                       <pre
                         className="font-mono text-[12px] leading-5 p-4 m-0 pt-10"
@@ -986,7 +982,7 @@ export default function ProjectVersionPanel({
               </>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center" style={{ color: ui.border }}>
-                <Eye className="w-10 h-10 mb-2 opacity-50" />
+                <IconEye className="w-10 h-10 mb-2 opacity-50" />
                 <p className="text-sm">Önizlemek için soldan bir versiyon seç</p>
               </div>
             )}

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Reply, ChevronDown, ChevronUp, Send, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { IconHeart, IconArrowBackUp, IconChevronDown, IconChevronUp, IconSend, IconDots, IconPencil, IconTrash } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
@@ -113,7 +113,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                   onClick={() => setMenuOpen((p) => !p)}
                   className="p-1 rounded text-gray-600 hover:text-gray-300 transition-colors"
                 >
-                  <MoreHorizontal className="w-3.5 h-3.5" />
+                  <IconDots className="w-3.5 h-3.5" />
                 </button>
                 {menuOpen && (
                   <div
@@ -124,14 +124,14 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                       onClick={() => { setEditText(comment.content); setEditMode(true); setMenuOpen(false) }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-surface-raised hover:text-white transition-colors"
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      <IconPencil className="w-3.5 h-3.5" />
                       Düzenle
                     </button>
                     <button
                       onClick={handleDelete}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-surface-raised transition-colors"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <IconTrash className="w-3.5 h-3.5" />
                       Sil
                     </button>
                   </div>
@@ -182,7 +182,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
             onClick={handleLike}
             className={cn('flex items-center gap-1 text-xs transition-colors', comment.isLiked ? 'text-red-400' : 'text-gray-600 hover:text-red-400')}
           >
-            <Heart className={cn('w-3 h-3', comment.isLiked && 'fill-current')} />
+            <IconHeart className={cn('w-3 h-3', comment.isLiked && 'fill-current')} />
             {comment.likesCount > 0 && comment.likesCount}
           </button>
           {isAuthenticated && depth === 0 && (
@@ -190,7 +190,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
               onClick={() => setShowReplyBox((p) => !p)}
               className="flex items-center gap-1 text-xs text-gray-600 hover:text-brand-400 transition-colors"
             >
-              <Reply className="w-3 h-3" />
+              <IconArrowBackUp className="w-3 h-3" />
               Yanıtla
             </button>
           )}
@@ -199,7 +199,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
               onClick={() => setShowReplies((p) => !p)}
               className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-300 transition-colors ml-auto"
             >
-              {showReplies ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {showReplies ? <IconChevronUp className="w-3 h-3" /> : <IconChevronDown className="w-3 h-3" />}
               {comment.replies.length} yanıt
             </button>
           )}
@@ -232,7 +232,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                 disabled={!replyText.trim() || submitting}
                 className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
               >
-                <Send className="w-3.5 h-3.5" />
+                <IconSend className="w-3.5 h-3.5" />
               </button>
             </div>
           </form>

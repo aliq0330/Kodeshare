@@ -1,4 +1,4 @@
-import { WrapText, Map, Maximize2, Minimize2, Save, Cloud, Loader2 } from 'lucide-react'
+import { IconTextWrap, IconMap, IconMaximize, IconMinimize, IconDeviceFloppy, IconCloud, IconLoader2 } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import type { EditorTheme } from '@/types'
 
@@ -47,10 +47,10 @@ export default function Toolbar({
   return (
     <div className="editor-toolbar shrink-0 flex items-center gap-2">
       <ToolbarBtn active={wordWrap} onClick={onToggleWordWrap} title="Kelime Kaydır">
-        <WrapText className="w-3.5 h-3.5" />
+        <IconTextWrap className="w-3.5 h-3.5" />
       </ToolbarBtn>
       <ToolbarBtn active={minimap} onClick={onToggleMinimap} title="Mini Harita">
-        <Map className="w-3.5 h-3.5" />
+        <IconMap className="w-3.5 h-3.5" />
       </ToolbarBtn>
 
       <div className="w-px h-4 bg-[#2a3347] mx-1" />
@@ -82,13 +82,13 @@ export default function Toolbar({
             )}
           >
             {isSaving
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : hasUnsaved ? <Save className="w-3.5 h-3.5" /> : <Cloud className="w-3.5 h-3.5" />}
+              ? <IconLoader2 className="w-3.5 h-3.5 animate-spin" />
+              : hasUnsaved ? <IconDeviceFloppy className="w-3.5 h-3.5" /> : <IconCloud className="w-3.5 h-3.5" />}
             <span>{isSaving ? 'Kaydediliyor...' : hasUnsaved ? 'Kaydet' : 'Kaydedildi'}</span>
           </button>
         )}
         <ToolbarBtn active={isFullscreen} onClick={onToggleFullscreen} title={isFullscreen ? 'Çıkış' : 'Tam Ekran'}>
-          {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          {isFullscreen ? <IconMinimize className="w-3.5 h-3.5" /> : <IconMaximize className="w-3.5 h-3.5" />}
         </ToolbarBtn>
       </div>
     </div>

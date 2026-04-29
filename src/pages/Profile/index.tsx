@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Lock } from 'lucide-react'
+import { IconLock } from '@tabler/icons-react'
 import Tabs from '@components/ui/Tabs'
 import ProfileHeader from './components/ProfileHeader'
 import PostsTab from './components/PostsTab'
@@ -45,7 +45,7 @@ export default function ProfilePage() {
       {isPrivate ? (
         <div className="max-w-3xl mx-auto w-full card p-10 flex flex-col items-center gap-3 text-center">
           <div className="w-14 h-14 rounded-full bg-surface-raised flex items-center justify-center">
-            <Lock className="w-6 h-6 text-gray-400" />
+            <IconLock className="w-6 h-6 text-gray-400" />
           </div>
           <p className="font-semibold text-white">Bu hesap gizlidir</p>
           <p className="text-sm text-gray-500">İçerikleri görmek için takip etmelisin.</p>

@@ -1,30 +1,27 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useNavigate } from 'react-router-dom'
-import {
-  Menu, X, Home, Compass, Star, Hash, Bell,
-  MessageSquare, Bookmark, User, Settings, Code2, PenSquare, PenLine,
-} from 'lucide-react'
+import { IconMenu2, IconX, IconHome, IconCompass, IconStar, IconHash, IconBell, IconMessage, IconBookmark, IconUser, IconSettings, IconCode, IconEditCircle, IconWriting } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
 import Avatar from '@components/ui/Avatar'
 
 const PUBLIC_NAV = [
-  { to: '/',         icon: Home,    label: 'Ana Sayfa',    end: true },
-  { to: '/explore',  icon: Compass, label: 'Keşfet' },
-  { to: '/featured', icon: Star,    label: 'Öne Çıkanlar' },
-  { to: '/explore',  icon: Hash,    label: 'Etiketler' },
+  { to: '/',         icon: IconHome,    label: 'Ana Sayfa',    end: true },
+  { to: '/explore',  icon: IconCompass, label: 'Keşfet' },
+  { to: '/featured', icon: IconStar,    label: 'Öne Çıkanlar' },
+  { to: '/explore',  icon: IconHash,    label: 'Etiketler' },
 ]
 
 const AUTH_NAV = [
-  { to: '/notifications', icon: Bell,          label: 'Bildirimler' },
-  { to: '/messages',      icon: MessageSquare, label: 'Mesajlar' },
-  { to: '/makaleler',     icon: PenLine,       label: 'Makale' },
-  { to: '/editor',        icon: Code2,         label: 'Editör' },
-  { to: '',               icon: Bookmark,      label: 'Koleksiyonlar', dynamic: true },
-  { to: '',               icon: User,          label: 'Profil',        dynamic: true },
-  { to: '/settings',      icon: Settings,      label: 'Ayarlar' },
+  { to: '/notifications', icon: IconBell,     label: 'Bildirimler' },
+  { to: '/messages',      icon: IconMessage,  label: 'Mesajlar' },
+  { to: '/makaleler',     icon: IconWriting,  label: 'Makale' },
+  { to: '/editor',        icon: IconCode,     label: 'Editör' },
+  { to: '',               icon: IconBookmark, label: 'Koleksiyonlar', dynamic: true },
+  { to: '',               icon: IconUser,     label: 'Profil',        dynamic: true },
+  { to: '/settings',      icon: IconSettings, label: 'Ayarlar' },
 ]
 
 export default function BurgerMenu() {
@@ -66,7 +63,7 @@ export default function BurgerMenu() {
         onClick={() => setIsOpen(true)}
         aria-label="Menüyü aç"
       >
-        <Menu className="w-5 h-5" />
+        <IconMenu2 className="w-5 h-5" />
       </button>
 
       {createPortal(
@@ -91,7 +88,7 @@ export default function BurgerMenu() {
             <div className="flex items-center justify-between px-4 h-16 border-b border-surface-border shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0">
-                  <Code2 className="w-4 h-4 text-black" />
+                  <IconCode className="w-4 h-4 text-black" />
                 </div>
                 <span className="font-bold text-white text-base">Kodeshare</span>
               </div>
@@ -99,7 +96,7 @@ export default function BurgerMenu() {
                 className="p-2 rounded-lg hover:bg-surface-raised text-gray-400 hover:text-white transition-colors"
                 onClick={close}
               >
-                <X className="w-5 h-5" />
+                <IconX className="w-5 h-5" />
               </button>
             </div>
 
@@ -135,7 +132,7 @@ export default function BurgerMenu() {
                   onClick={handleNewPost}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-colors"
                 >
-                  <PenSquare className="w-4 h-4" />
+                  <IconEditCircle className="w-4 h-4" />
                   Yeni Gönderi
                 </button>
               )}

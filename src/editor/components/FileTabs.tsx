@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { IconX } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import type { EditorFile } from '@/types'
@@ -33,7 +33,7 @@ export default function FileTabs({ files, activeFileId, onSelect, onClose }: Fil
               className="close-btn ml-1 p-0.5 rounded hover:bg-[#2a3347] text-gray-500 hover:text-gray-300"
               onClick={(e) => { e.stopPropagation(); onClose(file.id) }}
             >
-              <X className="w-3 h-3" />
+              <IconX className="w-3 h-3" />
             </button>
           </div>
         )

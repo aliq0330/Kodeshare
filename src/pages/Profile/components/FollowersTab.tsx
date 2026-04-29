@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { BadgeCheck } from 'lucide-react'
+import { IconRosetteFilled } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import FollowButton from '@modules/social/FollowButton'
@@ -49,7 +49,7 @@ export default function FollowersTab({ username, type }: FollowersTabProps) {
             <div className="min-w-0">
               <div className="flex items-center gap-1">
                 <span className="font-medium text-white text-sm truncate">{user.displayName}</span>
-                {user.isVerified && <BadgeCheck className="w-3.5 h-3.5 text-brand-400 shrink-0" />}
+                {user.isVerified && <IconRosetteFilled className="w-3.5 h-3.5 text-brand-400 shrink-0" />}
               </div>
               <p className="text-xs text-gray-500">@{user.username}</p>
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Heart, MessageCircle, Bookmark, Share2, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock, BookOpen } from 'lucide-react'
+import { IconArrowLeft, IconHeart, IconMessageCircle, IconBookmark, IconShare, IconRepeatOnce, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
@@ -165,7 +165,7 @@ export default function PostDetailPage() {
   return (
     <div className="flex flex-col max-w-2xl mx-auto w-full">
       <Link to="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit px-4 py-3">
-        <ArrowLeft className="w-4 h-4" />
+        <IconArrowLeft className="w-4 h-4" />
         Geri Dön
       </Link>
 
@@ -190,7 +190,7 @@ export default function PostDetailPage() {
                     className="inline-flex items-center gap-0.5 text-xs text-gray-600 hover:text-gray-400 transition-colors ml-1.5"
                     title="Düzenleme geçmişini gör"
                   >
-                    <Clock className="w-3 h-3" />
+                    <IconClock className="w-3 h-3" />
                     düzenlendi
                   </button>
                 )}
@@ -203,7 +203,7 @@ export default function PostDetailPage() {
                     className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
                     title="Daha fazla"
                   >
-                    <MoreHorizontal className="w-4 h-4" />
+                    <IconDots className="w-4 h-4" />
                   </button>
                   {menuOpen && (
                     <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
@@ -212,7 +212,7 @@ export default function PostDetailPage() {
                         onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                       >
-                        <BarChart2 className="w-4 h-4 text-gray-400" />
+                        <IconChartBar className="w-4 h-4 text-gray-400" />
                         <span className="text-white">İstatistikler</span>
                       </button>
                       <button
@@ -220,7 +220,7 @@ export default function PostDetailPage() {
                         onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                       >
-                        <Share2 className="w-4 h-4 text-gray-400" />
+                        <IconShare className="w-4 h-4 text-gray-400" />
                         <span className="text-white">Paylaş</span>
                       </button>
                       <button
@@ -228,7 +228,7 @@ export default function PostDetailPage() {
                         onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                       >
-                        <BarChart2 className="w-4 h-4 text-gray-400" />
+                        <IconChartBar className="w-4 h-4 text-gray-400" />
                         <span className="text-white">Koleksiyona ekle</span>
                       </button>
                       {isOwner && (
@@ -237,7 +237,7 @@ export default function PostDetailPage() {
                           onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                         >
-                          <BookOpen className="w-4 h-4 text-gray-400" />
+                          <IconBook2 className="w-4 h-4 text-gray-400" />
                           <span className="text-white">Seriye ekle</span>
                         </button>
                       )}
@@ -247,7 +247,7 @@ export default function PostDetailPage() {
                           onClick={() => { setMenuOpen(false); openEditComposer(post, handleEditSaved) }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                         >
-                          <Pencil className="w-4 h-4 text-gray-400" />
+                          <IconPencil className="w-4 h-4 text-gray-400" />
                           <span className="text-white">Düzenle</span>
                         </button>
                       )}
@@ -257,7 +257,7 @@ export default function PostDetailPage() {
                           onClick={handleDelete}
                           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                         >
-                          <Trash2 className="w-4 h-4 text-gray-400" />
+                          <IconTrash className="w-4 h-4 text-gray-400" />
                           <span className="text-white">Sil</span>
                         </button>
                       )}
@@ -335,14 +335,14 @@ export default function PostDetailPage() {
                   post.isLiked ? 'text-red-500' : 'hover:text-red-400'
                 }`}
               >
-                <Heart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
+                <IconHeart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
                 <span className="text-sm">{compactNumber(post.likesCount)}</span>
               </button>
               <button
                 onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
                 className="flex items-center gap-1.5 hover:text-white transition-colors"
               >
-                <MessageCircle className="w-[18px] h-[18px]" />
+                <IconMessageCircle className="w-[18px] h-[18px]" />
                 <span className="text-sm">{compactNumber(displayCommentCount)}</span>
               </button>
               {isAuthenticated ? (
@@ -353,7 +353,7 @@ export default function PostDetailPage() {
                 />
               ) : (
                 <span className="flex items-center gap-1.5 text-sm">
-                  <Repeat2 className="w-[18px] h-[18px]" />
+                  <IconRepeatOnce className="w-[18px] h-[18px]" />
                   {compactNumber(post.repostCount)}
                 </span>
               )}
@@ -363,7 +363,7 @@ export default function PostDetailPage() {
                   post.isSaved ? 'text-white' : 'hover:text-white'
                 }`}
               >
-                <Bookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
+                <IconBookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
           </div>

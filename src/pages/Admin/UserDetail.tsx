@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Navigate, Link } from 'react-router-dom'
-import {
-  ArrowLeft, FileText, MessageSquare, FolderOpen, Heart,
-  Bookmark, Mail, ChevronDown, ChevronUp, Trash2,
-  ShieldAlert, ExternalLink, BadgeCheck,
-} from 'lucide-react'
+import { IconArrowLeft, IconFileText, IconMessage, IconFolderOpen, IconHeart, IconBookmark, IconMail, IconChevronDown, IconChevronUp, IconTrash, IconShieldExclamation, IconExternalLink, IconRosetteFilled } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import Button from '@components/ui/Button'
@@ -16,12 +12,12 @@ import toast from 'react-hot-toast'
 type SectionKey = 'posts' | 'comments' | 'collections' | 'likes' | 'saves' | 'messages'
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ReactNode }[] = [
-  { key: 'posts',       label: 'Gönderiler',        icon: <FileText className="w-4 h-4" /> },
-  { key: 'comments',    label: 'Yorumlar & Yanıtlar', icon: <MessageSquare className="w-4 h-4" /> },
-  { key: 'collections', label: 'Koleksiyonlar',      icon: <FolderOpen className="w-4 h-4" /> },
-  { key: 'likes',       label: 'Beğeniler',          icon: <Heart className="w-4 h-4" /> },
-  { key: 'saves',       label: 'Kaydedilenler',      icon: <Bookmark className="w-4 h-4" /> },
-  { key: 'messages',    label: 'Mesajlar',            icon: <Mail className="w-4 h-4" /> },
+  { key: 'posts',       label: 'Gönderiler',        icon: <IconFileText className="w-4 h-4" /> },
+  { key: 'comments',    label: 'Yorumlar & Yanıtlar', icon: <IconMessage className="w-4 h-4" /> },
+  { key: 'collections', label: 'Koleksiyonlar',      icon: <IconFolderOpen className="w-4 h-4" /> },
+  { key: 'likes',       label: 'Beğeniler',          icon: <IconHeart className="w-4 h-4" /> },
+  { key: 'saves',       label: 'Kaydedilenler',      icon: <IconBookmark className="w-4 h-4" /> },
+  { key: 'messages',    label: 'Mesajlar',            icon: <IconMail className="w-4 h-4" /> },
 ]
 
 export default function UserDetailPage() {
@@ -153,7 +149,7 @@ export default function UserDetailPage() {
         onClick={() => navigate('/admin')}
         className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors w-fit"
       >
-        <ArrowLeft className="w-4 h-4" /> Admin Paneline Dön
+        <IconArrowLeft className="w-4 h-4" /> Admin Paneline Dön
       </button>
 
       {/* User Card */}
@@ -163,7 +159,7 @@ export default function UserDetailPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h2 className="font-bold text-white text-lg">{profile.display_name}</h2>
-              {profile.is_verified && <BadgeCheck className="w-4 h-4 text-brand-400" />}
+              {profile.is_verified && <IconRosetteFilled className="w-4 h-4 text-brand-400" />}
             </div>
             <p className="text-sm text-gray-500">@{profile.username}</p>
             <p className="text-xs text-gray-600 mt-1">
@@ -188,7 +184,7 @@ export default function UserDetailPage() {
             to={`/profile/${profile.username}`}
             className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
           >
-            <ExternalLink className="w-4 h-4" />
+            <IconExternalLink className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -209,8 +205,8 @@ export default function UserDetailPage() {
                   {activity[key]}
                 </span>
                 {expanded === key
-                  ? <ChevronUp className="w-4 h-4 text-gray-500" />
-                  : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                  ? <IconChevronUp className="w-4 h-4 text-gray-500" />
+                  : <IconChevronDown className="w-4 h-4 text-gray-500" />}
               </button>
               {activity[key] > 0 && (
                 <Button
@@ -220,7 +216,7 @@ export default function UserDetailPage() {
                   onClick={() => bulkDelete(key)}
                   className="text-red-400 hover:bg-red-900/30 hover:text-red-300 shrink-0"
                 >
-                  <Trash2 className="w-3.5 h-3.5 mr-1" /> Tümünü Sil
+                  <IconTrash className="w-3.5 h-3.5 mr-1" /> Tümünü Sil
                 </Button>
               )}
             </div>
@@ -277,7 +273,7 @@ export default function UserDetailPage() {
                               onClick={() => deleteItem(key, id)}
                               className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-900/20 transition-colors shrink-0 disabled:opacity-40"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <IconTrash className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -295,7 +291,7 @@ export default function UserDetailPage() {
       <div className="card border-red-900/40 p-5 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-red-900/30 flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-5 h-5 text-red-400" />
+            <IconShieldExclamation className="w-5 h-5 text-red-400" />
           </div>
           <div>
             <p className="font-semibold text-red-400">Hesabı Kalıcı Olarak Sil</p>
@@ -309,7 +305,7 @@ export default function UserDetailPage() {
           onClick={deleteAccount}
           className="text-red-400 border border-red-900/50 hover:bg-red-900/30 hover:text-red-300 shrink-0"
         >
-          <Trash2 className="w-4 h-4 mr-1.5" /> Hesabı Sil
+          <IconTrash className="w-4 h-4 mr-1.5" /> Hesabı Sil
         </Button>
       </div>
     </div>

@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { User, Bell, Lock, Palette, Globe } from 'lucide-react'
+import type { ComponentType } from 'react'
+import { IconUser, IconBell, IconLock, IconPalette, IconWorld } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import AccountSettings from './components/AccountSettings'
 import AppearanceSettings from './components/AppearanceSettings'
 import NotificationSettings from './components/NotificationSettings'
 import PrivacySettings from './components/PrivacySettings'
 
-const SECTIONS = [
-  { id: 'account',       label: 'Hesap',      icon: User },
-  { id: 'appearance',    label: 'Görünüm',    icon: Palette },
-  { id: 'notifications', label: 'Bildirimler', icon: Bell },
-  { id: 'privacy',       label: 'Gizlilik',   icon: Lock },
+const SECTIONS: { id: string; label: string; icon: ComponentType<{ className?: string }> }[] = [
+  { id: 'account',       label: 'Hesap',      icon: IconUser },
+  { id: 'appearance',    label: 'Görünüm',    icon: IconPalette },
+  { id: 'notifications', label: 'Bildirimler', icon: IconBell },
+  { id: 'privacy',       label: 'Gizlilik',   icon: IconLock },
 ]
 
 export default function SettingsPage() {

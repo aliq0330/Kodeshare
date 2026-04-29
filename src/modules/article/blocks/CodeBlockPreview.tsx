@@ -6,7 +6,7 @@ import { css } from '@codemirror/lang-css'
 import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { githubLight } from '@uiw/codemirror-theme-github'
-import { Copy, Check } from 'lucide-react'
+import { IconCopy, IconCheck } from '@tabler/icons-react'
 import { useIsLightMode } from '@hooks/useIsLightMode'
 import type { ArticleBlock } from '@store/articleStore'
 
@@ -83,7 +83,7 @@ export default function CodeBlockPreview({ block }: { block: ArticleBlock }) {
           onClick={handleCopy}
           className={`flex items-center gap-1.5 text-xs transition-colors ${copyIdle}`}
         >
-          {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? <IconCheck className="w-3.5 h-3.5 text-green-500" /> : <IconCopy className="w-3.5 h-3.5" />}
           <span className="hidden sm:inline">{copied ? 'Kopyalandı' : 'Kopyala'}</span>
         </button>
       </div>

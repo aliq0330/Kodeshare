@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, Check, FolderOpen, FileCode, FileText, ExternalLink, Play } from 'lucide-react'
+import { IconCopy, IconCheck, IconFolderOpen, IconFileCode, IconFileText, IconExternalLink, IconPlayerPlay } from '@tabler/icons-react'
 import CMHighlight from '@components/shared/CMHighlight'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useIsLightMode } from '@hooks/useIsLightMode'
@@ -56,7 +56,7 @@ function SnippetBlockView({ block, compact }: SnippetBlockViewProps) {
             {language}
           </span>
           <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copyBtn}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <IconCheck className="w-3.5 h-3.5" /> : <IconCopy className="w-3.5 h-3.5" />}
           </button>
         </div>
         <div className="relative select-none">
@@ -74,7 +74,7 @@ function SnippetBlockView({ block, compact }: SnippetBlockViewProps) {
           {(block.data.name as string) ?? language}
         </span>
         <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copyBtn}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? <IconCheck className="w-3.5 h-3.5" /> : <IconCopy className="w-3.5 h-3.5" />}
         </button>
       </div>
       <CMHighlight code={content} lang={language} scroll className="max-h-[60vh]" />
@@ -96,7 +96,7 @@ function ProjectBlockView({ block, compact, title, onFork }: ProjectBlockViewPro
     return (
       <div className="rounded-xl border border-surface-border overflow-hidden mb-3">
         <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
-          <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
+          <IconFolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
           <span className="text-sm font-medium text-white truncate">{title ?? 'Proje'}</span>
         </div>
         <div className="h-36 bg-white">
@@ -110,12 +110,12 @@ function ProjectBlockView({ block, compact, title, onFork }: ProjectBlockViewPro
     <div className="rounded-xl border border-surface-border overflow-hidden mb-5">
       <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-surface-border bg-surface-card/60">
         <div className="flex items-center gap-2">
-          <FolderOpen className="w-5 h-5 text-brand-400 shrink-0" />
+          <IconFolderOpen className="w-5 h-5 text-brand-400 shrink-0" />
           <span className="font-medium text-white">{title ?? 'Proje'}</span>
         </div>
         {onFork && (
           <button onClick={onFork} className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors">
-            <FileCode className="w-3.5 h-3.5" />
+            <IconFileCode className="w-3.5 h-3.5" />
             Editörde Aç
           </button>
         )}
@@ -126,7 +126,7 @@ function ProjectBlockView({ block, compact, title, onFork }: ProjectBlockViewPro
             <span className="text-[10px] font-bold font-mono w-8 shrink-0" style={{ color: LANGUAGE_COLORS[f.language] ?? '#8b9ab5' }}>
               {f.name.split('.').pop()?.toUpperCase()}
             </span>
-            <FileCode className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+            <IconFileCode className="w-3.5 h-3.5 text-gray-500 shrink-0" />
             <span className="text-sm text-gray-300 font-mono">{f.name}</span>
           </div>
         ))}
@@ -161,7 +161,7 @@ function LinkBlockView({ block }: { block: PostBlock }) {
       onClick={(e) => e.stopPropagation()}
       className="flex items-center gap-2.5 p-3 mb-3 rounded-xl border border-surface-border bg-surface-raised/30 hover:border-brand-700/50 transition-colors group"
     >
-      <ExternalLink className="w-4 h-4 text-brand-400 shrink-0" />
+      <IconExternalLink className="w-4 h-4 text-brand-400 shrink-0" />
       <span className="text-sm text-brand-300 group-hover:underline truncate">{title}</span>
     </a>
   )
@@ -181,7 +181,7 @@ function VideoBlockView({ block, compact }: { block: PostBlock; compact?: boolea
         onClick={(e) => e.stopPropagation()}
         className="flex items-center gap-2.5 p-3 mb-3 rounded-xl border border-surface-border bg-surface-raised/30 hover:border-brand-700/50 transition-colors group"
       >
-        <Play className="w-4 h-4 text-red-400 shrink-0" />
+        <IconPlayerPlay className="w-4 h-4 text-red-400 shrink-0" />
         <span className="text-sm text-gray-300 group-hover:text-white truncate">{url}</span>
       </a>
     )
@@ -203,7 +203,7 @@ function VideoBlockView({ block, compact }: { block: PostBlock; compact?: boolea
 
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 p-3 mb-5 rounded-xl border border-surface-border bg-surface-raised/30 hover:border-brand-700/50 transition-colors">
-      <Play className="w-4 h-4 text-red-400 shrink-0" />
+      <IconPlayerPlay className="w-4 h-4 text-red-400 shrink-0" />
       <span className="text-sm text-brand-300 hover:underline truncate">{url}</span>
     </a>
   )
@@ -233,7 +233,7 @@ function ArticleBlockView({ block, compact }: { block: PostBlock; compact?: bool
       <div className="p-3 flex flex-col gap-1.5">
         {/* Üst: ikon + etiket */}
         <div className="flex items-center gap-1.5">
-          <FileText className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+          <IconFileText className="w-3.5 h-3.5 text-brand-400 shrink-0" />
           <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-400">Makale</span>
         </div>
 

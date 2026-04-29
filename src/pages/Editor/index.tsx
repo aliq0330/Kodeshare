@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import {
-  Files, Code2, Eye, WrapText, Sun, Moon, Plus, Trash2, X,
-  RefreshCw, ExternalLink, Monitor, Tablet, Smartphone,
-  Loader2, Save, ChevronRight, ChevronDown, FolderOpen, Cloud,
-  Pencil, Check, Palette, History,
-} from 'lucide-react'
+import { IconFiles, IconCode, IconEye, IconTextWrap, IconSun, IconMoon, IconPlus, IconTrash, IconX, IconRefresh, IconExternalLink, IconDeviceDesktop, IconDeviceTablet, IconDeviceMobile, IconLoader2, IconDeviceFloppy, IconChevronRight, IconChevronDown, IconFolderOpen, IconCloud, IconPencil, IconCheck, IconPalette, IconHistory } from '@tabler/icons-react'
 import { useEditor } from '@editor/hooks/useEditor'
 import { useAutoSave } from '@editor/hooks/useAutoSave'
 import { useEditorStore } from '@store/editorStore'
@@ -78,7 +73,7 @@ function ThemePicker({ theme, setTheme, ui, align = 'right' }: {
         )}
         style={open ? { background: ui.raisedBg } : undefined}
       >
-        <Palette className="w-3.5 h-3.5" />
+        <IconPalette className="w-3.5 h-3.5" />
       </button>
 
       {open && (
@@ -112,7 +107,7 @@ function ThemePicker({ theme, setTheme, ui, align = 'right' }: {
                     <span className={cn('text-[10px] font-medium', t.dark ? 'text-gray-300' : 'text-gray-700')}>
                       {t.name}
                     </span>
-                    {active && <Check className="w-3 h-3 text-[#4a7aff] shrink-0" />}
+                    {active && <IconCheck className="w-3 h-3 text-[#4a7aff] shrink-0" />}
                   </div>
                 </button>
               )
@@ -219,7 +214,7 @@ function ProjectsSidebar({
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-3" style={{ borderBottom: `1px solid ${ui.border}` }}>
         <div className="flex items-center gap-2">
-          <FolderOpen className="w-4 h-4 text-[#8aa8ff]" />
+          <IconFolderOpen className="w-4 h-4 text-[#8aa8ff]" />
           <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: ui.textMuted }}>
             Projelerim
           </span>
@@ -233,7 +228,7 @@ function ProjectsSidebar({
             onMouseEnter={(e) => (e.currentTarget.style.background = ui.raisedBg)}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            <Plus className="w-4 h-4" />
+            <IconPlus className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -248,7 +243,7 @@ function ProjectsSidebar({
 
         {isAuthenticated && loading && (
           <div className="flex justify-center py-6">
-            <Loader2 className="w-4 h-4 text-gray-600 animate-spin" />
+            <IconLoader2 className="w-4 h-4 text-gray-600 animate-spin" />
           </div>
         )}
 
@@ -277,8 +272,8 @@ function ProjectsSidebar({
                   className="p-0.5 rounded text-gray-600 hover:text-gray-300 shrink-0 transition-colors"
                 >
                   {isExpanded
-                    ? <ChevronDown  className="w-4 h-4" />
-                    : <ChevronRight className="w-4 h-4" />}
+                    ? <IconChevronDown  className="w-4 h-4" />
+                    : <IconChevronRight className="w-4 h-4" />}
                 </button>
 
                 {/* Proje adı — tıklayınca expand/collapse */}
@@ -325,26 +320,26 @@ function ProjectsSidebar({
                     className="p-1.5 rounded hover:bg-[#1e2a3a] text-gray-600 hover:text-[#8aa8ff] transition-colors"
                     title="Yeniden adlandır"
                   >
-                    <Pencil className="w-4 h-4" />
+                    <IconPencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onSaveProject(project) }}
                     className="p-1 rounded hover:bg-[#1e2a3a] text-gray-600 hover:text-[#8aa8ff] transition-colors"
                     title="Kaydet"
                   >
-                    <Save className="w-4 h-4" />
+                    <IconDeviceFloppy className="w-4 h-4" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteProject(project) }}
                     className="p-1 rounded hover:bg-red-900/30 text-gray-600 hover:text-red-400 transition-colors"
                     title="Projeyi sil"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <IconTrash className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* Files list */}
+              {/* IconFiles list */}
               {isExpanded && (
                 <div className="pb-1">
                   {project.files.map((file) => {
@@ -390,14 +385,14 @@ function ProjectsSidebar({
                           className="opacity-0 group-hover/file:opacity-100 p-1 rounded hover:bg-[#2a3347] text-gray-600 hover:text-gray-300 transition-all shrink-0"
                           title="Dosyayı yeniden adlandır"
                         >
-                          <Pencil className="w-3.5 h-3.5" />
+                          <IconPencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); onDeleteFile(project, file.id) }}
                           className="opacity-0 group-hover/file:opacity-100 p-1 rounded hover:bg-red-900/40 text-gray-600 hover:text-red-400 transition-all shrink-0"
                           title="Dosyayı sil"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <IconX className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     )
@@ -408,7 +403,7 @@ function ProjectsSidebar({
                     onClick={() => onAddFile(project)}
                     className="flex items-center gap-1.5 pl-8 pr-2 py-1.5 w-full text-xs text-gray-600 hover:text-[#8aa8ff] transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
+                    <IconPlus className="w-4 h-4" />
                     Dosya ekle
                   </button>
                 </div>
@@ -456,7 +451,7 @@ function FileTabs({ files, activeFileId, onSelect, onClose, ui }: {
               className="opacity-0 group-hover:opacity-100 p-0.5 rounded transition-all -mr-1"
               style={{ color: ui.textMuted }}
             >
-              <X className="w-3 h-3" />
+              <IconX className="w-3 h-3" />
             </button>
           </div>
         )
@@ -468,9 +463,9 @@ function FileTabs({ files, activeFileId, onSelect, onClose, ui }: {
 // ─── PreviewPanel ──────────────────────────────────────────────────────────
 
 const VIEWPORTS = [
-  { id: 'desktop', icon: Monitor,    label: 'Masaüstü', width: '100%' },
-  { id: 'tablet',  icon: Tablet,     label: 'Tablet',   width: '768px' },
-  { id: 'mobile',  icon: Smartphone, label: 'Mobil',    width: '375px' },
+  { id: 'desktop', icon: IconDeviceDesktop,    label: 'Masaüstü', width: '100%' },
+  { id: 'tablet',  icon: IconDeviceTablet,     label: 'Tablet',   width: '768px' },
+  { id: 'mobile',  icon: IconDeviceMobile, label: 'Mobil',    width: '375px' },
 ] as const
 
 function buildPreviewDoc(files: ReturnType<typeof useEditor>['files']) {
@@ -526,7 +521,7 @@ function PreviewPanel({ files, ui }: { files: ReturnType<typeof useEditor>['file
             className="p-1 rounded transition-colors"
             style={{ color: ui.textMuted }}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <IconRefresh className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => window.open(src, '_blank')}
@@ -534,7 +529,7 @@ function PreviewPanel({ files, ui }: { files: ReturnType<typeof useEditor>['file
             className="p-1 rounded transition-colors"
             style={{ color: ui.textMuted }}
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            <IconExternalLink className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -855,10 +850,10 @@ export default function EditorPage() {
       style={{ height: 40, background: ui.panelBg, borderBottom: `1px solid ${ui.border}`, color: ui.text }}
     >
       <div className="flex items-center gap-1">
-        <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={Files}   label="Projeler"  />
-        <PanelBtn active={showPreview}  onClick={() => setShowPreview((p)  => !p)} icon={Eye}     label="Önizleme" />
+        <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={IconFiles}   label="Projeler"  />
+        <PanelBtn active={showPreview}  onClick={() => setShowPreview((p)  => !p)} icon={IconEye}     label="Önizleme" />
         {activeProjectId && (
-          <PanelBtn active={showVersions} onClick={() => setShowVersions(!showVersions)} icon={History} label="Geçmiş" />
+          <PanelBtn active={showVersions} onClick={() => setShowVersions(!showVersions)} icon={IconHistory} label="Geçmiş" />
         )}
       </div>
 
@@ -869,14 +864,14 @@ export default function EditorPage() {
         title="Kelime kaydır"
         className={cn('p-1.5 rounded transition-colors', wordWrap ? 'text-[#8aa8ff]' : 'text-gray-600 hover:text-gray-300')}
       >
-        <WrapText className="w-3.5 h-3.5" />
+        <IconTextWrap className="w-3.5 h-3.5" />
       </button>
       <button
         onClick={() => setTheme(isDark ? 'github-light' : 'one-dark')}
         title={isDark ? 'Açık tema' : 'Koyu tema'}
         className="p-1.5 rounded text-gray-600 hover:text-gray-300 transition-colors"
       >
-        {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+        {isDark ? <IconSun className="w-3.5 h-3.5" /> : <IconMoon className="w-3.5 h-3.5" />}
       </button>
       <ThemePicker theme={theme} setTheme={setTheme} ui={ui} />
 
@@ -904,8 +899,8 @@ export default function EditorPage() {
             )}
           >
             {isSaving
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : hasUnsaved ? <Save className="w-3.5 h-3.5" /> : <Cloud className="w-3.5 h-3.5" />}
+              ? <IconLoader2 className="w-3.5 h-3.5 animate-spin" />
+              : hasUnsaved ? <IconDeviceFloppy className="w-3.5 h-3.5" /> : <IconCloud className="w-3.5 h-3.5" />}
             <span>{isSaving ? 'Kaydediliyor…' : hasUnsaved ? 'Kaydet' : 'Kaydedildi'}</span>
           </button>
         </div>
@@ -921,8 +916,8 @@ export default function EditorPage() {
       style={{ background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}
     >
       {([
-        { id: 'projects', icon: Files, label: 'Projeler' },
-        { id: 'editor',   icon: Code2, label: 'Editör'   },
+        { id: 'projects', icon: IconFiles, label: 'Projeler' },
+        { id: 'editor',   icon: IconCode, label: 'Editör'   },
       ] as const).map(({ id, icon: Icon, label }) => (
         <button
           key={id}
@@ -950,8 +945,8 @@ export default function EditorPage() {
           )}
         >
           {isSaving
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : hasUnsaved ? <Save className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+            ? <IconLoader2 className="w-4 h-4 animate-spin" />
+            : hasUnsaved ? <IconDeviceFloppy className="w-4 h-4" /> : <IconCheck className="w-4 h-4" />}
           <span>{isSaving ? '…' : 'Kaydet'}</span>
         </button>
       )}
@@ -965,7 +960,7 @@ export default function EditorPage() {
             showVersions ? 'text-[#8aa8ff] border-[#8aa8ff]' : 'text-gray-600 border-transparent',
           )}
         >
-          <History className="w-4 h-4" />
+          <IconHistory className="w-4 h-4" />
           <span>Geçmiş</span>
         </button>
       )}
@@ -989,7 +984,7 @@ export default function EditorPage() {
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = ui.border; e.currentTarget.style.color = ui.textMuted }}
         title={activeProjectForAdd ? 'Yeni dosya ekle' : 'Yeni proje oluştur'}
       >
-        <Plus className="w-10 h-10" />
+        <IconPlus className="w-10 h-10" />
       </button>
     </div>
   ) : (
@@ -1097,7 +1092,7 @@ export default function EditorPage() {
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-brand-500 text-white shadow-lg hover:bg-brand-600 transition-colors whitespace-nowrap"
           >
-            <Code2 className="w-3.5 h-3.5" />
+            <IconCode className="w-3.5 h-3.5" />
             Snippet olarak paylaş
           </button>
         </div>
@@ -1131,8 +1126,8 @@ export default function EditorPage() {
             <div className="shrink-0 flex items-center gap-2 px-3 py-2" style={{ background: ui.panelBg, borderBottom: `1px solid ${ui.border}` }}>
               <div className="flex flex-1 rounded-xl p-1" style={{ background: ui.raisedBg }}>
                 {([
-                  { show: false, icon: Code2, label: 'Kod'       },
-                  { show: true,  icon: Eye,   label: 'Önizleme'  },
+                  { show: false, icon: IconCode, label: 'Kod'       },
+                  { show: true,  icon: IconEye,   label: 'Önizleme'  },
                 ] as const).map(({ show, icon: Icon, label }) => {
                   const isActive = mobileShowPreview === show
                   return (

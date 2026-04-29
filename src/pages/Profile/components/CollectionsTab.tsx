@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Lock, Globe, Folder, Plus, Pencil } from 'lucide-react'
+import { IconLock, IconWorld, IconFolder, IconPlus, IconPencil } from '@tabler/icons-react'
 import Badge from '@components/ui/Badge'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -45,7 +45,7 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
       {isOwn && (
         <div className="flex justify-end">
           <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus className="w-4 h-4" />
+            <IconPlus className="w-4 h-4" />
             Yeni Koleksiyon
           </Button>
         </div>
@@ -53,7 +53,7 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
 
       {collections.length === 0 ? (
         <div className="card p-10 text-center text-gray-500">
-          <Folder className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+          <IconFolder className="w-8 h-8 mx-auto mb-2 text-gray-600" />
           <p className="font-medium">Henüz koleksiyon yok</p>
           {isOwn && (
             <p className="text-sm mt-1">Yukarıdaki butona tıklayarak koleksiyon oluşturabilirsin.</p>
@@ -73,16 +73,16 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
                   </div>
                 ) : (
                   <div className="h-20 w-full bg-gradient-to-br from-brand-900/60 to-surface-raised flex items-center justify-center">
-                    <Folder className="w-7 h-7 text-brand-700" />
+                    <IconFolder className="w-7 h-7 text-brand-700" />
                   </div>
                 )}
                 <div className="p-3 flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-white group-hover:text-brand-300 transition-colors truncate flex-1 text-sm">{col.name}</span>
                     {col.visibility === 'private' ? (
-                      <Lock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                      <IconLock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                     ) : (
-                      <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+                      <IconWorld className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                     )}
                     {isOwn && (
                       <button
@@ -90,7 +90,7 @@ export default function CollectionsTab({ username, isOwn }: CollectionsTabProps)
                         className="p-1 rounded-md hover:bg-surface-raised text-gray-500 hover:text-white shrink-0 transition-colors"
                         title="Düzenle"
                       >
-                        <Pencil className="w-3.5 h-3.5" />
+                        <IconPencil className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>

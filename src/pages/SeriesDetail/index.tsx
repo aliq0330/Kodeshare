@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Trash2, GripVertical } from 'lucide-react'
+import { IconArrowLeft, IconBook2, IconTrash, IconGripVertical } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import PostCard from '@components/shared/PostCard'
@@ -80,7 +80,7 @@ export default function SeriesDetailPage() {
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
       <Link to={`/profile/${series.author.username}`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors w-fit">
-        <ArrowLeft className="w-4 h-4" />
+        <IconArrowLeft className="w-4 h-4" />
         Geri Dön
       </Link>
 
@@ -88,7 +88,7 @@ export default function SeriesDetailPage() {
       <div className="card p-5">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-brand-900/40 flex items-center justify-center shrink-0">
-            <BookOpen className="w-6 h-6 text-brand-400" />
+            <IconBook2 className="w-6 h-6 text-brand-400" />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold text-white">{series.title}</h1>
@@ -114,7 +114,7 @@ export default function SeriesDetailPage() {
                 className="p-1.5 text-gray-600 hover:text-red-400 border border-surface-border hover:border-red-900 rounded-lg transition-colors"
                 title="Seriyi Sil"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <IconTrash className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -127,7 +127,7 @@ export default function SeriesDetailPage() {
       {/* Posts */}
       {posts.length === 0 ? (
         <div className="card p-12 text-center text-gray-500">
-          <GripVertical className="w-10 h-10 mx-auto mb-3 text-gray-700" />
+          <IconGripVertical className="w-10 h-10 mx-auto mb-3 text-gray-700" />
           <p className="font-medium">Seri boş</p>
           {isOwner && (
             <p className="text-sm mt-1 text-gray-600">Gönderi detay sayfasından bu seriye gönderi ekleyebilirsin.</p>

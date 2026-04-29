@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, Link as LinkIcon, Github, Twitter, BadgeCheck } from 'lucide-react'
+import { IconMapPin, IconLink, IconBrandGithub, IconBrandTwitter, IconRosetteFilled } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import FollowButton from '@modules/social/FollowButton'
@@ -110,7 +110,7 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
         <div className="mb-4">
           <div className="flex items-center gap-1.5 mb-0.5">
             <h1 className="text-xl font-bold text-white">{profile.displayName}</h1>
-            {profile.isVerified && <BadgeCheck className="w-5 h-5 text-brand-400" />}
+            {profile.isVerified && <IconRosetteFilled className="w-5 h-5 text-brand-400" />}
           </div>
           <p className="text-gray-500 text-sm">@{profile.username}</p>
         </div>
@@ -120,25 +120,25 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-4">
           {profile.location && (
             <span className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" />
+              <IconMapPin className="w-3.5 h-3.5" />
               {profile.location}
             </span>
           )}
           {profile.website && (
             <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 link">
-              <LinkIcon className="w-3.5 h-3.5" />
+              <IconLink className="w-3.5 h-3.5" />
               {profile.website.replace(/^https?:\/\//, '')}
             </a>
           )}
           {profile.githubUrl && (
             <a href={profile.githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 link">
-              <Github className="w-3.5 h-3.5" />
+              <IconBrandGithub className="w-3.5 h-3.5" />
               GitHub
             </a>
           )}
           {profile.twitterUrl && (
             <a href={profile.twitterUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 link">
-              <Twitter className="w-3.5 h-3.5" />
+              <IconBrandTwitter className="w-3.5 h-3.5" />
               Twitter
             </a>
           )}

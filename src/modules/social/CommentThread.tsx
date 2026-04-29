@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Send } from 'lucide-react'
+import { IconSend } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import CommentItem from './CommentItem'
@@ -70,7 +70,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
               disabled={!text.trim() || submitting}
               className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
             >
-              {submitting ? <Spinner className="w-3.5 h-3.5" /> : <Send className="w-3.5 h-3.5" />}
+              {submitting ? <Spinner className="w-3.5 h-3.5" /> : <IconSend className="w-3.5 h-3.5" />}
             </button>
           </div>
         </form>

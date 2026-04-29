@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BadgeCheck, Users } from 'lucide-react'
+import { IconRosetteFilled, IconUsers } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import { compactNumber } from '@utils/formatters'
@@ -47,12 +47,12 @@ export default function TopUsers() {
               className="flex items-center justify-center gap-1 font-semibold text-white hover:text-brand-300 transition-colors"
             >
               {user.displayName}
-              {user.isVerified && <BadgeCheck className="w-4 h-4 text-brand-400" />}
+              {user.isVerified && <IconRosetteFilled className="w-4 h-4 text-brand-400" />}
             </Link>
             <p className="text-xs text-gray-500">@{user.username}</p>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-gray-400">
-            <Users className="w-4 h-4" />
+            <IconUsers className="w-4 h-4" />
             {compactNumber(user.followersCount ?? 0)} takipçi
           </div>
           {me && me.id !== user.id && (

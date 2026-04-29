@@ -1,15 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import {
-  Home, Compass, Star, User, Settings,
-  Hash, TrendingUp, BookOpen,
-} from 'lucide-react'
+import { IconHome, IconCompass, IconStar, IconUser, IconSettings, IconHash, IconTrendingUp, IconBook2 } from '@tabler/icons-react'
 import { useAuthStore } from '@store/authStore'
 import { cn } from '@utils/cn'
 
 const navItems = [
-  { to: '/',            icon: Home,      label: 'Ana Sayfa' },
-  { to: '/explore',     icon: Compass,   label: 'Keşfet' },
-  { to: '/featured',    icon: Star,      label: 'Öne Çıkanlar' },
+  { to: '/',            icon: IconHome,      label: 'Ana Sayfa' },
+  { to: '/explore',     icon: IconCompass,   label: 'Keşfet' },
+  { to: '/featured',    icon: IconStar,      label: 'Öne Çıkanlar' },
 ]
 
 const trendingTags = ['#react', '#css', '#animation', '#ui', '#nextjs', '#tailwind']
@@ -52,7 +49,7 @@ export default function Sidebar() {
                 )
               }
             >
-              <BookOpen className="w-5 h-5" />
+              <IconBook2 className="w-5 h-5" />
               Makalelerim
             </NavLink>
             <NavLink
@@ -66,7 +63,7 @@ export default function Sidebar() {
                 )
               }
             >
-              <User className="w-5 h-5" />
+              <IconUser className="w-5 h-5" />
               Profilim
             </NavLink>
             <NavLink
@@ -80,7 +77,7 @@ export default function Sidebar() {
                 )
               }
             >
-              <Settings className="w-5 h-5" />
+              <IconSettings className="w-5 h-5" />
               Ayarlar
             </NavLink>
           </>
@@ -90,7 +87,7 @@ export default function Sidebar() {
       {/* Trending tags */}
       <div>
         <p className="flex items-center gap-2 px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
-          <TrendingUp className="w-3.5 h-3.5" />
+          <IconTrendingUp className="w-3.5 h-3.5" />
           Trend Etiketler
         </p>
         <div className="flex flex-col gap-0.5">
@@ -99,7 +96,7 @@ export default function Sidebar() {
               key={tag}
               className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-brand-400 hover:bg-surface-raised rounded-lg transition-colors"
             >
-              <Hash className="w-3.5 h-3.5" />
+              <IconHash className="w-3.5 h-3.5" />
               {tag.slice(1)}
             </button>
           ))}

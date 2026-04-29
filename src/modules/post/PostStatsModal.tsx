@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { X, Heart, Repeat2, Bookmark, FolderPlus, BadgeCheck } from 'lucide-react'
+import { IconX, IconHeart, IconRepeatOnce, IconBookmark, IconFolderPlus, IconRosetteFilled } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import FollowButton from '@modules/social/FollowButton'
@@ -58,10 +58,10 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
   const list = lists[tab]
 
   const tabs: { id: Tab; icon: React.ReactNode; label: string; count: number | string }[] = [
-    { id: 'likes',       icon: <Heart className="w-3.5 h-3.5" />,     label: 'Beğenenler',   count: likesCount },
-    { id: 'reposts',     icon: <Repeat2 className="w-3.5 h-3.5" />,   label: 'Repost',       count: repostCount },
-    { id: 'saves',       icon: <Bookmark className="w-3.5 h-3.5" />,  label: 'Kaydeden',     count: loading ? '…' : savers.length },
-    { id: 'collections', icon: <FolderPlus className="w-3.5 h-3.5" />,label: 'Koleksiyon',   count: loading ? '…' : collectors.length },
+    { id: 'likes',       icon: <IconHeart className="w-3.5 h-3.5" />,     label: 'Beğenenler',   count: likesCount },
+    { id: 'reposts',     icon: <IconRepeatOnce className="w-3.5 h-3.5" />,   label: 'Repost',       count: repostCount },
+    { id: 'saves',       icon: <IconBookmark className="w-3.5 h-3.5" />,  label: 'Kaydeden',     count: loading ? '…' : savers.length },
+    { id: 'collections', icon: <IconFolderPlus className="w-3.5 h-3.5" />,label: 'Koleksiyon',   count: loading ? '…' : collectors.length },
   ]
 
   const tabColors: Record<Tab, string> = {
@@ -86,7 +86,7 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
         <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
           <h2 className="font-semibold text-white text-sm">İstatistikler</h2>
           <button onClick={onClose} className="p-1 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors">
-            <X className="w-4 h-4" />
+            <IconX className="w-4 h-4" />
           </button>
         </div>
 
@@ -122,7 +122,7 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
                   <div className="min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="text-sm font-medium text-white truncate">{u.displayName}</span>
-                      {u.isVerified && <BadgeCheck className="w-3.5 h-3.5 text-brand-400 shrink-0" />}
+                      {u.isVerified && <IconRosetteFilled className="w-3.5 h-3.5 text-brand-400 shrink-0" />}
                     </div>
                     <p className="text-xs text-gray-500">@{u.username}</p>
                   </div>

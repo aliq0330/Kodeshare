@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { TrendingUp, Heart } from 'lucide-react'
+import { IconTrendingUp, IconHeart } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import { compactNumber } from '@utils/formatters'
 import type { PostPreview } from '@/types'
@@ -14,7 +14,7 @@ export default function TrendingPosts({ posts }: TrendingPostsProps) {
   return (
     <div className="card p-4">
       <h3 className="flex items-center gap-2 text-sm font-semibold mb-4">
-        <TrendingUp className="w-4 h-4 text-brand-400" />
+        <IconTrendingUp className="w-4 h-4 text-brand-400" />
         Bu Hafta Trend
       </h3>
       <div className="flex flex-col gap-3">
@@ -31,7 +31,7 @@ export default function TrendingPosts({ posts }: TrendingPostsProps) {
               </div>
             </div>
             <div className="flex items-center gap-1 text-xs text-gray-500 shrink-0">
-              <Heart className="w-3 h-3" />
+              <IconHeart className="w-3 h-3" />
               {compactNumber(post.likesCount)}
             </div>
           </Link>

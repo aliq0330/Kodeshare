@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Pencil } from 'lucide-react'
+import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconPlus, IconChevronDown, IconX, IconTrash, IconPencil } from '@tabler/icons-react'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
@@ -48,12 +48,12 @@ type ComposerBlock =
   | { localId: string; type: 'article'; content: string }
 
 const BLOCK_OPTIONS: { type: PostBlockType; label: string; icon: React.ReactNode }[] = [
-  { type: 'snippet', label: 'Snippet', icon: <Code2 className="w-4 h-4" /> },
-  { type: 'project', label: 'Proje',   icon: <FolderOpen className="w-4 h-4" /> },
-  { type: 'article', label: 'Makale',  icon: <FileText className="w-4 h-4" /> },
-  { type: 'image',   label: 'Görsel',  icon: <Image className="w-4 h-4" /> },
-  { type: 'link',    label: 'Link',    icon: <Link2 className="w-4 h-4" /> },
-  { type: 'video',   label: 'Video',   icon: <Video className="w-4 h-4" /> },
+  { type: 'snippet', label: 'Snippet', icon: <IconCode className="w-4 h-4" /> },
+  { type: 'project', label: 'Proje',   icon: <IconFolderOpen className="w-4 h-4" /> },
+  { type: 'article', label: 'Makale',  icon: <IconFileText className="w-4 h-4" /> },
+  { type: 'image',   label: 'Görsel',  icon: <IconPhoto className="w-4 h-4" /> },
+  { type: 'link',    label: 'Link',    icon: <IconLink className="w-4 h-4" /> },
+  { type: 'video',   label: 'Video',   icon: <IconVideo className="w-4 h-4" /> },
 ]
 
 function makeBlock(type: PostBlockType): ComposerBlock {
@@ -273,7 +273,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
                     {BLOCK_OPTIONS.find((o) => o.type === block.type)?.label}
                   </span>
                   <button type="button" onClick={() => removeBlock(block.localId)} className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors">
-                    <X className="w-3.5 h-3.5" />
+                    <IconX className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
@@ -292,7 +292,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
                   block.project ? (
                     <div className="rounded-lg border border-surface-border bg-[#0d1117] overflow-hidden">
                       <div className="flex items-center gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/60">
-                        <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
+                        <IconFolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
                         <span className="text-sm font-medium text-white truncate flex-1">{block.project.title}</span>
                         <div className="flex items-center gap-1">
                           {block.project.files.map((f) => (
@@ -301,7 +301,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
                             </span>
                           ))}
                           <button onClick={() => updateBlock(block.localId, { project: null })} className="ml-1 p-1 rounded hover:bg-surface-raised text-gray-500 hover:text-gray-300 transition-colors">
-                            <Trash2 className="w-3 h-3" />
+                            <IconTrash className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
@@ -316,9 +316,9 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
                         }}
                         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
                       >
-                        <FolderOpen className="w-4 h-4" />
+                        <IconFolderOpen className="w-4 h-4" />
                         Proje Seç
-                        <ChevronDown className="w-3.5 h-3.5" />
+                        <IconChevronDown className="w-3.5 h-3.5" />
                       </button>
                       {pickerBlockId === block.localId && (
                         <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-52 overflow-y-auto">
@@ -334,7 +334,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
                                 onClick={() => { updateBlock(block.localId, { project: p }); setPickerBlockId(null) }}
                                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-surface-raised transition-colors"
                               >
-                                <FolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
+                                <IconFolderOpen className="w-4 h-4 text-brand-400 shrink-0" />
                                 <span className="text-white flex-1 truncate">{p.title}</span>
                                 <span className="text-xs text-gray-500">{p.files.length} dosya</span>
                               </button>
@@ -389,7 +389,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
             onClick={() => setAddMenuOpen((v) => !v)}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
           >
-            <Plus className="w-4 h-4" />
+            <IconPlus className="w-4 h-4" />
             Blok Ekle
           </button>
           {addMenuOpen && (
@@ -412,7 +412,7 @@ export default function EditPostModal({ open, onClose, post, onSaved }: EditPost
         <div className="flex justify-end gap-2 pt-1 border-t border-surface-border">
           <Button variant="ghost" size="sm" onClick={onClose}>İptal</Button>
           <Button variant="primary" size="sm" loading={loading} onClick={handleSave}>
-            <Pencil className="w-3.5 h-3.5" />
+            <IconPencil className="w-3.5 h-3.5" />
             Kaydet
           </Button>
         </div>

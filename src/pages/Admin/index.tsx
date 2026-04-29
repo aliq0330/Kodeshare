@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { Trash2, Users, FileText, MessageSquare, ShieldCheck, ExternalLink } from 'lucide-react'
+import { IconTrash, IconUsers, IconFileText, IconMessage, IconShieldCheck, IconExternalLink } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import Button from '@components/ui/Button'
@@ -74,9 +74,9 @@ export default function AdminPage() {
   }
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode; count: number }[] = [
-    { id: 'users',    label: 'Kullanıcılar', icon: <Users className="w-4 h-4" />,         count: stats.users },
-    { id: 'posts',    label: 'Gönderiler',   icon: <FileText className="w-4 h-4" />,       count: stats.posts },
-    { id: 'comments', label: 'Yorumlar',     icon: <MessageSquare className="w-4 h-4" />, count: stats.comments },
+    { id: 'users',    label: 'Kullanıcılar', icon: <IconUsers className="w-4 h-4" />,         count: stats.users },
+    { id: 'posts',    label: 'Gönderiler',   icon: <IconFileText className="w-4 h-4" />,       count: stats.posts },
+    { id: 'comments', label: 'Yorumlar',     icon: <IconMessage className="w-4 h-4" />, count: stats.comments },
   ]
 
   return (
@@ -84,7 +84,7 @@ export default function AdminPage() {
       {/* Header */}
       <div className="card p-5 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-brand-900/40 border border-brand-700/40 flex items-center justify-center">
-          <ShieldCheck className="w-5 h-5 text-brand-400" />
+          <IconShieldCheck className="w-5 h-5 text-brand-400" />
         </div>
         <div>
           <h1 className="font-bold text-white text-lg">Admin Paneli</h1>
@@ -150,7 +150,7 @@ export default function AdminPage() {
                     to={`/profile/${u.username}`}
                     className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors shrink-0"
                   >
-                    <ExternalLink className="w-4 h-4" />
+                    <IconExternalLink className="w-4 h-4" />
                   </Link>
                 </div>
               ))}
@@ -180,7 +180,7 @@ export default function AdminPage() {
                       to={`/post/${p.id}`}
                       className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <IconExternalLink className="w-4 h-4" />
                     </Link>
                     <Button
                       variant="ghost"
@@ -189,7 +189,7 @@ export default function AdminPage() {
                       onClick={() => handleDeletePost(p.id)}
                       className="text-red-400 hover:bg-red-900/30 hover:text-red-300"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <IconTrash className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export default function AdminPage() {
                       onClick={() => handleDeleteComment(c.id)}
                       className="text-red-400 hover:bg-red-900/30 hover:text-red-300"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <IconTrash className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>

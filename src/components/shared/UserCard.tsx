@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BadgeCheck } from 'lucide-react'
+import { IconRosetteFilled } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import { compactNumber } from '@utils/formatters'
@@ -25,7 +25,7 @@ export default function UserCard({ user, onFollow, isFollowing, className }: Use
           className="flex items-center justify-center gap-1 font-semibold text-white hover:text-brand-300 transition-colors"
         >
           {user.displayName}
-          {user.isVerified && <BadgeCheck className="w-4 h-4 text-brand-400 shrink-0" />}
+          {user.isVerified && <IconRosetteFilled className="w-4 h-4 text-brand-400 shrink-0" />}
         </Link>
         <p className="text-sm text-gray-500">@{user.username}</p>
       </div>

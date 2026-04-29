@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, Bookmark, Repeat2, FolderPlus, Repeat, MoreHorizontal, Trash2, BarChart2, Pencil, Clock, BookOpen } from 'lucide-react'
+import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeatOnce, IconFolderPlus, IconRepeat, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
@@ -197,7 +197,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
         className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
         title="Daha fazla"
       >
-        <MoreHorizontal className="w-4 h-4" />
+        <IconDots className="w-4 h-4" />
       </button>
       {menuOpen && (
         <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
@@ -206,7 +206,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <BarChart2 className="w-4 h-4 text-gray-500" />
+            <IconChartBar className="w-4 h-4 text-gray-500" />
             <span className="text-white">İstatistikler</span>
           </button>
           <button
@@ -214,7 +214,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <Share2 className="w-4 h-4 text-gray-500" />
+            <IconShare className="w-4 h-4 text-gray-500" />
             <span className="text-white">Paylaş</span>
           </button>
           <button
@@ -222,7 +222,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
           >
-            <FolderPlus className="w-4 h-4 text-gray-500" />
+            <IconFolderPlus className="w-4 h-4 text-gray-500" />
             <span className="text-white">Koleksiyona ekle</span>
           </button>
           {onRemoveFromCollection && (
@@ -231,7 +231,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               onClick={() => { setMenuOpen(false); onRemoveFromCollection() }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <FolderPlus className="w-4 h-4 text-red-400" />
+              <IconFolderPlus className="w-4 h-4 text-red-400" />
               <span className="text-red-400">{removeFromCollectionLabel ?? 'Bu koleksiyondan çıkar'}</span>
             </button>
           )}
@@ -241,7 +241,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               onClick={() => { setMenuOpen(false); openEditComposer(localPost, handleEditSaved) }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <Pencil className="w-4 h-4 text-gray-500" />
+              <IconPencil className="w-4 h-4 text-gray-500" />
               <span className="text-white">Düzenle</span>
             </button>
           )}
@@ -251,7 +251,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               onClick={handleEditArticle}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <Pencil className="w-4 h-4 text-gray-500" />
+              <IconPencil className="w-4 h-4 text-gray-500" />
               <span className="text-white">Düzenle</span>
             </button>
           )}
@@ -261,7 +261,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               onClick={handleDelete}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
-              <Trash2 className="w-4 h-4 text-gray-500" />
+              <IconTrash className="w-4 h-4 text-gray-500" />
               <span className="text-white">Sil</span>
             </button>
           )}
@@ -324,7 +324,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
         {/* Repost göstergesi */}
         {localPost.type === 'repost' && localPost.repostedFrom && (
           <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">
-            <Repeat className="w-3.5 h-3.5" />
+            <IconRepeat className="w-3.5 h-3.5" />
             <Link to={`/profile/${localPost.author.username}`} className="hover:text-gray-300">
               {localPost.author.displayName}
             </Link>
@@ -360,7 +360,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               <div className="flex items-start gap-2">
                 {!coverImage && (
                   <div className="w-7 h-7 rounded-lg bg-surface-raised flex items-center justify-center shrink-0 mt-0.5">
-                    <BookOpen className="w-3.5 h-3.5 text-gray-500" />
+                    <IconBook2 className="w-3.5 h-3.5 text-gray-500" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -380,7 +380,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                   articleData?.isLiked ? 'text-red-500' : 'hover:text-red-400'
                 }`}
               >
-                <Heart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
+                <IconHeart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
                 <span className="text-xs">{compactNumber(articleData?.likesCount ?? 0)}</span>
               </button>
 
@@ -388,14 +388,14 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 to={commentLink}
                 className="flex items-center gap-1.5 hover:text-white transition-colors"
               >
-                <MessageCircle className="w-[18px] h-[18px]" />
+                <IconMessageCircle className="w-[18px] h-[18px]" />
               </Link>
 
               {isAuthenticated ? (
                 <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
               ) : (
                 <span className="flex items-center gap-1.5 text-xs">
-                  <Repeat2 className="w-[18px] h-[18px]" />
+                  <IconRepeatOnce className="w-[18px] h-[18px]" />
                   {compactNumber(repostTarget.repostCount)}
                 </span>
               )}
@@ -406,7 +406,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                   articleData?.isSaved ? 'text-white' : 'hover:text-white'
                 }`}
               >
-                <Bookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
+                <IconBookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
           </div>
@@ -423,7 +423,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
       {/* Repost indicator */}
       {localPost.type === 'repost' && localPost.repostedFrom && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">
-          <Repeat className="w-3.5 h-3.5" />
+          <IconRepeat className="w-3.5 h-3.5" />
           <Link to={`/profile/${localPost.author.username}`} className="hover:text-gray-300">
             {localPost.author.displayName}
           </Link>
@@ -452,7 +452,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                   onClick={(e) => { e.preventDefault(); setHistoryOpen(true) }}
                   className="ml-1 inline-flex items-center gap-0.5 text-xs text-gray-500"
                 >
-                  <Clock className="w-3 h-3" />
+                  <IconClock className="w-3 h-3" />
                 </button>
               )}
             </Link>
@@ -517,12 +517,12 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               onClick={handlePostLike}
               className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
             >
-              <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
+              <IconHeart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
               <span className="text-xs">{compactNumber(display.likesCount)}</span>
             </button>
 
             <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors">
-              <MessageCircle className="w-[18px] h-[18px]" />
+              <IconMessageCircle className="w-[18px] h-[18px]" />
               <span className="text-xs">{compactNumber(display.commentsCount)}</span>
             </Link>
 
@@ -530,7 +530,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
             ) : (
               <span className="flex items-center gap-1.5 text-xs">
-                <Repeat2 className="w-[18px] h-[18px]" />
+                <IconRepeatOnce className="w-[18px] h-[18px]" />
                 {compactNumber(repostTarget.repostCount)}
               </span>
             )}
@@ -539,7 +539,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               onClick={handlePostSave}
               className={`ml-auto flex items-center transition-colors ${display.isSaved ? 'text-white' : 'hover:text-white'}`}
             >
-              <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
+              <IconBookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
             </button>
           </div>
         </div>

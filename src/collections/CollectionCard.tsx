@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Folder, Lock, Globe } from 'lucide-react'
+import { IconFolder, IconLock, IconWorld } from '@tabler/icons-react'
 import Badge from '@components/ui/Badge'
 import { timeAgo } from '@utils/formatters'
 import type { Collection } from '@/types'
@@ -21,7 +21,7 @@ export default function CollectionCard({ collection }: CollectionCardProps) {
         </div>
       ) : (
         <div className="aspect-video rounded-lg bg-gradient-to-br from-brand-900/40 to-surface-raised flex items-center justify-center">
-          <Folder className="w-10 h-10 text-brand-700" />
+          <IconFolder className="w-10 h-10 text-brand-700" />
         </div>
       )}
 
@@ -31,9 +31,9 @@ export default function CollectionCard({ collection }: CollectionCardProps) {
             {collection.name}
           </h3>
           {collection.visibility === 'private' ? (
-            <Lock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+            <IconLock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
           ) : (
-            <Globe className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+            <IconWorld className="w-3.5 h-3.5 text-gray-600 shrink-0" />
           )}
         </div>
 

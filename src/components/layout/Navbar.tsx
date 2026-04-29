@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Bell, MessageSquare, ShieldCheck, PenSquare } from 'lucide-react'
+import { IconSearch, IconBell, IconMessage, IconShieldCheck, IconEditCircle } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Dropdown from '@components/ui/Dropdown'
 import BurgerMenu from '@components/layout/BurgerMenu'
@@ -18,7 +18,7 @@ export default function Navbar() {
   const userMenuItems = [
     ...(isAdmin(user?.id) ? [{
       label: 'Admin Paneli',
-      icon: <ShieldCheck className="w-4 h-4" />,
+      icon: <IconShieldCheck className="w-4 h-4" />,
       onClick: () => navigate('/admin'),
       divider: false,
     }] : []),
@@ -47,7 +47,7 @@ export default function Navbar() {
                 className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
                 title="Ara"
               >
-                <Search className="w-5 h-5" />
+                <IconSearch className="w-5 h-5" />
               </button>
 
               <button
@@ -55,14 +55,14 @@ export default function Navbar() {
                 className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
                 title="Yeni Gönderi"
               >
-                <PenSquare className="w-5 h-5" />
+                <IconEditCircle className="w-5 h-5" />
               </button>
 
               <Link
                 to="/notifications"
                 className="relative p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
               >
-                <Bell className="w-5 h-5" />
+                <IconBell className="w-5 h-5" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-black rounded-full" />
                 )}
@@ -72,7 +72,7 @@ export default function Navbar() {
                 to="/messages"
                 className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
               >
-                <MessageSquare className="w-5 h-5" />
+                <IconMessage className="w-5 h-5" />
               </Link>
 
               <Dropdown
@@ -91,7 +91,7 @@ export default function Navbar() {
                 className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
                 title="Ara"
               >
-                <Search className="w-5 h-5" />
+                <IconSearch className="w-5 h-5" />
               </button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Giriş Yap</Button>
               <Button variant="primary" size="sm" onClick={() => navigate('/register')}>Kayıt Ol</Button>

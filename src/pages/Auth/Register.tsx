@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, User, AtSign } from 'lucide-react'
+import { IconMail, IconLock, IconUser, IconAt } from '@tabler/icons-react'
 import Input from '@components/ui/Input'
 import Button from '@components/ui/Button'
 import { useAuthStore } from '@store/authStore'
@@ -36,10 +36,10 @@ export default function RegisterPage() {
         <p className="text-sm text-gray-500">Kodeshare topluluğuna katıl</p>
       </div>
 
-      <Input label="Ad Soyad" value={form.displayName} onChange={set('displayName')} placeholder="Adın Soyadın" leftIcon={<User className="w-4 h-4" />} required />
-      <Input label="Kullanıcı Adı" value={form.username} onChange={set('username')} placeholder="kullanici_adi" leftIcon={<AtSign className="w-4 h-4" />} required />
-      <Input label="E-posta" type="email" value={form.email} onChange={set('email')} placeholder="ornek@mail.com" leftIcon={<Mail className="w-4 h-4" />} required />
-      <Input label="Şifre" type="password" value={form.password} onChange={set('password')} placeholder="En az 8 karakter" leftIcon={<Lock className="w-4 h-4" />} required />
+      <Input label="Ad Soyad" value={form.displayName} onChange={set('displayName')} placeholder="Adın Soyadın" leftIcon={<IconUser className="w-4 h-4" />} required />
+      <Input label="Kullanıcı Adı" value={form.username} onChange={set('username')} placeholder="kullanici_adi" leftIcon={<IconAt className="w-4 h-4" />} required />
+      <Input label="E-posta" type="email" value={form.email} onChange={set('email')} placeholder="ornek@mail.com" leftIcon={<IconMail className="w-4 h-4" />} required />
+      <Input label="Şifre" type="password" value={form.password} onChange={set('password')} placeholder="En az 8 karakter" leftIcon={<IconLock className="w-4 h-4" />} required />
 
       <Button type="submit" variant="primary" fullWidth loading={loading} className="mt-2">
         Kayıt Ol

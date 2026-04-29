@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import {
-  ArrowLeft, Clock, Link2, BookOpen,
-  Heart, MessageSquare, Repeat2, Bookmark,
-  MoreHorizontal, Share2, FolderPlus, BarChart2, Pencil,
-  Send, Trash2,
-} from 'lucide-react'
+import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessage, IconRepeatOnce, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash } from '@tabler/icons-react'
 import { articleService } from '@services/articleService'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleRecord, ArticleComment } from '@services/articleService'
@@ -79,7 +74,7 @@ function CommentRow({ comment, currentUserId, onReply, onDelete }: CommentRowPro
                 className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors"
                 title="Yorumu sil"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <IconTrash className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -122,7 +117,7 @@ function CommentRow({ comment, currentUserId, onReply, onDelete }: CommentRowPro
                           className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors"
                           title="Yorumu sil"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <IconTrash className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
@@ -322,14 +317,14 @@ export default function ArticleViewPage() {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center px-4">
         <div className="w-16 h-16 rounded-2xl bg-surface-raised flex items-center justify-center mb-4">
-          <BookOpen className="w-8 h-8 text-gray-600" />
+          <IconBook2 className="w-8 h-8 text-gray-600" />
         </div>
         <p className="text-gray-400 font-medium text-lg">{error || 'Makale bulunamadı'}</p>
         <button
           onClick={() => navigate(-1)}
           className="mt-6 flex items-center gap-2 text-brand-400 hover:text-brand-300 transition-colors text-sm"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <IconArrowLeft className="w-4 h-4" />
           Geri Dön
         </button>
       </div>
@@ -390,7 +385,7 @@ export default function ArticleViewPage() {
 
           <div className="flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
+              <IconClock className="w-3.5 h-3.5" />
               {formatDate(article.createdAt)}
             </span>
             <span>{readingMinutes(article)} dk okuma</span>
@@ -399,7 +394,7 @@ export default function ArticleViewPage() {
               className="flex items-center gap-1 text-gray-500 hover:text-brand-400 transition-colors"
               title="Linki kopyala"
             >
-              <Link2 className="w-3.5 h-3.5" />
+              <IconLink className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -419,7 +414,7 @@ export default function ArticleViewPage() {
             }`}
             title="Beğen"
           >
-            <Heart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
+            <IconHeart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
             <span className="text-sm">{article.likesCount}</span>
           </button>
 
@@ -429,7 +424,7 @@ export default function ArticleViewPage() {
             className="flex items-center gap-1.5 hover:text-white transition-colors"
             title="Yorumlar"
           >
-            <MessageSquare className="w-[18px] h-[18px]" />
+            <IconMessage className="w-[18px] h-[18px]" />
             <span className="text-sm">{totalCommentCount}</span>
           </button>
 
@@ -439,7 +434,7 @@ export default function ArticleViewPage() {
             className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
             title="Yeniden paylaş"
           >
-            <Repeat2 className="w-[18px] h-[18px]" />
+            <IconRepeatOnce className="w-[18px] h-[18px]" />
           </button>
 
           {/* Right side */}
@@ -454,7 +449,7 @@ export default function ArticleViewPage() {
               }`}
               title={article.isSaved ? 'Kaydedildi' : 'Kaydet'}
             >
-              <Bookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
+              <IconBookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
             </button>
 
             {/* Stats */}
@@ -463,7 +458,7 @@ export default function ArticleViewPage() {
               className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
               title="İstatistikler"
             >
-              <BarChart2 className="w-[18px] h-[18px]" />
+              <IconChartBar className="w-[18px] h-[18px]" />
             </button>
 
             {/* 3-dot menu */}
@@ -473,7 +468,7 @@ export default function ArticleViewPage() {
                 className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
                 title="Daha fazla"
               >
-                <MoreHorizontal className="w-[18px] h-[18px]" />
+                <IconDots className="w-[18px] h-[18px]" />
               </button>
 
               {menuOpen && (
@@ -483,7 +478,7 @@ export default function ArticleViewPage() {
                       onClick={handleEditArticle}
                       className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
                     >
-                      <Pencil className="w-4 h-4 text-gray-400 shrink-0" />
+                      <IconPencil className="w-4 h-4 text-gray-400 shrink-0" />
                       Düzenle
                     </button>
                   )}
@@ -491,14 +486,14 @@ export default function ArticleViewPage() {
                     onClick={() => { setShareModalOpen(true); setMenuOpen(false) }}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
                   >
-                    <Share2 className="w-4 h-4 text-brand-400 shrink-0" />
+                    <IconShare className="w-4 h-4 text-brand-400 shrink-0" />
                     Paylaş
                   </button>
                   <button
                     onClick={() => { setCollectModalOpen(true); setMenuOpen(false) }}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
                   >
-                    <FolderPlus className="w-4 h-4 text-brand-400 shrink-0" />
+                    <IconFolderPlus className="w-4 h-4 text-brand-400 shrink-0" />
                     Koleksiyona Ekle
                   </button>
                 </div>
@@ -556,7 +551,7 @@ export default function ArticleViewPage() {
                   className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
                   title="Gönder"
                 >
-                  {submitting ? <Spinner /> : <Send className="w-4 h-4" />}
+                  {submitting ? <Spinner /> : <IconSend className="w-4 h-4" />}
                 </button>
               </div>
             </form>
