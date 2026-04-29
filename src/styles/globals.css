@@ -43,8 +43,13 @@
   html.light .text-gray-100    { color: #1f1f1f !important; }
   html.light .text-gray-200    { color: #333333 !important; }
   html.light .text-gray-300    { color: #555555 !important; }
-  html.light .text-gray-400    { color: #777777 !important; }
+  html.light .text-gray-400    { color: #1a1a1a !important; }
   html.light .text-gray-500    { color: #999999 !important; }
+
+  /* Hover state overrides — !important on base classes would otherwise block hover */
+  html.light .hover\:text-gray-900:hover { color: #111111 !important; }
+  html.light .hover\:text-gray-600:hover { color: #333333 !important; }
+  html.light .hover\:text-white:hover    { color: #111111 !important; }
 
   /* Colored/dark action buttons: always keep white text */
   html.light .bg-brand-500,
