@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Cloud, UploadCloud, Clock } from 'lucide-react'
+import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Cloud, UploadCloud, Clock, Hash } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
@@ -13,13 +13,14 @@ import { useComposerStore } from '@store/composerStore'
 import { projectService, type SavedProject } from '@services/projectService'
 import { articleService } from '@services/articleService'
 import { draftService, type CloudDraft } from '@services/draftService'
+import { searchTags } from '@services/postService'
 import type { ArticleRecord } from '@services/articleService'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { timeAgo } from '@utils/formatters'
 import toast from 'react-hot-toast'
 import type { PostBlockType } from '@/types'
 
-const DRAFT_KEY = 'kodeshare:composer-draft-v2'
+const DRAFT_KEY = 'kodeshare:composer-draft-v3'
 const DEFAULT_LANG: SnippetLang = 'javascript'
 
 const EXT_MAP: Record<SnippetLang, string> = {
@@ -57,7 +58,7 @@ type ComposerBlock =
 
 interface Draft {
   description: string
-  tags: string
+  tags: string[]
   blocks: ComposerBlock[]
 }
 
@@ -132,14 +133,19 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { open, prefilledProject, prefilledSnippet, prefilledArticle, openComposer, closeComposer } = useComposerStore()
 
   const [description, setDescription] = useState('')
-  const [tags, setTags]               = useState('')
+  const [tags, setTags]               = useState<string[]>([])
+  const [tagInput, setTagInput]       = useState('')
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([])
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const [blocks, setBlocks]           = useState<ComposerBlock[]>([])
   const [loading, setLoading]         = useState(false)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
   const [expandedId, setExpandedId]   = useState<string | null>(null)
 
-  const addMenuRef  = useRef<HTMLDivElement>(null)
-  const hydratedRef = useRef(false)
+  const addMenuRef      = useRef<HTMLDivElement>(null)
+  const tagSuggestRef   = useRef<HTMLDivElement>(null)
+  const searchDebounce  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hydratedRef     = useRef(false)
 
   // Cloud draft state
   const [cloudDraftId, setCloudDraftId]   = useState<string | null>(null)
@@ -182,7 +188,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     const d = loadDraft()
     if (!d) return
     if (d.description) setDescription(d.description)
-    if (d.tags)        setTags(d.tags)
+    if (d.tags?.length) setTags(d.tags)
     if (d.blocks?.length) setBlocks(d.blocks)
   }, [open, prefilledProject, prefilledSnippet, prefilledArticle])
 
@@ -207,7 +213,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   // Auto-save draft to localStorage
   useEffect(() => {
     if (!open) return
-    const hasContent = description || tags || blocks.length > 0
+    const hasContent = description || tags.length > 0 || blocks.length > 0
     if (!hasContent) return
     saveDraft({ description, tags, blocks })
   }, [open, description, tags, blocks])
@@ -219,6 +225,16 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     document.addEventListener('keydown', h, true)
     return () => document.removeEventListener('keydown', h, true)
   }, [expandedId])
+
+  // Close tag suggestions on outside click
+  useEffect(() => {
+    if (!suggestionsOpen) return
+    const h = (e: MouseEvent) => {
+      if (tagSuggestRef.current && !tagSuggestRef.current.contains(e.target as Node)) setSuggestionsOpen(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [suggestionsOpen])
 
   // Close add-block menu on outside click
   useEffect(() => {
@@ -300,8 +316,38 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     }))
   }
 
+  const addTag = (raw: string) => {
+    const t = raw.toLowerCase().trim().replace(/^#+/, '')
+    if (!t || tags.length >= 5 || tags.includes(t)) return
+    setTags((prev) => [...prev, t])
+    setTagInput('')
+    setTagSuggestions([])
+    setSuggestionsOpen(false)
+  }
+
+  const removeTag = (tag: string) => setTags((prev) => prev.filter((t) => t !== tag))
+
+  const handleTagInputChange = (value: string) => {
+    setTagInput(value)
+    if (searchDebounce.current) clearTimeout(searchDebounce.current)
+    const q = value.trim()
+    if (!q) { setTagSuggestions([]); setSuggestionsOpen(false); return }
+    searchDebounce.current = setTimeout(async () => {
+      const results = await searchTags(q)
+      const filtered = results.filter((s) => !tags.includes(s))
+      setTagSuggestions(filtered)
+      setSuggestionsOpen(filtered.length > 0)
+    }, 200)
+  }
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') { e.preventDefault(); addTag(tagInput) }
+    if (e.key === 'Escape') setSuggestionsOpen(false)
+  }
+
   const reset = () => {
-    setDescription(''); setTags(''); setBlocks([])
+    setDescription(''); setTags([]); setTagInput(''); setTagSuggestions([]); setSuggestionsOpen(false)
+    setBlocks([])
     setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null); setAddMenuOpen(false)
     setCloudDraftId(null)
     hydratedRef.current = false
@@ -314,7 +360,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     if (!isAuthenticated) { toast.error('Taslak kaydetmek için giriş yapmalısın'); return }
     setCloudSaving(true)
     try {
-      const saved = await draftService.save(cloudDraftId, { description, tags, blocks })
+      const saved = await draftService.save(cloudDraftId, { description, tags: tags.join(', '), blocks })
       setCloudDraftId(saved.id)
       toast.success('Taslak buluta kaydedildi')
     } catch {
@@ -341,7 +387,8 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   // Cloud draft: restore a draft
   const handleRestoreDraft = (draft: CloudDraft) => {
     setDescription(draft.description ?? '')
-    setTags(draft.tags ?? '')
+    const rawTags = draft.tags ?? ''
+    setTags(rawTags ? rawTags.split(',').map((t) => t.trim()).filter(Boolean) : [])
     setBlocks((draft.blocks as ComposerBlock[]) ?? [])
     setCloudDraftId(draft.id)
     setDraftsOpen(false)
@@ -383,7 +430,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         type: 'post',
         title: autoTitle,
         description: desc || undefined,
-        tags: tags.split(',').map((x) => x.trim()).filter(Boolean),
+        tags,
         blocks: validBlocks,
       })
       // Delete cloud draft on successful publish
@@ -436,12 +483,63 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             placeholder="Ne hakkında?"
             rows={2}
           />
-          <Input
-            label="Etiketler"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="react, css, animation (virgülle ayır)"
-          />
+          {/* Tag input */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-300">
+              Etiketler
+              <span className="ml-1.5 text-xs text-gray-500 font-normal">({tags.length}/5)</span>
+            </label>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 text-xs font-medium border border-brand-500/30">
+                    #{tag}
+                    <button type="button" onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {tags.length < 5 && (
+              <div className="relative flex gap-2" ref={tagSuggestRef}>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    <Hash className="w-3.5 h-3.5" />
+                  </span>
+                  <input
+                    value={tagInput}
+                    onChange={(e) => handleTagInputChange(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="etiket yaz, Enter ile ekle"
+                    className="w-full bg-surface-card border border-surface-border rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                  {suggestionsOpen && tagSuggestions.length > 0 && (
+                    <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-44 overflow-y-auto">
+                      {tagSuggestions.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onMouseDown={(e) => { e.preventDefault(); addTag(s) }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-raised text-gray-300 hover:text-white transition-colors"
+                        >
+                          <Hash className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => addTag(tagInput)}
+                  className="shrink-0 px-3 py-2 text-sm rounded-lg border border-surface-border text-gray-400 hover:text-white hover:border-brand-500 transition-colors"
+                >
+                  Ekle
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Block list */}
           {blocks.length > 0 && (

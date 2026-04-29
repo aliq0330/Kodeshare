@@ -469,6 +469,16 @@ function tagCaseVariants(tag: string): string[] {
   return Array.from(new Set([t, lower, upper, capitalized]))
 }
 
+export async function searchTags(query: string): Promise<string[]> {
+  const q = query.trim().toLowerCase()
+  if (!q) return []
+  const { data } = await supabase.from('posts').select('tags').not('tags', 'eq', '{}').limit(300)
+  if (!data) return []
+  const all = (data as { tags: string[] }[]).flatMap((p) => p.tags ?? [])
+  const unique = [...new Set(all.map((t) => t.toLowerCase()))]
+  return unique.filter((t) => t.startsWith(q)).slice(0, 8)
+}
+
 export async function hydratePostPreviewRows(
   rows: Record<string, unknown>[],
   userId?: string,
