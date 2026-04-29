@@ -416,56 +416,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     <>
       {triggerCard}
 
-      {/* Cloud Drafts Modal */}
-      <Modal open={draftsOpen} onClose={() => setDraftsOpen(false)} title="Bulut Taslaklar" size="sm">
-        <div className="flex flex-col gap-3">
-          {draftsLoading ? (
-            <div className="flex justify-center py-8"><Spinner /></div>
-          ) : cloudDrafts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Cloud className="w-8 h-8 mx-auto mb-2 text-gray-600" />
-              <p className="text-sm">Kayıtlı taslak yok</p>
-            </div>
-          ) : (
-            cloudDrafts.map((draft) => (
-              <button
-                key={draft.id}
-                onClick={() => handleRestoreDraft(draft)}
-                className="w-full text-left card p-3 hover:border-brand-500/50 transition-colors group"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white font-medium truncate">
-                      {draft.description?.split('\n')[0]?.slice(0, 60) || 'Başlıksız taslak'}
-                    </p>
-                    {draft.tags && (
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{draft.tags}</p>
-                    )}
-                    <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {timeAgo(draft.updatedAt)}
-                      {(draft.blocks as unknown[]).length > 0 && (
-                        <span className="ml-1">· {(draft.blocks as unknown[]).length} blok</span>
-                      )}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => handleDeleteDraft(draft.id, e)}
-                    className="shrink-0 p-1.5 rounded text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                    title="Taslağı sil"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                {cloudDraftId === draft.id && (
-                  <span className="text-[10px] text-brand-400 mt-1 block">Şu an düzenleniyor</span>
-                )}
-              </button>
-            ))
-          )}
-        </div>
-      </Modal>
-
       <Modal
         open={open}
         onClose={handleClose}
@@ -716,6 +666,56 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             <Button variant="ghost" onClick={handleClose}>İptal</Button>
             <Button variant="primary" onClick={handleSubmit} loading={loading}>Paylaş</Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Cloud Drafts Modal — rendered after main modal so it appears on top (same z-index, later in DOM wins) */}
+      <Modal open={draftsOpen} onClose={() => setDraftsOpen(false)} title="Bulut Taslaklar" size="fullscreen">
+        <div className="flex flex-col gap-3">
+          {draftsLoading ? (
+            <div className="flex justify-center py-8"><Spinner /></div>
+          ) : cloudDrafts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Cloud className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+              <p className="text-sm">Kayıtlı taslak yok</p>
+            </div>
+          ) : (
+            cloudDrafts.map((draft) => (
+              <button
+                key={draft.id}
+                onClick={() => handleRestoreDraft(draft)}
+                className="w-full text-left card p-3 hover:border-brand-500/50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white font-medium truncate">
+                      {draft.description?.split('\n')[0]?.slice(0, 60) || 'Başlıksız taslak'}
+                    </p>
+                    {draft.tags && (
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{draft.tags}</p>
+                    )}
+                    <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {timeAgo(draft.updatedAt)}
+                      {(draft.blocks as unknown[]).length > 0 && (
+                        <span className="ml-1">· {(draft.blocks as unknown[]).length} blok</span>
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    onClick={(e) => handleDeleteDraft(draft.id, e)}
+                    className="shrink-0 p-1.5 rounded text-gray-500 hover:text-red-400 transition-colors"
+                    title="Taslağı sil"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {cloudDraftId === draft.id && (
+                  <span className="text-[10px] text-brand-400 mt-1 block">Şu an düzenleniyor</span>
+                )}
+              </button>
+            ))
+          )}
         </div>
       </Modal>
     </>
