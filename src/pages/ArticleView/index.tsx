@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessage, IconRepeatOnce, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash } from '@tabler/icons-react'
+import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeatOnce, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash } from '@tabler/icons-react'
 import { articleService } from '@services/articleService'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleRecord, ArticleComment } from '@services/articleService'
@@ -424,7 +424,7 @@ export default function ArticleViewPage() {
             className="flex items-center gap-1.5 hover:text-white transition-colors"
             title="Yorumlar"
           >
-            <IconMessage className="w-[18px] h-[18px]" />
+            <IconMessageCircle className="w-[18px] h-[18px]" />
             <span className="text-sm">{totalCommentCount}</span>
           </button>
 
