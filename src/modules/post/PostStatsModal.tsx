@@ -79,9 +79,9 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-h-[85vh] card rounded-t-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="relative w-full max-w-md card shadow-2xl max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden animate-slide-up z-10">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
           <h2 className="font-semibold text-white text-sm">İstatistikler</h2>
