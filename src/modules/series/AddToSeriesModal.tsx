@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { IconBook2, IconPlus, IconCheck } from '@tabler/icons-react'
+import { IconStack2, IconStackPush, IconStackPop } from '@tabler/icons-react'
 import Modal from '@components/ui/Modal'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -66,7 +66,7 @@ export default function AddToSeriesModal({ open, onClose, postId }: AddToSeriesM
           <div className="flex justify-center py-8"><Spinner /></div>
         ) : seriesList.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <IconBook2 className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+            <IconStack2 className="w-8 h-8 mx-auto mb-2 text-gray-600" />
             <p className="text-sm">Henüz seri oluşturmadın</p>
             <p className="text-xs mt-1 text-gray-600">Profil sayfandan seri oluşturabilirsin.</p>
           </div>
@@ -85,9 +85,9 @@ export default function AddToSeriesModal({ open, onClose, postId }: AddToSeriesM
                   {isToggling ? (
                     <Spinner className="w-3.5 h-3.5" />
                   ) : isIn ? (
-                    <IconCheck className="w-4 h-4" />
+                    <IconStackPop className="w-4 h-4" />
                   ) : (
-                    <IconPlus className="w-4 h-4" />
+                    <IconStackPush className="w-4 h-4" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0 text-left">

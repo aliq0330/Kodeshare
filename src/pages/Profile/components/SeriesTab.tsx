@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { IconBook2, IconPlus, IconPencil } from '@tabler/icons-react'
+import { IconStack2, IconPlus, IconPencil } from '@tabler/icons-react'
 import Badge from '@components/ui/Badge'
 import Button from '@components/ui/Button'
 import Spinner from '@components/ui/Spinner'
@@ -56,7 +56,7 @@ export default function SeriesTab({ username, isOwn }: SeriesTabProps) {
 
       {seriesList.length === 0 ? (
         <div className="card p-10 text-center text-gray-500">
-          <IconBook2 className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+          <IconStack2 className="w-8 h-8 mx-auto mb-2 text-gray-600" />
           <p className="font-medium">Henüz seri yok</p>
           {isOwn && (
             <p className="text-sm mt-1">Gönderilerini bir seri altında toplayabilirsin.</p>
@@ -71,7 +71,7 @@ export default function SeriesTab({ username, isOwn }: SeriesTabProps) {
                 className="card p-4 hover:border-brand-500/50 transition-colors flex flex-col gap-2 block"
               >
                 <div className="flex items-center gap-2">
-                  <IconBook2 className="w-5 h-5 text-brand-400 shrink-0" />
+                  <IconStack2 className="w-5 h-5 text-brand-400 shrink-0" />
                   <span className="font-medium text-white group-hover:text-brand-300 transition-colors truncate flex-1">
                     {series.title}
                   </span>
