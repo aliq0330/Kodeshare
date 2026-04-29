@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Heart, Bookmark, Share2, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock, BookOpen } from 'lucide-react'
+import { ArrowLeft, Heart, MessageCircle, Bookmark, Share2, Repeat2, MoreHorizontal, Trash2, BarChart2, Pencil, Clock, BookOpen } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
@@ -332,11 +332,18 @@ export default function PostDetailPage() {
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-1.5 transition-colors ${
-                  post.isLiked ? 'text-white' : 'hover:text-white'
+                  post.isLiked ? 'text-red-500' : 'hover:text-red-400'
                 }`}
               >
                 <Heart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
                 <span className="text-sm">{compactNumber(post.likesCount)}</span>
+              </button>
+              <button
+                onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex items-center gap-1.5 hover:text-white transition-colors"
+              >
+                <MessageCircle className="w-[18px] h-[18px]" />
+                <span className="text-sm">{compactNumber(displayCommentCount)}</span>
               </button>
               {isAuthenticated ? (
                 <RepostMenu
@@ -357,7 +364,6 @@ export default function PostDetailPage() {
                 }`}
               >
                 <Bookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
-                <span className="text-sm">{post.isSaved ? 'Kaydedildi' : 'Kaydet'}</span>
               </button>
             </div>
           </div>

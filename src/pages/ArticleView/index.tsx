@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   ArrowLeft, Clock, Link2, BookOpen,
-  Heart, MessageSquare, Quote, Bookmark,
-  MoreHorizontal, Share2, FolderPlus, BarChart2,
+  Heart, MessageSquare, Repeat2, Bookmark,
+  MoreHorizontal, Share2, FolderPlus, BarChart2, Pencil,
   Send, Trash2,
 } from 'lucide-react'
 import { articleService } from '@services/articleService'
+import { useArticleStore } from '@store/articleStore'
 import type { ArticleRecord, ArticleComment } from '@services/articleService'
 import { ArticleBlocksRenderer } from '@pages/Article'
 import Avatar from '@components/ui/Avatar'
@@ -144,6 +145,7 @@ export default function ArticleViewPage() {
 
   const { isAuthenticated, user } = useAuthStore()
   const { openWithArticle } = useComposerStore()
+  const loadArticle = useArticleStore((s) => s.loadArticle)
 
   const [article, setArticle]               = useState<ArticleRecord | null>(null)
   const [loading, setLoading]               = useState(true)
@@ -231,15 +233,22 @@ export default function ArticleViewPage() {
     }
   }
 
-  const handleQuote = () => {
+  const handleRepost = () => {
     if (!article) return
-    if (!isAuthenticated) { toast.error('Alıntı yapmak için giriş yapmalısın'); return }
+    if (!isAuthenticated) { toast.error('Paylaşmak için giriş yapmalısın'); return }
     openWithArticle({
       id:         article.id,
       title:      article.title,
       coverImage: article.coverImage,
       content:    extractPlainText(article),
     })
+  }
+
+  const handleEditArticle = () => {
+    if (!article) return
+    setMenuOpen(false)
+    loadArticle(article)
+    navigate('/makale')
   }
 
   const handleCopyLink = () => {
@@ -346,7 +355,7 @@ export default function ArticleViewPage() {
       <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         {/* Title */}
         {article.title && (
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-white mb-4">
             {article.title}
           </h1>
         )}
@@ -401,14 +410,12 @@ export default function ArticleViewPage() {
         <ArticleBlocksRenderer blocks={article.blocks} />
 
         {/* ── Toolbar ── */}
-        <div className="border-t border-surface-border mt-10 pt-4 flex items-center gap-2">
+        <div className="border-t border-surface-border mt-10 pt-4 flex items-center gap-4 text-gray-400">
           {/* Like */}
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
-              article.isLiked
-                ? 'text-red-400 bg-red-500/10'
-                : 'text-gray-400 hover:text-red-400 hover:bg-surface-raised'
+            className={`flex items-center gap-1.5 transition-colors ${
+              article.isLiked ? 'text-red-500' : 'hover:text-red-400'
             }`}
             title="Beğen"
           >
@@ -418,24 +425,21 @@ export default function ArticleViewPage() {
 
           {/* Comments scroll */}
           <button
-            onClick={() =>
-              document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })
-            }
-            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
+            onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex items-center gap-1.5 hover:text-white transition-colors"
             title="Yorumlar"
           >
             <MessageSquare className="w-[18px] h-[18px]" />
             <span className="text-sm">{totalCommentCount}</span>
           </button>
 
-          {/* Quote */}
+          {/* Repost */}
           <button
-            onClick={handleQuote}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-lg text-gray-400 hover:text-brand-400 hover:bg-surface-raised transition-colors"
-            title="Alıntı yap"
+            onClick={handleRepost}
+            className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
+            title="Yeniden paylaş"
           >
-            <Quote className="w-[18px] h-[18px]" />
-            <span className="text-sm hidden sm:inline">Alıntı yap</span>
+            <Repeat2 className="w-[18px] h-[18px]" />
           </button>
 
           {/* Right side */}
@@ -445,15 +449,21 @@ export default function ArticleViewPage() {
               onClick={handleSave}
               className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
                 article.isSaved
-                  ? 'text-brand-400 bg-brand-500/10'
-                  : 'text-gray-400 hover:text-brand-400 hover:bg-surface-raised'
+                  ? 'text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-surface-raised'
               }`}
               title={article.isSaved ? 'Kaydedildi' : 'Kaydet'}
             >
               <Bookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
-              <span className="text-sm hidden sm:inline">
-                {article.isSaved ? 'Kaydedildi' : 'Kaydet'}
-              </span>
+            </button>
+
+            {/* Stats */}
+            <button
+              onClick={() => setStatsOpen(true)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
+              title="İstatistikler"
+            >
+              <BarChart2 className="w-[18px] h-[18px]" />
             </button>
 
             {/* 3-dot menu */}
@@ -468,6 +478,15 @@ export default function ArticleViewPage() {
 
               {menuOpen && (
                 <div className="absolute right-0 bottom-full mb-2 w-48 card shadow-2xl py-1 z-50">
+                  {isAuthenticated && user && article.author?.id === user.id && (
+                    <button
+                      onClick={handleEditArticle}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
+                    >
+                      <Pencil className="w-4 h-4 text-gray-400 shrink-0" />
+                      Düzenle
+                    </button>
+                  )}
                   <button
                     onClick={() => { setShareModalOpen(true); setMenuOpen(false) }}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
@@ -481,13 +500,6 @@ export default function ArticleViewPage() {
                   >
                     <FolderPlus className="w-4 h-4 text-brand-400 shrink-0" />
                     Koleksiyona Ekle
-                  </button>
-                  <button
-                    onClick={() => { setStatsOpen(true); setMenuOpen(false) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
-                  >
-                    <BarChart2 className="w-4 h-4 text-brand-400 shrink-0" />
-                    İstatistik
                   </button>
                 </div>
               )}

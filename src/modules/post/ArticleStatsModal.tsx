@@ -79,9 +79,9 @@ export default function ArticleStatsModal({
   const list = tab === 'likes' ? likers : savers
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-sm card shadow-2xl flex flex-col overflow-hidden animate-slide-up">
+      <div className="relative w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl card shadow-2xl flex flex-col overflow-hidden animate-slide-up max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
           <h2 className="font-semibold text-white text-sm">İstatistikler</h2>

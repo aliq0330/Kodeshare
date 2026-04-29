@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Heart, MessageCircle, Bookmark, Share2, FolderPlus, BarChart2, MoreHorizontal, FolderMinus } from 'lucide-react'
+import { BookOpen, Heart, MessageCircle, Repeat2, Bookmark, Share2, FolderPlus, BarChart2, MoreHorizontal, FolderMinus } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ArticleShareModal from '@modules/social/ArticleShareModal'
@@ -8,6 +8,7 @@ import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import { articleService } from '@services/articleService'
 import type { ArticleRecord } from '@services/articleService'
 import { useAuthStore } from '@store/authStore'
+import { useComposerStore } from '@store/composerStore'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import toast from 'react-hot-toast'
 
@@ -23,6 +24,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
   const [shareOpen, setShareOpen]   = useState(false)
   const [statsOpen, setStatsOpen]   = useState(false)
   const { isAuthenticated }         = useAuthStore()
+  const openWithArticle             = useComposerStore((s) => s.openWithArticle)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
             <div className="flex items-center gap-4 text-gray-400">
               <button
                 onClick={handleLike}
-                className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-white' : 'hover:text-white'}`}
+                className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
               >
                 <Heart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
                 <span className="text-xs">{compactNumber(article.likesCount)}</span>
@@ -170,6 +172,19 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
               >
                 <MessageCircle className="w-[18px] h-[18px]" />
               </Link>
+
+              {isAuthenticated ? (
+                <button
+                  onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
+                  className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
+                >
+                  <Repeat2 className="w-[18px] h-[18px]" />
+                </button>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <Repeat2 className="w-[18px] h-[18px]" />
+                </span>
+              )}
 
               <button
                 onClick={handleSave}

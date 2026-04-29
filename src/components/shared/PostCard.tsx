@@ -377,7 +377,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               <button
                 onClick={handleArticleLike}
                 className={`flex items-center gap-1.5 transition-colors ${
-                  articleData?.isLiked ? 'text-white' : 'hover:text-white'
+                  articleData?.isLiked ? 'text-red-500' : 'hover:text-red-400'
                 }`}
               >
                 <Heart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
@@ -513,7 +513,15 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
           {/* Actions */}
           <div className="flex items-center gap-4 mt-1 text-gray-400">
-            <Link to={commentLink} className="flex items-center gap-1.5 hover:text-gray-600 transition-colors">
+            <button
+              onClick={handlePostLike}
+              className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
+            >
+              <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
+              <span className="text-xs">{compactNumber(display.likesCount)}</span>
+            </button>
+
+            <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors">
               <MessageCircle className="w-[18px] h-[18px]" />
               <span className="text-xs">{compactNumber(display.commentsCount)}</span>
             </Link>
@@ -528,16 +536,8 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             )}
 
             <button
-              onClick={handlePostLike}
-              className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-gray-900' : 'hover:text-gray-600'}`}
-            >
-              <Heart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
-              <span className="text-xs">{compactNumber(display.likesCount)}</span>
-            </button>
-
-            <button
               onClick={handlePostSave}
-              className={`ml-auto flex items-center transition-colors ${display.isSaved ? 'text-gray-900' : 'hover:text-gray-600'}`}
+              className={`ml-auto flex items-center transition-colors ${display.isSaved ? 'text-white' : 'hover:text-white'}`}
             >
               <Bookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
             </button>
