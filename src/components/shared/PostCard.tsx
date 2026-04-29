@@ -7,7 +7,6 @@ import Badge from '@components/ui/Badge'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ShareModal from '@modules/social/ShareModal'
 import PostStatsModal from '@modules/post/PostStatsModal'
-import EditPostModal from '@modules/post/EditPostModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
 import RepostMenu from '@modules/post/RepostMenu'
@@ -19,6 +18,7 @@ import { LANGUAGE_COLORS } from '@utils/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { usePostStore } from '@store/postStore'
 import { useArticleStore } from '@store/articleStore'
+import { useComposerStore } from '@store/composerStore'
 import type { Post, PostBlock } from '@/types'
 
 interface PostCardProps {
@@ -48,7 +48,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
-  const [editOpen, setEditOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleted, setDeleted] = useState(false)
@@ -56,6 +55,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   const [articleData, setArticleData] = useState<ArticleData | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  const openEditComposer = useComposerStore((s) => s.openEditComposer)
   const isOwner = !!user && user.id === post.author.id
 
   const getArticleId = (p: Post): string | null => {
@@ -167,7 +167,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
     }
   }
 
-  const handleEditSaved = (updated: { title: string; description: string | null; tags: string[]; blocks: PostBlock[] }) => {
+  const handleEditSaved = (updated: { description: string | null; tags: string[]; blocks: PostBlock[] }) => {
     setLocalPost((p) => ({ ...p, ...updated, isEdited: true }))
   }
 
@@ -238,7 +238,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           {isOwner && isOwnerPost && !displayArticleId && (
             <button
               type="button"
-              onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+              onClick={() => { setMenuOpen(false); openEditComposer(localPost, handleEditSaved) }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
             >
               <Pencil className="w-4 h-4 text-gray-500" />
@@ -299,14 +299,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           open={quoteOpen}
           onClose={() => setQuoteOpen(false)}
           post={repostTarget}
-        />
-      )}
-      {isOwner && isOwnerPost && !displayArticleId && (
-        <EditPostModal
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          post={localPost}
-          onSaved={handleEditSaved}
         />
       )}
       {isOwnerPost && !displayArticleId && (
