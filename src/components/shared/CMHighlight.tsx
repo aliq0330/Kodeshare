@@ -63,7 +63,7 @@ export default function CMHighlight({ code, lang, scroll = false, className }: P
   return (
     <div
       ref={containerRef}
-      className={className}
+      className={`bg-[#0d1117] ${className ?? ''}`}
       style={{ overflowY: scroll ? 'auto' : 'hidden' }}
     />
   )

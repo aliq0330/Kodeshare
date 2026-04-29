@@ -57,8 +57,8 @@ export default function CodeBlockPreview({ block }: { block: ArticleBlock }) {
   }
 
   return (
-    <div className="my-2 rounded-xl overflow-hidden border border-white/10 bg-[#282c34]">
-      <div className="flex items-center justify-between px-4 py-2 bg-black/20 border-b border-white/5">
+    <div className="my-2 rounded-xl overflow-hidden border bg-[#282c34]" style={{ borderColor: '#30363d' }}>
+      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ backgroundColor: '#1e2228', borderColor: '#21262d' }}>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-400 font-mono">{lang}</span>
           {block.filename && <span className="text-xs text-gray-500">{block.filename}</span>}

@@ -38,12 +38,12 @@ function SnippetBlockView({ block, compact }: SnippetBlockViewProps) {
 
   if (compact) {
     return (
-      <div className="rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden mb-3">
-        <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
+      <div className="rounded-xl border bg-[#0d1117] overflow-hidden mb-3" style={{ borderColor: '#30363d' }}>
+        <div className="flex items-center justify-between px-3 py-2 border-b bg-[#161b22]" style={{ borderColor: '#21262d' }}>
           <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: LANGUAGE_COLORS[language] ?? '#8b9ab5' }}>
             {language}
           </span>
-          <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copied ? 'text-emerald-400 bg-emerald-900/20' : 'text-gray-400 hover:bg-surface-raised hover:text-white'}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
+          <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copied ? 'text-emerald-400 bg-emerald-900/20' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
         </div>
@@ -56,12 +56,12 @@ function SnippetBlockView({ block, compact }: SnippetBlockViewProps) {
   }
 
   return (
-    <div className="rounded-xl border border-surface-border bg-[#0d1117] overflow-hidden mb-5">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border bg-surface-card/60">
+    <div className="rounded-xl border bg-[#0d1117] overflow-hidden mb-5" style={{ borderColor: '#30363d' }}>
+      <div className="flex items-center justify-between px-3 py-2 border-b bg-[#161b22]" style={{ borderColor: '#21262d' }}>
         <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: LANGUAGE_COLORS[language] ?? '#8b9ab5' }}>
           {(block.data.name as string) ?? language}
         </span>
-        <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copied ? 'text-emerald-400 bg-emerald-900/20' : 'text-gray-400 hover:bg-surface-raised hover:text-white'}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
+        <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copied ? 'text-emerald-400 bg-emerald-900/20' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
           {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
         </button>
       </div>

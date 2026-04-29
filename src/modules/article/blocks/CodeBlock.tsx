@@ -80,9 +80,9 @@ export default function CodeBlock({ block }: Props) {
   const currentLang = LANGUAGES.find((l) => l.id === lang)?.label ?? lang
 
   return (
-    <div className="my-2 rounded-xl overflow-hidden border border-white/10 bg-[#282c34]">
+    <div className="my-2 rounded-xl overflow-hidden border bg-[#282c34]" style={{ borderColor: '#30363d' }}>
       {/* Code block header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-black/20 border-b border-white/5">
+      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ backgroundColor: '#1e2228', borderColor: '#21262d' }}>
         {/* Language input / filename */}
         <div className="flex items-center gap-3">
           <div className="relative">

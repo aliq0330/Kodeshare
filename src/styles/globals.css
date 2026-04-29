@@ -54,13 +54,22 @@
   html.light .bg-red-500,
   html.light .bg-red-600 { color: white !important; }
 
-  /* Dark code containers (#0d1117 / #282c34): always white/light text regardless of theme */
-  html.light .bg-\[\#0d1117\]                   { color: white; }
-  html.light .bg-\[\#0d1117\] .text-white       { color: white !important; }
-  html.light .bg-\[\#0d1117\] .text-gray-400    { color: #8b9ab5 !important; }
-  html.light .bg-\[\#282c34\]                   { color: white; }
-  html.light .bg-\[\#282c34\] .text-white       { color: white !important; }
-  html.light .bg-\[\#282c34\] .text-gray-400    { color: #8b9ab5 !important; }
+  /* Dark code containers (#0d1117 / #161b22 / #282c34): always white/light text regardless of theme */
+  html.light .bg-\[\#0d1117\]                    { color: #abb2bf; }
+  html.light .bg-\[\#0d1117\] .text-white        { color: white !important; }
+  html.light .bg-\[\#0d1117\] .text-gray-300     { color: #c9d1d9 !important; }
+  html.light .bg-\[\#0d1117\] .text-gray-400     { color: #8b9ab5 !important; }
+  html.light .bg-\[\#0d1117\] .text-gray-500     { color: #6e7681 !important; }
+  html.light .bg-\[\#161b22\]                    { color: #abb2bf; }
+  html.light .bg-\[\#161b22\] .text-white        { color: white !important; }
+  html.light .bg-\[\#161b22\] .text-gray-300     { color: #c9d1d9 !important; }
+  html.light .bg-\[\#161b22\] .text-gray-400     { color: #8b9ab5 !important; }
+  html.light .bg-\[\#161b22\] .text-gray-500     { color: #6e7681 !important; }
+  html.light .bg-\[\#282c34\]                    { color: #abb2bf; }
+  html.light .bg-\[\#282c34\] .text-white        { color: white !important; }
+  html.light .bg-\[\#282c34\] .text-gray-300     { color: #c9d1d9 !important; }
+  html.light .bg-\[\#282c34\] .text-gray-400     { color: #8b9ab5 !important; }
+  html.light .bg-\[\#282c34\] .text-gray-500     { color: #6e7681 !important; }
 
   ::-webkit-scrollbar {
     width: 6px;

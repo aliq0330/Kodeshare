@@ -136,14 +136,15 @@ export default function SnippetCodeEditor({
   return (
     <div
       className={cn(
-        'flex flex-col border border-surface-border bg-[#0d1117] overflow-hidden',
+        'flex flex-col bg-[#0d1117] overflow-hidden',
         expanded
           ? 'fixed inset-3 sm:inset-6 z-[60] rounded-2xl shadow-2xl'
-          : 'relative rounded-xl',
+          : 'relative rounded-xl border',
       )}
+      style={!expanded ? { borderColor: '#30363d' } : undefined}
     >
       {/* Top bar */}
-      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-surface-border bg-surface-card/80">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b bg-[#161b22]" style={{ borderColor: '#21262d' }}>
         <div ref={langRef} className="relative">
           <button
             type="button"
@@ -187,7 +188,7 @@ export default function SnippetCodeEditor({
               'flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-colors',
               copied
                 ? 'text-emerald-400 bg-emerald-900/20'
-                : 'text-gray-400 hover:bg-surface-raised hover:text-white',
+                : 'text-gray-400 hover:bg-white/10 hover:text-white',
             )}
             title="Kodu kopyala"
           >
@@ -197,7 +198,7 @@ export default function SnippetCodeEditor({
           <button
             type="button"
             onClick={onToggleExpand}
-            className="p-1.5 text-gray-400 rounded-md hover:bg-surface-raised hover:text-white transition-colors"
+            className="p-1.5 text-gray-400 rounded-md hover:bg-white/10 hover:text-white transition-colors"
             title={expanded ? 'Küçült' : 'Genişlet'}
           >
             {expanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
