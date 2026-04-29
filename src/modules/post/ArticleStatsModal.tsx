@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { X, Heart, Bookmark, Eye } from 'lucide-react'
+import { X, Heart, Bookmark, Eye, FolderPlus } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import { supabase } from '@/lib/supabase'
@@ -21,7 +21,7 @@ interface Props {
   viewsCount: number
 }
 
-type Tab = 'likes' | 'saves'
+type Tab = 'likes' | 'saves' | 'collections'
 
 async function fetchLikers(articleId: string): Promise<UserRow[]> {
   const { data, error } = await supabase
@@ -57,26 +57,56 @@ async function fetchSavers(articleId: string): Promise<UserRow[]> {
     }))
 }
 
+async function fetchCollectors(articleId: string): Promise<UserRow[]> {
+  const { data, error } = await supabase
+    .from('collection_articles')
+    .select('collection:collections!collection_articles_collection_id_fkey(owner:profiles!collections_owner_id_fkey(id, username, display_name, avatar_url))')
+    .eq('article_id', articleId)
+  if (error) throw new Error(error.message)
+
+  const seen = new Set<string>()
+  return ((data ?? []) as unknown as Array<{ collection: { owner: Record<string, unknown> | null } | null }>)
+    .map((row) => row.collection?.owner)
+    .filter((u): u is Record<string, unknown> => u !== null && u !== undefined)
+    .filter((u) => {
+      if (seen.has(u.id as string)) return false
+      seen.add(u.id as string)
+      return true
+    })
+    .map((u) => ({
+      id:          u.id as string,
+      username:    u.username as string,
+      displayName: u.display_name as string,
+      avatarUrl:   (u.avatar_url as string) ?? null,
+    }))
+}
+
 export default function ArticleStatsModal({
   open, onClose, articleId, likesCount, savesCount, viewsCount,
 }: Props) {
-  const [tab, setTab]       = useState<Tab>('likes')
-  const [likers, setLikers] = useState<UserRow[]>([])
-  const [savers, setSavers] = useState<UserRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [tab, setTab]             = useState<Tab>('likes')
+  const [likers, setLikers]       = useState<UserRow[]>([])
+  const [savers, setSavers]       = useState<UserRow[]>([])
+  const [collectors, setCollectors] = useState<UserRow[]>([])
+  const [loading, setLoading]     = useState(false)
 
   useEffect(() => {
     if (!open) return
     setLoading(true)
-    Promise.all([fetchLikers(articleId), fetchSavers(articleId)])
-      .then(([l, s]) => { setLikers(l); setSavers(s) })
+    Promise.all([fetchLikers(articleId), fetchSavers(articleId), fetchCollectors(articleId)])
+      .then(([l, s, c]) => { setLikers(l); setSavers(s); setCollectors(c) })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [open, articleId])
 
   if (!open) return null
 
-  const list = tab === 'likes' ? likers : savers
+  const list = tab === 'likes' ? likers : tab === 'saves' ? savers : collectors
+
+  const emptyText =
+    tab === 'likes' ? 'Henüz beğeni yok' :
+    tab === 'saves' ? 'Henüz kaydeden yok' :
+    'Henüz koleksiyona ekleyen yok'
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -124,8 +154,20 @@ export default function ArticleStatsModal({
             }`}
           >
             <Bookmark className="w-4 h-4" />
-            Kaydedilenler
+            Kaydeden
             <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{savesCount}</span>
+          </button>
+          <button
+            onClick={() => setTab('collections')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              tab === 'collections'
+                ? 'border-purple-400 text-purple-400'
+                : 'border-transparent text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            <FolderPlus className="w-4 h-4" />
+            Koleksiyon
+            <span className="text-xs bg-surface-raised px-1.5 py-0.5 rounded-full">{collectors.length}</span>
           </button>
         </div>
 
@@ -134,9 +176,7 @@ export default function ArticleStatsModal({
           {loading ? (
             <div className="flex justify-center py-10"><Spinner /></div>
           ) : list.length === 0 ? (
-            <p className="text-center text-gray-500 text-sm py-10">
-              {tab === 'likes' ? 'Henüz beğeni yok' : 'Henüz kaydeden yok'}
-            </p>
+            <p className="text-center text-gray-500 text-sm py-10">{emptyText}</p>
           ) : (
             list.map((u) => (
               <div
