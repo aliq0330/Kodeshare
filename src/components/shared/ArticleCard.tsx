@@ -63,7 +63,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
 
   return (
     <>
-      <article className="border-b border-surface-border group">
+      <article className="border-b border-surface-border/40 group">
         <div className="flex gap-3 px-4 pt-3 pb-4">
           {/* Avatar */}
           {article.author && (

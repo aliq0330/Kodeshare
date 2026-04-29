@@ -169,7 +169,7 @@ export default function PostDetailPage() {
         Geri Dön
       </Link>
 
-      <article className="-mx-4 lg:mx-0 border-b border-surface-border">
+      <article className="-mx-4 lg:mx-0 border-b border-surface-border/40">
         <div className="flex gap-3 px-4 pt-3 pb-4">
           <Link to={`/profile/${post.author.username}`} className="shrink-0 mt-0.5">
             <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />

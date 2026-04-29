@@ -405,7 +405,7 @@ export default function ArticleViewPage() {
         <ArticleBlocksRenderer blocks={article.blocks} />
 
         {/* ── Toolbar ── */}
-        <div className="border-t border-surface-border mt-10 pt-4 flex items-center gap-4 text-gray-400">
+        <div className="border-t border-surface-border/40 mt-10 pt-4 flex items-center gap-4 text-gray-400">
           {/* Like */}
           <button
             onClick={handleLike}

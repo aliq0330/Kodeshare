@@ -320,7 +320,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
     const subtitle   = (blockData.subtitle as string) || display.description || ''
 
     return (
-      <article className="border-b border-surface-border group">
+      <article className="border-b border-surface-border/40 group">
         {/* Repost göstergesi */}
         {localPost.type === 'repost' && localPost.repostedFrom && (
           <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">
@@ -419,7 +419,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
   // ── Normal post layout ────────────────────────────────────────────────────
   return (
-    <article className="border-b border-surface-border group">
+    <article className="border-b border-surface-border/40 group">
       {/* Repost indicator */}
       {localPost.type === 'repost' && localPost.repostedFrom && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">
