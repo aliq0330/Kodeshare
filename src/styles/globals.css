@@ -25,14 +25,6 @@
     @apply border-surface-border;
   }
 
-  /* Force icon color: black in light mode, white in dark mode. No exceptions. */
-  :root svg, html.light svg {
-    color: black !important;
-  }
-  html.dark svg {
-    color: white !important;
-  }
-
   html {
     scroll-behavior: smooth;
   }
@@ -153,6 +145,14 @@
   input, textarea, select {
     font-size: 16px !important;
   }
+}
+
+/* Force all SVG icon colors — outside @layer so it beats every layered rule */
+:root svg, html.light svg {
+  color: black !important;
+}
+html.dark svg {
+  color: white !important;
 }
 
 @layer utilities {
