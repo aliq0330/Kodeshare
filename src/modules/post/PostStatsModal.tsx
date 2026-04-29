@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { IconX, IconHeart, IconRepeatOnce, IconBookmark, IconFolderPlus, IconRosetteFilled } from '@tabler/icons-react'
+import { IconX, IconHeart, IconRepeat, IconBookmark, IconFolderPlus, IconRosetteFilled } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import FollowButton from '@modules/social/FollowButton'
@@ -59,7 +59,7 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
 
   const tabs: { id: Tab; icon: React.ReactNode; label: string; count: number | string }[] = [
     { id: 'likes',       icon: <IconHeart className="w-3.5 h-3.5" />,     label: 'Beğenenler',   count: likesCount },
-    { id: 'reposts',     icon: <IconRepeatOnce className="w-3.5 h-3.5" />,   label: 'Repost',       count: repostCount },
+    { id: 'reposts',     icon: <IconRepeat className="w-3.5 h-3.5" />,   label: 'Repost',       count: repostCount },
     { id: 'saves',       icon: <IconBookmark className="w-3.5 h-3.5" />,  label: 'Kaydeden',     count: loading ? '…' : savers.length },
     { id: 'collections', icon: <IconFolderPlus className="w-3.5 h-3.5" />,label: 'Koleksiyon',   count: loading ? '…' : collectors.length },
   ]

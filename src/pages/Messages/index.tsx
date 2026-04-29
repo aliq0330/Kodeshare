@@ -23,7 +23,7 @@ export default function MessagesPage() {
   }, [])
 
   return (
-    <div className="fixed inset-x-0 top-16 bottom-16 bg-surface-card border-t border-surface-border overflow-hidden flex lg:static lg:inset-auto lg:h-[calc(100vh-8rem)] lg:border lg:rounded-xl">
+    <div className="fixed inset-x-0 top-14 bottom-16 bg-surface-card border-t border-surface-border/40 overflow-hidden flex lg:static lg:inset-auto lg:-mx-4 lg:-my-4 lg:h-[calc(100vh-3.5rem)] lg:border-0 lg:border-t lg:border-surface-border/40">
       {/* Chat list */}
       <div
         className={cn(

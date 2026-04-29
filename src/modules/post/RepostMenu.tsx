@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconRepeatOnce, IconRepeat, IconQuote } from '@tabler/icons-react'
+import { IconRepeat, IconRepeat, IconQuote } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { compactNumber } from '@utils/formatters'
 import type { PostPreview } from '@/types'
@@ -36,7 +36,7 @@ export default function RepostMenu({ post, onRepost, onQuote, showCount = true, 
         )}
         title="Yeniden paylaş"
       >
-        <IconRepeatOnce className="w-[18px] h-[18px]" />
+        <IconRepeat className="w-[18px] h-[18px]" />
         {showCount && compactNumber(post.repostCount)}
       </button>
 

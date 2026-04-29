@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { IconArrowLeft, IconHeart, IconMessageCircle, IconBookmark, IconShare, IconRepeatOnce, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
+import { IconArrowLeft, IconHeart, IconMessageCircle, IconBookmark, IconShare, IconRepeat, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
@@ -353,7 +353,7 @@ export default function PostDetailPage() {
                 />
               ) : (
                 <span className="flex items-center gap-1.5 text-sm">
-                  <IconRepeatOnce className="w-[18px] h-[18px]" />
+                  <IconRepeat className="w-[18px] h-[18px]" />
                   {compactNumber(post.repostCount)}
                 </span>
               )}

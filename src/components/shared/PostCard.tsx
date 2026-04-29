@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeatOnce, IconFolderPlus, IconRepeat, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
+import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeat, IconFolderPlus, IconRepeat, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
@@ -395,7 +395,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
               ) : (
                 <span className="flex items-center gap-1.5 text-xs">
-                  <IconRepeatOnce className="w-[18px] h-[18px]" />
+                  <IconRepeat className="w-[18px] h-[18px]" />
                   {compactNumber(repostTarget.repostCount)}
                 </span>
               )}
@@ -530,7 +530,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
             ) : (
               <span className="flex items-center gap-1.5 text-xs">
-                <IconRepeatOnce className="w-[18px] h-[18px]" />
+                <IconRepeat className="w-[18px] h-[18px]" />
                 {compactNumber(repostTarget.repostCount)}
               </span>
             )}

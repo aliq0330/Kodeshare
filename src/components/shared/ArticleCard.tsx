@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { IconBook2, IconHeart, IconMessageCircle, IconRepeatOnce, IconBookmark, IconShare, IconFolderPlus, IconChartBar, IconDots, IconFolderMinus } from '@tabler/icons-react'
+import { IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconShare, IconFolderPlus, IconChartBar, IconDots, IconFolderMinus } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ArticleShareModal from '@modules/social/ArticleShareModal'
@@ -178,11 +178,11 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                   onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
                   className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
                 >
-                  <IconRepeatOnce className="w-[18px] h-[18px]" />
+                  <IconRepeat className="w-[18px] h-[18px]" />
                 </button>
               ) : (
                 <span className="flex items-center gap-1.5">
-                  <IconRepeatOnce className="w-[18px] h-[18px]" />
+                  <IconRepeat className="w-[18px] h-[18px]" />
                 </span>
               )}
 
