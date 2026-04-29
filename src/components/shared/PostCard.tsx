@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeat, IconFolderPlus, IconRepeat, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
+import { IconHeart, IconMessageCircle, IconShare, IconBookmark, IconRepeat, IconFolderPlus, IconDots, IconTrash, IconChartBar, IconPencil, IconClock, IconBook2 } from '@tabler/icons-react'
 import toast from 'react-hot-toast'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'

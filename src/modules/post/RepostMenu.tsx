@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconRepeat, IconRepeat, IconQuote } from '@tabler/icons-react'
+import { IconRepeat, IconQuote } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { compactNumber } from '@utils/formatters'
 import type { PostPreview } from '@/types'
