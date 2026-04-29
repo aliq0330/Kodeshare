@@ -381,7 +381,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 }`}
               >
                 <IconHeart className={`w-[18px] h-[18px] ${articleData?.isLiked ? 'fill-current' : ''}`} />
-                <span className="text-xs">{compactNumber(articleData?.likesCount ?? 0)}</span>
+                {(articleData?.likesCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(articleData?.likesCount ?? 0)}</span>}
               </button>
 
               <Link
@@ -396,7 +396,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               ) : (
                 <span className="flex items-center gap-1.5 text-xs">
                   <IconRepeat className="w-[18px] h-[18px]" />
-                  {compactNumber(repostTarget.repostCount)}
+                  {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
                 </span>
               )}
 
@@ -518,12 +518,12 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
             >
               <IconHeart className={`w-[18px] h-[18px] ${display.isLiked ? 'fill-current' : ''}`} />
-              <span className="text-xs">{compactNumber(display.likesCount)}</span>
+              {display.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.likesCount)}</span>}
             </button>
 
             <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors">
               <IconMessageCircle className="w-[18px] h-[18px]" />
-              <span className="text-xs">{compactNumber(display.commentsCount)}</span>
+              {display.commentsCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.commentsCount)}</span>}
             </Link>
 
             {isAuthenticated ? (
@@ -531,7 +531,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             ) : (
               <span className="flex items-center gap-1.5 text-xs">
                 <IconRepeat className="w-[18px] h-[18px]" />
-                {compactNumber(repostTarget.repostCount)}
+                {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
               </span>
             )}
 

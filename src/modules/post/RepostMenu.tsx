@@ -37,7 +37,7 @@ export default function RepostMenu({ post, onRepost, onQuote, showCount = true, 
         title="Yeniden paylaş"
       >
         <IconRepeat className="w-[18px] h-[18px]" />
-        {showCount && compactNumber(post.repostCount)}
+        {showCount && post.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(post.repostCount)}</span>}
       </button>
 
       {open && (

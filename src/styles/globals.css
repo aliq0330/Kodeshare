@@ -25,13 +25,12 @@
     @apply border-surface-border;
   }
 
-  /* Default icon color: black in light mode, white in dark mode.
-     :where() has zero specificity so any text-* utility class overrides this. */
-  :where(:root, html.light) svg {
-    color: black;
+  /* Force icon color: black in light mode, white in dark mode. No exceptions. */
+  :root svg, html.light svg {
+    color: black !important;
   }
-  :where(html.dark) svg {
-    color: white;
+  html.dark svg {
+    color: white !important;
   }
 
   html {

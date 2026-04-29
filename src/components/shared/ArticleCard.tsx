@@ -163,7 +163,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
               >
                 <IconHeart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
-                <span className="text-xs">{compactNumber(article.likesCount)}</span>
+                {article.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.likesCount)}</span>}
               </button>
 
               <Link

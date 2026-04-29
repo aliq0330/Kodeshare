@@ -415,7 +415,7 @@ export default function ArticleViewPage() {
             title="Beğen"
           >
             <IconHeart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
-            <span className="text-sm">{article.likesCount}</span>
+            {article.likesCount > 0 && <span className="text-sm text-black dark:text-white">{article.likesCount}</span>}
           </button>
 
           {/* Comments scroll */}
@@ -425,7 +425,7 @@ export default function ArticleViewPage() {
             title="Yorumlar"
           >
             <IconMessageCircle className="w-[18px] h-[18px]" />
-            <span className="text-sm">{totalCommentCount}</span>
+            {totalCommentCount > 0 && <span className="text-sm text-black dark:text-white">{totalCommentCount}</span>}
           </button>
 
           {/* Repost */}

@@ -336,14 +336,14 @@ export default function PostDetailPage() {
                 }`}
               >
                 <IconHeart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
-                <span className="text-sm">{compactNumber(post.likesCount)}</span>
+                {post.likesCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(post.likesCount)}</span>}
               </button>
               <button
                 onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
                 className="flex items-center gap-1.5 hover:text-white transition-colors"
               >
                 <IconMessageCircle className="w-[18px] h-[18px]" />
-                <span className="text-sm">{compactNumber(displayCommentCount)}</span>
+                {displayCommentCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(displayCommentCount)}</span>}
               </button>
               {isAuthenticated ? (
                 <RepostMenu
@@ -354,7 +354,7 @@ export default function PostDetailPage() {
               ) : (
                 <span className="flex items-center gap-1.5 text-sm">
                   <IconRepeat className="w-[18px] h-[18px]" />
-                  {compactNumber(post.repostCount)}
+                  {post.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(post.repostCount)}</span>}
                 </span>
               )}
               <button
