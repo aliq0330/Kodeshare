@@ -478,7 +478,7 @@ export default function ArticleViewPage() {
 
               {menuOpen && (
                 <div className="absolute right-0 bottom-full mb-2 w-48 card shadow-2xl py-1 z-50">
-                  {isAuthenticated && user && article.author?.id === user.id && (
+                  {isAuthenticated && user && article.authorId === user.id && (
                     <button
                       onClick={handleEditArticle}
                       className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
