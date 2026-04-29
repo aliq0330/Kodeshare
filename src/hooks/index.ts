@@ -1,5 +1,6 @@
 export * from './useAuth'
 export * from './useDebounce'
+export * from './useIsLightMode'
 export * from './useLocalStorage'
 export * from './useInfiniteScroll'
 export * from './useFollow'

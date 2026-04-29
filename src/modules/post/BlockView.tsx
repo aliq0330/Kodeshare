@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Copy, Check, FolderOpen, FileCode, FileText, ExternalLink, Play } from 'lucide-react'
 import CMHighlight from '@components/shared/CMHighlight'
 import { LANGUAGE_COLORS } from '@utils/constants'
+import { useIsLightMode } from '@hooks/useIsLightMode'
 import type { PostBlock } from '@/types'
 
 function buildProjectSrcdoc(files: { language: string; content: string }[]): string {
@@ -23,8 +24,15 @@ interface SnippetBlockViewProps {
 
 function SnippetBlockView({ block, compact }: SnippetBlockViewProps) {
   const [copied, setCopied] = useState(false)
+  const isLight = useIsLightMode()
   const language = (block.data.language as string) ?? 'javascript'
   const content  = (block.data.content  as string) ?? ''
+
+  const containerBg     = isLight ? '#ffffff' : '#0d1117'
+  const containerBorder = isLight ? '#d0d7de' : '#30363d'
+  const headerBg        = isLight ? '#f6f8fa' : '#161b22'
+  const headerBorder    = isLight ? '#d0d7de' : '#21262d'
+  const gradientFrom    = isLight ? 'from-white' : 'from-[#0d1117]'
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -36,32 +44,36 @@ function SnippetBlockView({ block, compact }: SnippetBlockViewProps) {
     } catch { /* noop */ }
   }
 
+  const copyBtn = copied
+    ? (isLight ? 'text-emerald-600 bg-emerald-50' : 'text-emerald-400 bg-emerald-900/20')
+    : (isLight ? 'text-gray-500 hover:bg-black/5 hover:text-gray-800' : 'text-gray-400 hover:bg-white/10 hover:text-white')
+
   if (compact) {
     return (
-      <div className="rounded-xl border bg-[#0d1117] overflow-hidden mb-3" style={{ borderColor: '#30363d' }}>
-        <div className="flex items-center justify-between px-3 py-2 border-b bg-[#161b22]" style={{ borderColor: '#21262d' }}>
+      <div className="rounded-xl border overflow-hidden mb-3" style={{ background: containerBg, borderColor: containerBorder }}>
+        <div className="flex items-center justify-between px-3 py-2 border-b" style={{ background: headerBg, borderColor: headerBorder }}>
           <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: LANGUAGE_COLORS[language] ?? '#8b9ab5' }}>
             {language}
           </span>
-          <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copied ? 'text-emerald-400 bg-emerald-900/20' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
+          <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copyBtn}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
         </div>
         <div className="relative select-none">
           <CMHighlight code={content} lang={language} className="max-h-[7.5rem] overflow-hidden" />
-          <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#0d1117] to-transparent pointer-events-none" />
+          <div className={`absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t ${gradientFrom} to-transparent pointer-events-none`} />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border bg-[#0d1117] overflow-hidden mb-5" style={{ borderColor: '#30363d' }}>
-      <div className="flex items-center justify-between px-3 py-2 border-b bg-[#161b22]" style={{ borderColor: '#21262d' }}>
+    <div className="rounded-xl border overflow-hidden mb-5" style={{ background: containerBg, borderColor: containerBorder }}>
+      <div className="flex items-center justify-between px-3 py-2 border-b" style={{ background: headerBg, borderColor: headerBorder }}>
         <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: LANGUAGE_COLORS[language] ?? '#8b9ab5' }}>
           {(block.data.name as string) ?? language}
         </span>
-        <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copied ? 'text-emerald-400 bg-emerald-900/20' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
+        <button onClick={handleCopy} className={`p-1.5 rounded-md transition-colors ${copyBtn}`} title={copied ? 'Kopyalandı!' : 'Kopyala'}>
           {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
         </button>
       </div>

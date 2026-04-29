@@ -5,6 +5,8 @@ import { javascript } from '@codemirror/lang-javascript'
 import { css } from '@codemirror/lang-css'
 import { html } from '@codemirror/lang-html'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { githubLight } from '@uiw/codemirror-theme-github'
+import { useIsLightMode } from '@hooks/useIsLightMode'
 
 function langExtension(lang: string) {
   if (lang === 'css') return css()
@@ -23,12 +25,14 @@ interface Props {
 
 export default function CMHighlight({ code, lang, scroll = false, className }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const isLight = useIsLightMode()
 
   useEffect(() => {
     if (!containerRef.current) return
 
-    const theme = EditorView.theme({
-      '&': { background: '#0d1117 !important' },
+    const bg = isLight ? '#ffffff' : '#0d1117'
+    const customTheme = EditorView.theme({
+      '&': { background: `${bg} !important` },
       '&.cm-focused': { outline: 'none' },
       '.cm-scroller': {
         fontFamily: "'JetBrains Mono', 'Fira Code', ui-monospace, monospace",
@@ -49,8 +53,8 @@ export default function CMHighlight({ code, lang, scroll = false, className }: P
           EditorState.readOnly.of(true),
           EditorView.editable.of(false),
           langExtension(lang),
-          oneDark,
-          theme,
+          isLight ? githubLight : oneDark,
+          customTheme,
           EditorView.lineWrapping,
         ],
       }),
@@ -58,13 +62,16 @@ export default function CMHighlight({ code, lang, scroll = false, className }: P
     })
 
     return () => view.destroy()
-  }, [code, lang, scroll])
+  }, [code, lang, scroll, isLight])
 
   return (
     <div
       ref={containerRef}
-      className={`bg-[#0d1117] ${className ?? ''}`}
-      style={{ overflowY: scroll ? 'auto' : 'hidden' }}
+      className={className}
+      style={{
+        overflowY: scroll ? 'auto' : 'hidden',
+        background: isLight ? '#ffffff' : '#0d1117',
+      }}
     />
   )
 }
