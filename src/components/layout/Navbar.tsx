@@ -1,10 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Bell, MessageSquare, ShieldCheck } from 'lucide-react'
+import { Search, Bell, MessageSquare, ShieldCheck, PenSquare } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Dropdown from '@components/ui/Dropdown'
 import BurgerMenu from '@components/layout/BurgerMenu'
 import { useAuthStore } from '@store/authStore'
 import { useNotificationStore } from '@store/notificationStore'
+import { useComposerStore } from '@store/composerStore'
 import { isAdmin } from '@/lib/admin'
 import Button from '@components/ui/Button'
 
@@ -12,6 +13,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuthStore()
   const unreadCount = useNotificationStore((s) => s.unreadCount)
+  const openComposer = useComposerStore((s) => s.openComposer)
 
   const userMenuItems = [
     ...(isAdmin(user?.id) ? [{
@@ -33,19 +35,29 @@ export default function Navbar() {
         {/* Burger */}
         <BurgerMenu />
 
-        {/* Search — always visible */}
-        <button
-          onClick={() => navigate('/explore')}
-          className="flex-1 flex items-center gap-2 bg-surface-raised rounded-full px-4 py-2 text-sm text-gray-400 min-w-0"
-        >
-          <Search className="w-4 h-4 shrink-0" />
-          <span className="truncate">Search posts, users, tags...</span>
-        </button>
+        {/* Logo / spacer */}
+        <div className="flex-1" />
 
         {/* Right icons */}
         <div className="flex items-center gap-0.5 shrink-0">
           {isAuthenticated ? (
             <>
+              <button
+                onClick={() => navigate('/explore', { state: { focusSearch: true } })}
+                className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
+                title="Ara"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={openComposer}
+                className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
+                title="Yeni Gönderi"
+              >
+                <PenSquare className="w-5 h-5" />
+              </button>
+
               <Link
                 to="/notifications"
                 className="relative p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
@@ -74,6 +86,13 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <button
+                onClick={() => navigate('/explore', { state: { focusSearch: true } })}
+                className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
+                title="Ara"
+              >
+                <Search className="w-5 h-5" />
+              </button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Giriş Yap</Button>
               <Button variant="primary" size="sm" onClick={() => navigate('/register')}>Kayıt Ol</Button>
             </>

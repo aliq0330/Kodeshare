@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Search } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useLocation } from 'react-router-dom'
 import Input from '@components/ui/Input'
 import TagFilter from '@components/shared/TagFilter'
 import ProjectGrid from './components/ProjectGrid'
@@ -10,13 +10,21 @@ import { useDebounce } from '@hooks/useDebounce'
 
 export default function ExplorePage() {
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState(searchParams.get('tag') ?? 'all')
   const debouncedQuery = useDebounce(query, 400)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setActiveCategory(searchParams.get('tag') ?? 'all')
   }, [searchParams])
+
+  useEffect(() => {
+    if ((location.state as { focusSearch?: boolean } | null)?.focusSearch) {
+      inputRef.current?.focus()
+    }
+  }, [location.state])
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto">
@@ -27,6 +35,7 @@ export default function ExplorePage() {
 
       {/* Search */}
       <Input
+        ref={inputRef}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Proje, kullanıcı veya etiket ara..."
