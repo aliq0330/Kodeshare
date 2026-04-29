@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { IconArrowLeft, IconBook2, IconTrash, IconGripVertical } from '@tabler/icons-react'
+import { IconArrowLeft, IconStack2, IconTrash, IconGripVertical } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Badge from '@components/ui/Badge'
 import PostCard from '@components/shared/PostCard'
@@ -88,7 +88,7 @@ export default function SeriesDetailPage() {
       <div className="card p-5">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-brand-900/40 flex items-center justify-center shrink-0">
-            <IconBook2 className="w-6 h-6 text-brand-400" />
+            <IconStack2 className="w-6 h-6 text-brand-400" />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold text-white">{series.title}</h1>
