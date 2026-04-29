@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Cloud, UploadCloud, Clock, Hash } from 'lucide-react'
+import { Code2, Image, Link2, Video, FileText, FolderOpen, Plus, ChevronDown, X, Trash2, Cloud, UploadCloud, Clock, Hash, Eye, Pencil } from 'lucide-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
 import Textarea from '@components/ui/Textarea'
 import Spinner from '@components/ui/Spinner'
+import BlockView from '@modules/post/BlockView'
 import SnippetCodeEditor, { type SnippetLang } from './SnippetCodeEditor'
 import { useAuthStore } from '@store/authStore'
 import { usePostStore } from '@store/postStore'
@@ -18,7 +19,7 @@ import type { ArticleRecord } from '@services/articleService'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { timeAgo } from '@utils/formatters'
 import toast from 'react-hot-toast'
-import type { PostBlockType } from '@/types'
+import type { PostBlock, PostBlockType } from '@/types'
 
 const DRAFT_KEY = 'kodeshare:composer-draft-v3'
 const DEFAULT_LANG: SnippetLang = 'javascript'
@@ -123,6 +124,23 @@ function blockToPayload(b: ComposerBlock, position: number) {
   }
 }
 
+function composerBlocksToPostBlocks(bs: ComposerBlock[]): PostBlock[] {
+  return bs
+    .filter((b) => {
+      if (b.type === 'snippet') return b.code.trim()
+      if (b.type === 'project') return !!b.project
+      if (b.type === 'image')   return b.url.trim()
+      if (b.type === 'link')    return b.url.trim()
+      if (b.type === 'video')   return b.url.trim()
+      if (b.type === 'article') return !!b.articleId
+      return false
+    })
+    .map((b, i) => {
+      const p = blockToPayload(b, i)
+      return { id: b.localId, type: p.type, position: i, data: p.data }
+    })
+}
+
 interface PostComposerProps {
   hideCard?: boolean
 }
@@ -132,6 +150,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { createPost } = usePostStore()
   const { open, prefilledProject, prefilledSnippet, prefilledArticle, openComposer, closeComposer } = useComposerStore()
 
+  const [composerMode, setComposerMode] = useState<'edit' | 'preview'>('edit')
   const [description, setDescription] = useState('')
   const [tags, setTags]               = useState<string[]>([])
   const [tagInput, setTagInput]       = useState('')
@@ -346,6 +365,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   }
 
   const reset = () => {
+    setComposerMode('edit')
     setDescription(''); setTags([]); setTagInput(''); setTagSuggestions([]); setSuggestionsOpen(false)
     setBlocks([])
     setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null); setAddMenuOpen(false)
@@ -475,6 +495,27 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           </Button>
         ) : undefined}
       >
+        {/* Edit / Preview tabs */}
+        <div className="sticky top-0 -mx-4 -mt-4 px-4 flex gap-0 border-b border-surface-border bg-surface-card z-10 mb-4">
+          <button
+            type="button"
+            onClick={() => setComposerMode('edit')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'edit' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Düzenle
+          </button>
+          <button
+            type="button"
+            onClick={() => setComposerMode('preview')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'preview' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Önizleme
+          </button>
+        </div>
+
+        {composerMode === 'edit' && (
         <div className="flex flex-col gap-4 flex-1">
           <Textarea
             label="Açıklama"
@@ -751,6 +792,40 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           </div>
 
         </div>
+        )} {/* end composerMode === 'edit' */}
+
+        {composerMode === 'preview' && (() => {
+          const previewTitle = description.trim().split('\n')[0].slice(0, 100) || 'Gönderi'
+          const previewBlocks = composerBlocksToPostBlocks(blocks)
+          const hasContent = description.trim() || tags.length > 0 || previewBlocks.length > 0
+          return (
+            <div className="flex flex-col gap-4 flex-1">
+              {hasContent ? (
+                <>
+                  <h2 className="text-xl font-bold text-white leading-snug">{previewTitle}</h2>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 -mt-2">
+                      {tags.map((tag) => (
+                        <span key={tag} className="tag">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  {description.trim() && (
+                    <p className="text-sm text-gray-400 whitespace-pre-wrap leading-relaxed">{description.trim()}</p>
+                  )}
+                  {previewBlocks.length > 0 && (
+                    <BlockView blocks={previewBlocks} postTitle={previewTitle} />
+                  )}
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center gap-2 text-gray-600 py-16">
+                  <Eye className="w-8 h-8" />
+                  <p className="text-sm">Önizlenecek içerik yok</p>
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Sticky footer */}
         <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card flex-wrap">
