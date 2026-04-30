@@ -177,6 +177,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { open, prefilledProject, prefilledSnippet, prefilledArticle, editingPost, quotedPost, onEditSaved, openComposer, closeComposer } = useComposerStore()
 
   const [composerMode, setComposerMode] = useState<'edit' | 'preview'>('edit')
+  const [title, setTitle]             = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags]               = useState<string[]>([])
   const [tagInput, setTagInput]       = useState('')
@@ -216,6 +217,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     if (!open || hydratedRef.current) return
     hydratedRef.current = true
     if (editingPost) {
+      setTitle(editingPost.title ?? '')
       setDescription(editingPost.description ?? '')
       setTags(editingPost.tags)
       setBlocks(editingPost.blocks.map(postBlockToComposerBlock))
@@ -398,6 +400,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
   const reset = () => {
     setComposerMode('edit')
+    setTitle('')
     setDescription(''); setTags([]); setTagInput(''); setTagSuggestions([]); setSuggestionsOpen(false)
     setBlocks([])
     setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null); setAddMenuOpen(false)
@@ -476,10 +479,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         .map((b, i) => blockToPayload(b, i))
 
       const desc = description.trim()
+      const t    = title.trim()
 
       if (editingPost) {
         await postService.editPost(editingPost.id, {
-          title:       desc.split('\n')[0].slice(0, 100) || editingPost.title,
+          title:       t || desc.split('\n')[0].slice(0, 100) || editingPost.title,
           description: desc || undefined,
           tags,
           blocks:      validBlocks as unknown as PostBlock[],
@@ -491,7 +495,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       } else {
         await createPost({
           type: 'post',
-          title: desc.split('\n')[0].slice(0, 100) || 'Gönderi',
+          title: t || desc.split('\n')[0].slice(0, 100) || 'Gönderi',
           description: desc || undefined,
           tags,
           blocks: validBlocks,
@@ -559,6 +563,12 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       >
         {composerMode === 'edit' && (
         <div className="flex flex-col gap-4 flex-1">
+          <Input
+            label="Başlık"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Başlık ekle..."
+          />
           <Textarea
             label="Açıklama"
             value={description}
@@ -863,7 +873,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         )} {/* end composerMode === 'edit' */}
 
         {composerMode === 'preview' && (() => {
-          const previewTitle = description.trim().split('\n')[0].slice(0, 100) || 'Gönderi'
+          const previewTitle = title.trim() || description.trim().split('\n')[0].slice(0, 100) || 'Gönderi'
           const previewBlocks = composerBlocksToPostBlocks(blocks)
           const hasContent = description.trim() || tags.length > 0 || previewBlocks.length > 0 || !!quotedPost
           return (
