@@ -13,7 +13,7 @@ import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import { useComposerStore } from '@store/composerStore'
 import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
-import { CommentContent, SnippetPanel } from '@modules/social/CommentSnippet'
+import { CommentContent, SnippetPanel, insertAtCursor } from '@modules/social/CommentSnippet'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
@@ -161,6 +161,7 @@ export default function ArticleViewPage() {
   const [menuOpen, setMenuOpen]             = useState(false)
   const [repostMenuOpen, setRepostMenuOpen] = useState(false)
   const menuRef       = useRef<HTMLDivElement>(null)
+  const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const repostMenuRef = useRef<HTMLDivElement>(null)
 
   /* Load article */
@@ -588,6 +589,7 @@ export default function ArticleViewPage() {
                       </div>
                     )}
                     <textarea
+                      ref={commentInputRef}
                       id="comment-input"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
@@ -626,7 +628,7 @@ export default function ArticleViewPage() {
                 </div>
                 {showSnippet && (
                   <SnippetPanel
-                    onInsert={(snippet) => setCommentText((prev) => prev ? `${prev}\n${snippet}` : snippet)}
+                    onInsert={(snippet) => insertAtCursor(commentInputRef.current, commentText, snippet, setCommentText)}
                     onClose={() => setShowSnippet(false)}
                   />
                 )}

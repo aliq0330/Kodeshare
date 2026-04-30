@@ -8,6 +8,29 @@ const LANGUAGES = [
   'bash', 'json', 'sql', 'rust', 'go',
 ]
 
+/** Snippet'i textarea'nın imleç pozisyonuna ekler; imleç snippet'ten sonraya taşınır. */
+export function insertAtCursor(
+  textarea: HTMLTextAreaElement | null,
+  currentValue: string,
+  snippet: string,
+  setValue: (v: string) => void,
+) {
+  const start = textarea?.selectionStart ?? currentValue.length
+  const end   = textarea?.selectionEnd   ?? currentValue.length
+  const before = currentValue.slice(0, start)
+  const after  = currentValue.slice(end)
+  const needsBefore = before.length > 0 && !before.endsWith('\n')
+  const needsAfter  = after.length  > 0 && !after.startsWith('\n')
+  const newValue = `${before}${needsBefore ? '\n' : ''}${snippet}${needsAfter ? '\n' : ''}${after}`
+  setValue(newValue)
+  requestAnimationFrame(() => {
+    if (!textarea) return
+    const pos = start + (needsBefore ? 1 : 0) + snippet.length + (needsAfter ? 1 : 0)
+    textarea.setSelectionRange(pos, pos)
+    textarea.focus()
+  })
+}
+
 type Segment =
   | { type: 'text'; content: string }
   | { type: 'code'; lang: string; code: string }

@@ -6,7 +6,7 @@ import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import { useCommentStore } from '@store/commentStore'
 import { useAuthStore } from '@store/authStore'
-import { CommentContent, SnippetPanel } from './CommentSnippet'
+import { CommentContent, SnippetPanel, insertAtCursor } from './CommentSnippet'
 import type { Comment } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -29,7 +29,8 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
   const [editMode, setEditMode] = useState(false)
   const [editText, setEditText] = useState(comment.content)
   const [editSubmitting, setEditSubmitting] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const menuRef    = useRef<HTMLDivElement>(null)
+  const replyRef   = useRef<HTMLTextAreaElement>(null)
 
   const isOwner = !!user && user.id === comment.author.id
 
@@ -207,6 +208,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
               <div className="flex-1">
                 <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
                   <textarea
+                    ref={replyRef}
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder={`@${comment.author.username} yanıtla...`}
@@ -248,7 +250,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                 </div>
                 {showReplySnippet && (
                   <SnippetPanel
-                    onInsert={(snippet) => setReplyText((prev) => prev ? `${prev}\n${snippet}` : snippet)}
+                    onInsert={(snippet) => insertAtCursor(replyRef.current, replyText, snippet, setReplyText)}
                     onClose={() => setShowReplySnippet(false)}
                   />
                 )}

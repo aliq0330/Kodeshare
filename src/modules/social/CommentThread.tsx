@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IconSend, IconCode } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import CommentItem from './CommentItem'
-import { SnippetPanel } from './CommentSnippet'
+import { SnippetPanel, insertAtCursor } from './CommentSnippet'
 import { useAuthStore } from '@store/authStore'
 import { useCommentStore } from '@store/commentStore'
 import toast from 'react-hot-toast'
@@ -20,6 +20,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
   const [text, setText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showSnippet, setShowSnippet] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const comments = commentsByPost[postId] ?? []
   const loading = isLoading[postId] ?? false
@@ -52,6 +53,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
           <div className="flex-1">
             <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
               <textarea
+                ref={textareaRef}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Yorum yaz... (@mention, #hashtag destekler)"
@@ -93,7 +95,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
             </div>
             {showSnippet && (
               <SnippetPanel
-                onInsert={(snippet) => setText((prev) => prev ? `${prev}\n${snippet}` : snippet)}
+                onInsert={(snippet) => insertAtCursor(textareaRef.current, text, snippet, setText)}
                 onClose={() => setShowSnippet(false)}
               />
             )}
