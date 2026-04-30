@@ -140,7 +140,7 @@ export default function ArticleViewPage() {
   const navigate = useNavigate()
 
   const { isAuthenticated, user } = useAuthStore()
-  const { openWithArticle, openWithQuote } = useComposerStore()
+  const { openWithArticle } = useComposerStore()
   const createPost = usePostStore((s) => s.createPost)
   const loadArticle = useArticleStore((s) => s.loadArticle)
 
