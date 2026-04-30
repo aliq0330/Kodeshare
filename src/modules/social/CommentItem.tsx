@@ -116,8 +116,13 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
   }
 
   return (
-    <div id={`comment-${comment.id}`} className={cn('flex gap-3', depth > 0 && 'border-l border-surface-border')}>
-      <Avatar src={comment.author.avatarUrl} alt={comment.author.displayName} size="sm" className="mt-0.5 shrink-0" />
+    <div id={`comment-${comment.id}`} className="flex gap-3">
+      <div className="flex flex-col items-center shrink-0">
+        <Avatar src={comment.author.avatarUrl} alt={comment.author.displayName} size="sm" className="mt-0.5" />
+        {showReplies && comment.replies.length > 0 && (
+          <div className="w-px flex-1 bg-surface-border mt-2" />
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         <div className="bg-surface-raised border border-surface-border rounded-xl px-3 py-2.5">
           <div className="flex items-center gap-2 mb-1">
