@@ -200,16 +200,19 @@ export default function ArticleViewPage() {
 
   return (
     <div className="min-h-full bg-surface">
-      {/* Cover image */}
+      {/* Cover image — full bleed on mobile */}
       {article.coverImage && (
-        <img
-          src={article.coverImage}
-          alt=""
-          className="w-full h-64 sm:h-96 object-cover"
-        />
+        <div className="-mx-4 lg:mx-0">
+          <img
+            src={article.coverImage}
+            alt=""
+            className="w-full h-64 sm:h-96 object-cover"
+          />
+        </div>
       )}
 
-      <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      <div className="max-w-4xl mx-auto">
+      <article className="px-4 sm:px-6 py-10">
         {/* Title */}
         {article.title && (
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-white mb-4">
@@ -386,12 +389,14 @@ export default function ArticleViewPage() {
           </div>
         </div>
 
-        {/* ── Comments ── */}
-        <div id="comments" className="mt-10">
-          <h2 className="text-base font-semibold text-white mb-4">Yorumlar</h2>
-          <CommentThread articleId={article.id} />
-        </div>
       </article>
+
+      {/* Comments — same full-bleed treatment as PostDetail */}
+      <div id="comments" className="-mx-4 lg:mx-0 px-4 pt-4 pb-10">
+        <h2 className="text-base font-semibold text-white mb-4">Yorumlar</h2>
+        <CommentThread articleId={article.id} />
+      </div>
+      </div>
 
       {/* Modals */}
       <AddToCollectionModal
