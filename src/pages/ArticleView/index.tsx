@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash } from '@tabler/icons-react'
+import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash, IconQuote } from '@tabler/icons-react'
 import { articleService } from '@services/articleService'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleRecord, ArticleComment } from '@services/articleService'
@@ -11,6 +11,7 @@ import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ArticleShareModal from '@modules/social/ArticleShareModal'
 import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import { useComposerStore } from '@store/composerStore'
+import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
 import { timeAgo } from '@utils/formatters'
 import toast from 'react-hot-toast'
@@ -139,7 +140,8 @@ export default function ArticleViewPage() {
   const navigate = useNavigate()
 
   const { isAuthenticated, user } = useAuthStore()
-  const { openWithArticle } = useComposerStore()
+  const { openWithArticle, openWithQuote } = useComposerStore()
+  const createPost = usePostStore((s) => s.createPost)
   const loadArticle = useArticleStore((s) => s.loadArticle)
 
   const [article, setArticle]               = useState<ArticleRecord | null>(null)
@@ -154,7 +156,9 @@ export default function ArticleViewPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [statsOpen, setStatsOpen]           = useState(false)
   const [menuOpen, setMenuOpen]             = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const [repostMenuOpen, setRepostMenuOpen] = useState(false)
+  const menuRef       = useRef<HTMLDivElement>(null)
+  const repostMenuRef = useRef<HTMLDivElement>(null)
 
   /* Load article */
   useEffect(() => {
@@ -192,6 +196,15 @@ export default function ArticleViewPage() {
     return () => document.removeEventListener('mousedown', handler)
   }, [menuOpen])
 
+  useEffect(() => {
+    if (!repostMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (repostMenuRef.current && !repostMenuRef.current.contains(e.target as Node)) setRepostMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [repostMenuOpen])
+
   /* ── Handlers ── */
   const handleLike = async () => {
     if (!article) return
@@ -228,9 +241,26 @@ export default function ArticleViewPage() {
     }
   }
 
-  const handleRepost = () => {
+  const handleDirectRepost = async () => {
     if (!article) return
     if (!isAuthenticated) { toast.error('Paylaşmak için giriş yapmalısın'); return }
+    setRepostMenuOpen(false)
+    try {
+      await createPost({
+        type: 'repost',
+        title: article.title,
+        blocks: [{ type: 'article', position: 0, data: { articleId: article.id, title: article.title, coverImage: article.coverImage, content: extractPlainText(article) } }],
+      })
+      toast.success('Makale yeniden paylaşıldı!')
+    } catch {
+      toast.error('Bir hata oluştu')
+    }
+  }
+
+  const handleQuoteArticle = () => {
+    if (!article) return
+    if (!isAuthenticated) { toast.error('Paylaşmak için giriş yapmalısın'); return }
+    setRepostMenuOpen(false)
     openWithArticle({
       id:         article.id,
       title:      article.title,
@@ -429,13 +459,35 @@ export default function ArticleViewPage() {
           </button>
 
           {/* Repost */}
-          <button
-            onClick={handleRepost}
-            className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
-            title="Yeniden paylaş"
-          >
-            <IconRepeat className="w-[18px] h-[18px]" />
-          </button>
+          <div className="relative" ref={repostMenuRef}>
+            <button
+              onClick={() => setRepostMenuOpen((v) => !v)}
+              className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
+              title="Yeniden paylaş"
+            >
+              <IconRepeat className="w-[18px] h-[18px]" />
+            </button>
+            {repostMenuOpen && (
+              <div className="absolute left-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+                <button
+                  type="button"
+                  onClick={handleDirectRepost}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                >
+                  <IconRepeat className="w-4 h-4 text-green-400" />
+                  <span className="text-white">Yeniden Gönder</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuoteArticle}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                >
+                  <IconQuote className="w-4 h-4 text-brand-400" />
+                  <span className="text-white">Alıntı yap</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Right side */}
           <div className="ml-auto flex items-center gap-1">
