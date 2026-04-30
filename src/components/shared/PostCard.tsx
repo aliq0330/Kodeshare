@@ -425,13 +425,10 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 <IconBookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
-            {(articleData?.commentsCount ?? 0) > 0 && (
-              <CommentPreview
-                articleId={displayArticleId}
-                commentsCount={articleData?.commentsCount ?? 0}
-                detailLink={commentLink}
-              />
-            )}
+            <CommentPreview
+              articleId={displayArticleId}
+              detailLink={commentLink}
+            />
           </div>
         </div>
 

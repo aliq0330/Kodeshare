@@ -194,13 +194,11 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 <IconBookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
-            {article.commentsCount > 0 && (
-              <CommentPreview
-                articleId={article.id}
-                commentsCount={article.commentsCount}
-                detailLink={`/makale/${article.id}#comments`}
-              />
-            )}
+            <CommentPreview
+              articleId={article.id}
+              commentsCount={article.commentsCount}
+              detailLink={`/makale/${article.id}#comments`}
+            />
           </div>
         </div>
       </article>

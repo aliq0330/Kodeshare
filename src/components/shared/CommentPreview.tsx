@@ -12,7 +12,7 @@ interface PreviewItem {
 interface Props {
   postId?: string
   articleId?: string
-  commentsCount: number
+  commentsCount?: number
   detailLink: string
 }
 
@@ -69,7 +69,7 @@ export default function CommentPreview({ postId, articleId, commentsCount, detai
           </span>
         </Link>
       ))}
-      {commentsCount > 2 && (
+      {(commentsCount ?? 0) > 2 && (
         <Link to={detailLink} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
           {commentsCount} yorumun tamamını gör
         </Link>
