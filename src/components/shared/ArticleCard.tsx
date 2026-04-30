@@ -11,6 +11,7 @@ import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import toast from 'react-hot-toast'
+import CommentPreview from '@components/shared/CommentPreview'
 
 interface ArticleCardProps {
   article: ArticleRecord
@@ -193,6 +194,13 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 <IconBookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
+            {article.commentsCount > 0 && (
+              <CommentPreview
+                articleId={article.id}
+                commentsCount={article.commentsCount}
+                detailLink={`/makale/${article.id}#comments`}
+              />
+            )}
           </div>
         </div>
       </article>

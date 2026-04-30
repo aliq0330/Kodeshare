@@ -11,6 +11,7 @@ import PostStatsModal from '@modules/post/PostStatsModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
 import RepostMenu from '@modules/post/RepostMenu'
+import CommentPreview from '@components/shared/CommentPreview'
 import { postService } from '@services/postService'
 import { articleService } from '@services/articleService'
 import { compactNumber, timeAgo } from '@utils/formatters'
@@ -424,6 +425,13 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 <IconBookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
+            {(articleData?.commentsCount ?? 0) > 0 && (
+              <CommentPreview
+                articleId={displayArticleId}
+                commentsCount={articleData?.commentsCount ?? 0}
+                detailLink={commentLink}
+              />
+            )}
           </div>
         </div>
 
@@ -557,6 +565,13 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               <IconBookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
             </button>
           </div>
+          {display.commentsCount > 0 && (
+            <CommentPreview
+              postId={display.id}
+              commentsCount={display.commentsCount}
+              detailLink={commentLink}
+            />
+          )}
         </div>
       </div>
 
