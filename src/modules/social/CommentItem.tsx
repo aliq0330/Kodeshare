@@ -143,7 +143,7 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
 
         {/* Content column */}
         <div className={cn('flex-1 min-w-0', depth > 0 && 'pt-3')}>
-          <div className="px-3 py-2.5">
+          <div>
             <div className="flex items-center gap-2 mb-1">
               <Link to={`/profile/${comment.author.username}`} className="text-sm font-medium text-white hover:text-brand-300">
                 {comment.author.displayName}
