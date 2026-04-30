@@ -32,6 +32,13 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
   const menuRef    = useRef<HTMLDivElement>(null)
   const replyRef   = useRef<HTMLTextAreaElement>(null)
 
+  useEffect(() => {
+    const el = replyRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [replyText])
+
   const isOwner = !!user && user.id === comment.author.id
 
   useEffect(() => {
@@ -214,12 +221,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                     placeholder={`@${comment.author.username} yanıtla...`}
                     rows={1}
                     className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
-                    style={{ minHeight: '24px', maxHeight: '80px' }}
-                    onInput={(e) => {
-                      const t = e.target as HTMLTextAreaElement
-                      t.style.height = 'auto'
-                      t.style.height = t.scrollHeight + 'px'
-                    }}
+                    style={{ minHeight: '24px' }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()

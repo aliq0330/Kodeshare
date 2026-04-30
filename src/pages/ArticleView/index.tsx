@@ -160,8 +160,15 @@ export default function ArticleViewPage() {
   const [statsOpen, setStatsOpen]           = useState(false)
   const [menuOpen, setMenuOpen]             = useState(false)
   const [repostMenuOpen, setRepostMenuOpen] = useState(false)
-  const menuRef       = useRef<HTMLDivElement>(null)
+  const menuRef         = useRef<HTMLDivElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const el = commentInputRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [commentText])
   const repostMenuRef = useRef<HTMLDivElement>(null)
 
   /* Load article */
@@ -596,6 +603,7 @@ export default function ArticleViewPage() {
                       placeholder="Yorum yaz..."
                       rows={1}
                       className="w-full bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
+                      style={{ minHeight: '24px' }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault()

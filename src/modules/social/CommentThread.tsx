@@ -29,6 +29,13 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
     fetchComments(postId)
   }, [postId, fetchComments])
 
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [text])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!text.trim() || submitting) return
@@ -59,12 +66,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
                 placeholder="Yorum yaz... (@mention, #hashtag destekler)"
                 rows={1}
                 className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
-                style={{ minHeight: '24px', maxHeight: '120px' }}
-                onInput={(e) => {
-                  const t = e.target as HTMLTextAreaElement
-                  t.style.height = 'auto'
-                  t.style.height = t.scrollHeight + 'px'
-                }}
+                style={{ minHeight: '24px' }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()
