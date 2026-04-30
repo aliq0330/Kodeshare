@@ -210,54 +210,50 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
         </div>
 
         {showReplyBox && (
-          <form onSubmit={handleReply} className="mt-2">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
-                  <textarea
-                    ref={replyRef}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder={`@${comment.author.username} yanıtla...`}
-                    rows={1}
-                    className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
-                    style={{ minHeight: '24px' }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        handleReply(e as unknown as React.FormEvent)
-                      }
-                    }}
-                  />
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setShowReplySnippet((v) => !v)}
-                      title="Snippet ekle"
-                      className={cn(
-                        'p-1.5 rounded-lg transition-colors',
-                        showReplySnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300',
-                      )}
-                    >
-                      <IconCode className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={!replyText.trim() || submitting}
-                      className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
-                    >
-                      <IconSend className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-                {showReplySnippet && (
-                  <SnippetPanel
-                    onInsert={(snippet) => insertAtCursor(replyRef.current, replyText, snippet, setReplyText)}
-                    onClose={() => setShowReplySnippet(false)}
-                  />
-                )}
+          <form onSubmit={handleReply} className="mt-2 pl-3 border-l-2 border-surface-border">
+            <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
+              <textarea
+                ref={replyRef}
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder={`@${comment.author.username} yanıtla...`}
+                rows={1}
+                className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
+                style={{ minHeight: '24px' }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleReply(e as unknown as React.FormEvent)
+                  }
+                }}
+              />
+              <div className="flex items-center gap-0.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowReplySnippet((v) => !v)}
+                  title="Snippet ekle"
+                  className={cn(
+                    'p-1.5 rounded-lg transition-colors',
+                    showReplySnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300',
+                  )}
+                >
+                  <IconCode className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="submit"
+                  disabled={!replyText.trim() || submitting}
+                  className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
+                >
+                  <IconSend className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
+            {showReplySnippet && (
+              <SnippetPanel
+                onInsert={(snippet) => insertAtCursor(replyRef.current, replyText, snippet, setReplyText)}
+                onClose={() => setShowReplySnippet(false)}
+              />
+            )}
           </form>
         )}
 
