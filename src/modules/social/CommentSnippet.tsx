@@ -120,14 +120,15 @@ export function EmojiPicker({ onSelect, onClose, anchorRef }: EmojiPickerProps) 
     <div
       ref={pickerRef}
       className="absolute bottom-full right-0 mb-1 z-40 p-2 rounded-xl border border-surface-border bg-[#0d1117] shadow-2xl"
+      style={{ width: '272px' }}
     >
-      <div className="grid grid-cols-10 gap-0.5">
+      <div className="grid grid-cols-8 gap-1">
         {EMOJIS.map((emoji) => (
           <button
             key={emoji}
             type="button"
             onClick={() => { onSelect(emoji); onClose() }}
-            className="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-raised transition-colors text-base leading-none"
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-raised transition-colors text-lg leading-none"
           >
             {emoji}
           </button>

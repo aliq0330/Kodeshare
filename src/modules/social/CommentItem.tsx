@@ -55,7 +55,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
     if (!el) return
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight}px`
-  }, [replyText])
+  }, [replyText, showReplyBox])
 
   useEffect(() => {
     const el = editRef.current
