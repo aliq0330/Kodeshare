@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconX } from '@tabler/icons-react'
 import SyntaxHighlight from '@components/shared/SyntaxHighlight'
@@ -8,24 +8,31 @@ const LANGUAGES = [
   'bash', 'json', 'sql', 'rust', 'go',
 ]
 
-/** Snippet'i textarea'nın imleç pozisyonuna ekler; imleç snippet'ten sonraya taşınır. */
+const EMOJIS = [
+  '😀','😂','😊','🥰','😍','🤔','😅','😭','🥺','🤣',
+  '❤️','🔥','👍','👎','👏','🎉','🚀','💯','✅','⭐',
+  '💡','🐛','💻','🎯','📝','💬','🙏','😎','🤯','💪',
+  '👀','🤝','🙌','😤','🫡','🫶','💅','🫠','🥳','✨',
+]
+
+/** Metni textarea'nın imleç pozisyonuna ekler. */
 export function insertAtCursor(
   textarea: HTMLTextAreaElement | null,
   currentValue: string,
-  snippet: string,
+  text: string,
   setValue: (v: string) => void,
 ) {
   const start = textarea?.selectionStart ?? currentValue.length
   const end   = textarea?.selectionEnd   ?? currentValue.length
   const before = currentValue.slice(0, start)
   const after  = currentValue.slice(end)
-  const needsBefore = before.length > 0 && !before.endsWith('\n')
-  const needsAfter  = after.length  > 0 && !after.startsWith('\n')
-  const newValue = `${before}${needsBefore ? '\n' : ''}${snippet}${needsAfter ? '\n' : ''}${after}`
+  const needsBefore = text.startsWith('```') && before.length > 0 && !before.endsWith('\n')
+  const needsAfter  = text.startsWith('```') && after.length  > 0 && !after.startsWith('\n')
+  const newValue = `${before}${needsBefore ? '\n' : ''}${text}${needsAfter ? '\n' : ''}${after}`
   setValue(newValue)
   requestAnimationFrame(() => {
     if (!textarea) return
-    const pos = start + (needsBefore ? 1 : 0) + snippet.length + (needsAfter ? 1 : 0)
+    const pos = start + (needsBefore ? 1 : 0) + text.length + (needsAfter ? 1 : 0)
     textarea.setSelectionRange(pos, pos)
     textarea.focus()
   })
@@ -84,6 +91,48 @@ export function CommentContent({ content }: { content: string }) {
           </div>
         )
       )}
+    </div>
+  )
+}
+
+interface EmojiPickerProps {
+  onSelect: (emoji: string) => void
+  onClose: () => void
+  /** Butona tıklandığında kapanmasın diye buton ref'i hariç tutulur */
+  anchorRef?: React.RefObject<HTMLElement>
+}
+
+export function EmojiPicker({ onSelect, onClose, anchorRef }: EmojiPickerProps) {
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (pickerRef.current?.contains(t)) return
+      if (anchorRef?.current?.contains(t)) return
+      onClose()
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [onClose, anchorRef])
+
+  return (
+    <div
+      ref={pickerRef}
+      className="absolute bottom-full right-0 mb-1 z-40 p-2 rounded-xl border border-surface-border bg-[#0d1117] shadow-2xl"
+    >
+      <div className="grid grid-cols-10 gap-0.5">
+        {EMOJIS.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => { onSelect(emoji); onClose() }}
+            className="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-raised transition-colors text-base leading-none"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

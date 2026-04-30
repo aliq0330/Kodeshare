@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash, IconQuote, IconCode } from '@tabler/icons-react'
+import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash, IconQuote, IconCode, IconMoodSmile } from '@tabler/icons-react'
 import { articleService } from '@services/articleService'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleRecord, ArticleComment } from '@services/articleService'
@@ -13,7 +13,7 @@ import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import { useComposerStore } from '@store/composerStore'
 import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
-import { CommentContent, SnippetPanel, insertAtCursor } from '@modules/social/CommentSnippet'
+import { CommentContent, SnippetPanel, EmojiPicker, insertAtCursor } from '@modules/social/CommentSnippet'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
@@ -155,6 +155,8 @@ export default function ArticleViewPage() {
   const [replyTo, setReplyTo]               = useState<{ parentId: string; username: string } | null>(null)
   const [submitting, setSubmitting]         = useState(false)
   const [showSnippet, setShowSnippet]       = useState(false)
+  const [showEmoji,   setShowEmoji]         = useState(false)
+  const emojiBtnRef = useRef<HTMLButtonElement>(null)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [statsOpen, setStatsOpen]           = useState(false)
@@ -316,6 +318,7 @@ export default function ArticleViewPage() {
       setCommentText('')
       setReplyTo(null)
       setShowSnippet(false)
+      setShowEmoji(false)
     } catch {
       toast.error('Yorum gönderilemedi')
     } finally {
@@ -604,23 +607,30 @@ export default function ArticleViewPage() {
                       rows={1}
                       className="w-full bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
                       style={{ minHeight: '24px' }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          handleAddComment(e as unknown as React.FormEvent)
-                        }
-                      }}
                     />
                   </div>
-                  <div className="flex items-center gap-0.5 shrink-0">
+                  <div className="relative flex items-center gap-0.5 shrink-0">
+                    {showEmoji && (
+                      <EmojiPicker
+                        anchorRef={emojiBtnRef}
+                        onSelect={(e) => insertAtCursor(commentInputRef.current, commentText, e, setCommentText)}
+                        onClose={() => setShowEmoji(false)}
+                      />
+                    )}
+                    <button
+                      ref={emojiBtnRef}
+                      type="button"
+                      onClick={() => { setShowEmoji((v) => !v); setShowSnippet(false) }}
+                      title="Emoji ekle"
+                      className={cn('p-1.5 rounded-lg transition-colors', showEmoji ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-300')}
+                    >
+                      <IconMoodSmile className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       type="button"
-                      onClick={() => setShowSnippet((v) => !v)}
+                      onClick={() => { setShowSnippet((v) => !v); setShowEmoji(false) }}
                       title="Snippet ekle"
-                      className={cn(
-                        'p-1.5 rounded-lg transition-colors',
-                        showSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300',
-                      )}
+                      className={cn('p-1.5 rounded-lg transition-colors', showSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300')}
                     >
                       <IconCode className="w-3.5 h-3.5" />
                     </button>

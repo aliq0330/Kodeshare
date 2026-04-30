@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { IconHeart, IconArrowBackUp, IconChevronDown, IconChevronUp, IconSend, IconDots, IconPencil, IconTrash, IconCode } from '@tabler/icons-react'
+import { IconHeart, IconArrowBackUp, IconChevronDown, IconChevronUp, IconSend, IconDots, IconPencil, IconTrash, IconCode, IconMoodSmile } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import { useCommentStore } from '@store/commentStore'
 import { useAuthStore } from '@store/authStore'
-import { CommentContent, SnippetPanel, insertAtCursor } from './CommentSnippet'
+import { CommentContent, SnippetPanel, EmojiPicker, insertAtCursor } from './CommentSnippet'
 import type { Comment } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -19,25 +19,25 @@ interface CommentItemProps {
 export default function CommentItem({ comment, postId, depth = 0 }: CommentItemProps) {
   const { isAuthenticated, user } = useAuthStore()
   const { toggleLike, addReply, editComment, deleteComment } = useCommentStore()
-  const [showReplies, setShowReplies] = useState(true)
-  const [showReplyBox, setShowReplyBox] = useState(false)
-  const [replyText, setReplyText] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [showReplySnippet, setShowReplySnippet] = useState(false)
+  const [showReplies,       setShowReplies]       = useState(true)
+  const [showReplyBox,      setShowReplyBox]       = useState(false)
+  const [replyText,         setReplyText]         = useState('')
+  const [submitting,        setSubmitting]        = useState(false)
+  const [showReplySnippet,  setShowReplySnippet]  = useState(false)
+  const [showReplyEmoji,    setShowReplyEmoji]    = useState(false)
 
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [editMode, setEditMode] = useState(false)
-  const [editText, setEditText] = useState(comment.content)
-  const [editSubmitting, setEditSubmitting] = useState(false)
-  const menuRef    = useRef<HTMLDivElement>(null)
-  const replyRef   = useRef<HTMLTextAreaElement>(null)
+  const [menuOpen,          setMenuOpen]          = useState(false)
+  const [editMode,          setEditMode]          = useState(false)
+  const [editText,          setEditText]          = useState(comment.content)
+  const [editSubmitting,    setEditSubmitting]    = useState(false)
+  const [showEditSnippet,   setShowEditSnippet]   = useState(false)
+  const [showEditEmoji,     setShowEditEmoji]     = useState(false)
 
-  useEffect(() => {
-    const el = replyRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [replyText])
+  const menuRef         = useRef<HTMLDivElement>(null)
+  const replyRef        = useRef<HTMLTextAreaElement>(null)
+  const replyEmojiBtnRef = useRef<HTMLButtonElement>(null)
+  const editRef         = useRef<HTMLTextAreaElement>(null)
+  const editEmojiBtnRef = useRef<HTMLButtonElement>(null)
 
   const isOwner = !!user && user.id === comment.author.id
 
@@ -50,13 +50,24 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
     return () => document.removeEventListener('mousedown', h)
   }, [menuOpen])
 
+  useEffect(() => {
+    const el = replyRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [replyText])
+
+  useEffect(() => {
+    const el = editRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [editText])
+
   const handleLike = async () => {
     if (!isAuthenticated) return
-    try {
-      await toggleLike(postId, comment.id)
-    } catch {
-      toast.error('Bir hata oluştu')
-    }
+    try { await toggleLike(postId, comment.id) }
+    catch { toast.error('Bir hata oluştu') }
   }
 
   const handleReply = async (e: React.FormEvent) => {
@@ -68,6 +79,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
       setReplyText('')
       setShowReplyBox(false)
       setShowReplySnippet(false)
+      setShowReplyEmoji(false)
     } catch {
       toast.error('Yanıt gönderilemedi')
     } finally {
@@ -82,6 +94,8 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
     try {
       await editComment(postId, comment.id, editText.trim())
       setEditMode(false)
+      setShowEditSnippet(false)
+      setShowEditEmoji(false)
       toast.success('Yorum güncellendi')
     } catch {
       toast.error('Yorum güncellenemedi')
@@ -145,35 +159,65 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
           </div>
 
           {editMode ? (
-            <form onSubmit={handleEdit} className="flex flex-col gap-2">
+            <form onSubmit={handleEdit} className="flex flex-col gap-2 mt-1">
               <textarea
+                ref={editRef}
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
                 rows={2}
                 className="w-full bg-surface border border-surface-border rounded-lg px-2 py-1.5 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:border-brand-500"
-                style={{ minHeight: '40px', maxHeight: '120px' }}
+                style={{ minHeight: '40px' }}
                 autoFocus
-                onInput={(e) => {
-                  const t = e.target as HTMLTextAreaElement
-                  t.style.height = 'auto'
-                  t.style.height = t.scrollHeight + 'px'
-                }}
               />
-              <div className="flex gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setEditMode(false)}
-                  className="text-xs text-gray-500 hover:text-gray-300 transition-colors px-2 py-1"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  disabled={!editText.trim() || editSubmitting}
-                  className="text-xs text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors px-2 py-1 font-medium"
-                >
-                  {editSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
-                </button>
+              {showEditSnippet && (
+                <SnippetPanel
+                  onInsert={(s) => insertAtCursor(editRef.current, editText, s, setEditText)}
+                  onClose={() => setShowEditSnippet(false)}
+                />
+              )}
+              <div className="flex items-center justify-between">
+                <div className="relative flex items-center gap-0.5">
+                  {showEditEmoji && (
+                    <EmojiPicker
+                      anchorRef={editEmojiBtnRef}
+                      onSelect={(e) => insertAtCursor(editRef.current, editText, e, setEditText)}
+                      onClose={() => setShowEditEmoji(false)}
+                    />
+                  )}
+                  <button
+                    ref={editEmojiBtnRef}
+                    type="button"
+                    onClick={() => { setShowEditEmoji((v) => !v); setShowEditSnippet(false) }}
+                    title="Emoji ekle"
+                    className={cn('p-1.5 rounded-lg transition-colors text-xs', showEditEmoji ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-300')}
+                  >
+                    <IconMoodSmile className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowEditSnippet((v) => !v); setShowEditEmoji(false) }}
+                    title="Snippet ekle"
+                    className={cn('p-1.5 rounded-lg transition-colors', showEditSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300')}
+                  >
+                    <IconCode className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setEditMode(false); setShowEditSnippet(false); setShowEditEmoji(false) }}
+                    className="text-xs text-gray-500 hover:text-gray-300 transition-colors px-2 py-1"
+                  >
+                    İptal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!editText.trim() || editSubmitting}
+                    className="text-xs text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors px-2 py-1 font-medium"
+                  >
+                    {editSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
+                  </button>
+                </div>
               </div>
             </form>
           ) : (
@@ -220,22 +264,29 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                 rows={1}
                 className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
                 style={{ minHeight: '24px' }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleReply(e as unknown as React.FormEvent)
-                  }
-                }}
               />
-              <div className="flex items-center gap-0.5 shrink-0">
+              <div className="relative flex items-center gap-0.5 shrink-0">
+                {showReplyEmoji && (
+                  <EmojiPicker
+                    anchorRef={replyEmojiBtnRef}
+                    onSelect={(e) => insertAtCursor(replyRef.current, replyText, e, setReplyText)}
+                    onClose={() => setShowReplyEmoji(false)}
+                  />
+                )}
+                <button
+                  ref={replyEmojiBtnRef}
+                  type="button"
+                  onClick={() => { setShowReplyEmoji((v) => !v); setShowReplySnippet(false) }}
+                  title="Emoji ekle"
+                  className={cn('p-1.5 rounded-lg transition-colors', showReplyEmoji ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-300')}
+                >
+                  <IconMoodSmile className="w-3.5 h-3.5" />
+                </button>
                 <button
                   type="button"
-                  onClick={() => setShowReplySnippet((v) => !v)}
+                  onClick={() => { setShowReplySnippet((v) => !v); setShowReplyEmoji(false) }}
                   title="Snippet ekle"
-                  className={cn(
-                    'p-1.5 rounded-lg transition-colors',
-                    showReplySnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300',
-                  )}
+                  className={cn('p-1.5 rounded-lg transition-colors', showReplySnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300')}
                 >
                   <IconCode className="w-3.5 h-3.5" />
                 </button>

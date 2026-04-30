@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconSend, IconCode } from '@tabler/icons-react'
+import { IconSend, IconCode, IconMoodSmile } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import CommentItem from './CommentItem'
-import { SnippetPanel, insertAtCursor } from './CommentSnippet'
+import { SnippetPanel, EmojiPicker, insertAtCursor } from './CommentSnippet'
 import { useAuthStore } from '@store/authStore'
 import { useCommentStore } from '@store/commentStore'
 import toast from 'react-hot-toast'
@@ -20,14 +20,14 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
   const [text, setText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showSnippet, setShowSnippet] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [showEmoji, setShowEmoji] = useState(false)
+  const textareaRef  = useRef<HTMLTextAreaElement>(null)
+  const emojiBtnRef  = useRef<HTMLButtonElement>(null)
 
   const comments = commentsByPost[postId] ?? []
   const loading = isLoading[postId] ?? false
 
-  useEffect(() => {
-    fetchComments(postId)
-  }, [postId, fetchComments])
+  useEffect(() => { fetchComments(postId) }, [postId, fetchComments])
 
   useEffect(() => {
     const el = textareaRef.current
@@ -44,6 +44,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
       await addComment(postId, text.trim())
       setText('')
       setShowSnippet(false)
+      setShowEmoji(false)
       onCommentAdded?.()
     } catch {
       toast.error('Yorum gönderilemedi')
@@ -67,29 +68,36 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
                 rows={1}
                 className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
                 style={{ minHeight: '24px' }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSubmit(e)
-                  }
-                }}
               />
-              <div className="flex items-center gap-0.5 shrink-0">
+              <div className="relative flex items-center gap-0.5 shrink-0">
+                {showEmoji && (
+                  <EmojiPicker
+                    anchorRef={emojiBtnRef}
+                    onSelect={(e) => insertAtCursor(textareaRef.current, text, e, setText)}
+                    onClose={() => setShowEmoji(false)}
+                  />
+                )}
+                <button
+                  ref={emojiBtnRef}
+                  type="button"
+                  onClick={() => { setShowEmoji((v) => !v); setShowSnippet(false) }}
+                  title="Emoji ekle"
+                  className={cn('p-1.5 rounded-lg transition-colors', showEmoji ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-300')}
+                >
+                  <IconMoodSmile className="w-3.5 h-3.5" />
+                </button>
                 <button
                   type="button"
-                  onClick={() => setShowSnippet((v) => !v)}
+                  onClick={() => { setShowSnippet((v) => !v); setShowEmoji(false) }}
                   title="Snippet ekle"
-                  className={cn(
-                    'p-1.5 rounded-lg transition-colors',
-                    showSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300',
-                  )}
+                  className={cn('p-1.5 rounded-lg transition-colors', showSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300')}
                 >
                   <IconCode className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="submit"
                   disabled={!text.trim() || submitting}
-                  className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
+                  className="p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
                 >
                   {submitting ? <Spinner className="w-3.5 h-3.5" /> : <IconSend className="w-3.5 h-3.5" />}
                 </button>
