@@ -5,7 +5,7 @@ import { articleService } from '@services/articleService'
 
 interface PreviewItem {
   id: string
-  author: { displayName: string }
+  author: { displayName: string; avatarUrl: string | null }
   content: string
 }
 
@@ -40,14 +40,18 @@ export default function CommentPreview({ postId, articleId, commentsCount, detai
     if (articleId && !didFetch.current) {
       didFetch.current = true
       articleService.getComments(articleId).then(cs =>
-        setItems(cs.slice(0, 2).map(c => ({ id: c.id, author: c.author, content: c.content })))
+        setItems(cs.slice(0, 2).map(c => ({ id: c.id, author: { displayName: c.author.displayName, avatarUrl: c.author.avatarUrl }, content: c.content })))
       )
     }
   }, [postId, articleId])
 
   useEffect(() => {
     if (postId && commentsByPost[postId]) {
-      setItems(commentsByPost[postId].slice(0, 2))
+      setItems(commentsByPost[postId].slice(0, 2).map(c => ({
+        id: c.id,
+        author: { displayName: c.author.displayName, avatarUrl: c.author.avatarUrl ?? null },
+        content: c.content,
+      })))
     }
   }, [commentsByPost, postId])
 
@@ -59,8 +63,17 @@ export default function CommentPreview({ postId, articleId, commentsCount, detai
         <Link
           key={item.id}
           to={detailLink}
-          className="flex items-baseline gap-1.5 text-sm min-w-0 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-1.5 text-sm min-w-0 hover:opacity-80 transition-opacity"
         >
+          {item.author.avatarUrl ? (
+            <img
+              src={item.author.avatarUrl}
+              alt={item.author.displayName}
+              className="w-[1em] h-[1em] rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <span className="w-[1em] h-[1em] rounded-full bg-surface-raised shrink-0 inline-block" />
+          )}
           <span className="font-semibold text-white shrink-0 max-w-[140px] truncate">
             {item.author.displayName}
           </span>
