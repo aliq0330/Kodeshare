@@ -10,11 +10,12 @@ import { useCommentStore } from '@store/commentStore'
 import toast from 'react-hot-toast'
 
 interface CommentThreadProps {
-  postId: string
+  postId?: string
+  articleId?: string
   onCommentAdded?: () => void
 }
 
-export default function CommentThread({ postId, onCommentAdded }: CommentThreadProps) {
+export default function CommentThread({ postId, articleId, onCommentAdded }: CommentThreadProps) {
   const { user, isAuthenticated } = useAuthStore()
   const { commentsByPost, isLoading, fetchComments, addComment } = useCommentStore()
   const [text, setText] = useState('')
@@ -24,10 +25,12 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
   const textareaRef  = useRef<HTMLTextAreaElement>(null)
   const emojiBtnRef  = useRef<HTMLButtonElement>(null)
 
-  const comments = commentsByPost[postId] ?? []
-  const loading = isLoading[postId] ?? false
+  const storeKey = articleId ? `article:${articleId}` : (postId ?? '')
 
-  useEffect(() => { fetchComments(postId) }, [postId, fetchComments])
+  const comments = commentsByPost[storeKey] ?? []
+  const loading = isLoading[storeKey] ?? false
+
+  useEffect(() => { fetchComments(storeKey) }, [storeKey, fetchComments])
 
   useEffect(() => {
     const el = textareaRef.current
@@ -41,7 +44,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
     if (!text.trim() || submitting) return
     setSubmitting(true)
     try {
-      await addComment(postId, text.trim())
+      await addComment(storeKey, text.trim())
       setText('')
       setShowSnippet(false)
       setShowEmoji(false)
@@ -123,7 +126,7 @@ export default function CommentThread({ postId, onCommentAdded }: CommentThreadP
       ) : (
         <div className="flex flex-col gap-3">
           {comments.map((comment) => (
-            <CommentItem key={comment.id} comment={comment} postId={postId} />
+            <CommentItem key={comment.id} comment={comment} postId={storeKey} />
           ))}
         </div>
       )}

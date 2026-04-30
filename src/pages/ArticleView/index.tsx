@@ -1,21 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash, IconQuote, IconCode, IconMoodSmile } from '@tabler/icons-react'
+import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconQuote } from '@tabler/icons-react'
 import { articleService } from '@services/articleService'
 import { useArticleStore } from '@store/articleStore'
-import type { ArticleRecord, ArticleComment } from '@services/articleService'
+import type { ArticleRecord } from '@services/articleService'
 import { ArticleBlocksRenderer } from '@pages/Article'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ArticleShareModal from '@modules/social/ArticleShareModal'
 import ArticleStatsModal from '@modules/post/ArticleStatsModal'
+import CommentThread from '@modules/social/CommentThread'
 import { useComposerStore } from '@store/composerStore'
 import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
-import { CommentContent, SnippetPanel, EmojiPicker, insertAtCursor } from '@modules/social/CommentSnippet'
-import { timeAgo } from '@utils/formatters'
-import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 
 function formatDate(iso: string) {
@@ -41,101 +39,6 @@ function extractPlainText(article: ArticleRecord): string {
     .join(' ')
 }
 
-/* ─── CommentRow ─── */
-interface CommentRowProps {
-  comment: ArticleComment
-  currentUserId?: string
-  onReply: (parentId: string, username: string) => void
-  onDelete: (commentId: string) => void
-}
-
-function CommentRow({ comment, currentUserId, onReply, onDelete }: CommentRowProps) {
-  return (
-    <div className="flex gap-3">
-      <Avatar
-        src={comment.author.avatarUrl}
-        alt={comment.author.displayName || 'Anonim'}
-        size="sm"
-        className="shrink-0 mt-0.5"
-      />
-      <div className="flex-1 min-w-0">
-        <div className="bg-surface-raised border border-surface-border rounded-xl px-3 py-2.5">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div className="flex items-center gap-1.5">
-              <Link
-                to={`/profile/${comment.author.username}`}
-                className="text-sm font-semibold text-white hover:text-brand-300 transition-colors"
-              >
-                {comment.author.displayName || 'Anonim'}
-              </Link>
-              <span className="text-xs text-gray-600">·</span>
-              <span className="text-xs text-gray-500">{timeAgo(comment.createdAt)}</span>
-            </div>
-            {currentUserId === comment.authorId && (
-              <button
-                onClick={() => onDelete(comment.id)}
-                className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors"
-                title="Yorumu sil"
-              >
-                <IconTrash className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-          <CommentContent content={comment.content} />
-        </div>
-        <button
-          onClick={() => onReply(comment.id, comment.author.username)}
-          className="mt-1 ml-3 text-xs text-gray-500 hover:text-brand-400 transition-colors"
-        >
-          Yanıtla
-        </button>
-
-        {/* Replies */}
-        {comment.replies.length > 0 && (
-          <div className="mt-3 flex flex-col gap-3">
-            {comment.replies.map((reply) => (
-              <div key={reply.id} className="flex gap-3">
-                <Avatar
-                  src={reply.author.avatarUrl}
-                  alt={reply.author.displayName || 'Anonim'}
-                  size="xs"
-                  className="shrink-0 mt-0.5"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="bg-surface-raised border border-surface-border rounded-xl px-3 py-2.5">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-1.5">
-                        <Link
-                          to={`/profile/${reply.author.username}`}
-                          className="text-sm font-semibold text-white hover:text-brand-300 transition-colors"
-                        >
-                          {reply.author.displayName || 'Anonim'}
-                        </Link>
-                        <span className="text-xs text-gray-600">·</span>
-                        <span className="text-xs text-gray-500">{timeAgo(reply.createdAt)}</span>
-                      </div>
-                      {currentUserId === reply.authorId && (
-                        <button
-                          onClick={() => onDelete(reply.id)}
-                          className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors"
-                          title="Yorumu sil"
-                        >
-                          <IconTrash className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                    <CommentContent content={reply.content} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 /* ─── Main Page ─── */
 export default function ArticleViewPage() {
   const { id }   = useParams<{ id: string }>()
@@ -149,28 +52,12 @@ export default function ArticleViewPage() {
   const [article, setArticle]               = useState<ArticleRecord | null>(null)
   const [loading, setLoading]               = useState(true)
   const [error, setError]                   = useState<string | null>(null)
-  const [comments, setComments]             = useState<ArticleComment[]>([])
-  const [commentsLoading, setCommentsLoading] = useState(false)
-  const [commentText, setCommentText]       = useState('')
-  const [replyTo, setReplyTo]               = useState<{ parentId: string; username: string } | null>(null)
-  const [submitting, setSubmitting]         = useState(false)
-  const [showSnippet, setShowSnippet]       = useState(false)
-  const [showEmoji,   setShowEmoji]         = useState(false)
-  const emojiBtnRef = useRef<HTMLButtonElement>(null)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [statsOpen, setStatsOpen]           = useState(false)
   const [menuOpen, setMenuOpen]             = useState(false)
   const [repostMenuOpen, setRepostMenuOpen] = useState(false)
-  const menuRef         = useRef<HTMLDivElement>(null)
-  const commentInputRef = useRef<HTMLTextAreaElement>(null)
-
-  useEffect(() => {
-    const el = commentInputRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [commentText])
+  const menuRef       = useRef<HTMLDivElement>(null)
   const repostMenuRef = useRef<HTMLDivElement>(null)
 
   /* Load article */
@@ -188,16 +75,6 @@ export default function ArticleViewPage() {
       .catch(() => setError('Makale bulunamadı.'))
       .finally(() => setLoading(false))
   }, [id])
-
-  /* Load comments after article is set */
-  useEffect(() => {
-    if (!article) return
-    setCommentsLoading(true)
-    articleService.getComments(article.id)
-      .then(setComments)
-      .catch(() => {})
-      .finally(() => setCommentsLoading(false))
-  }, [article?.id])
 
   /* Close menu on outside click */
   useEffect(() => {
@@ -294,61 +171,6 @@ export default function ArticleViewPage() {
       .then(() => toast.success('Link kopyalandı!'))
   }
 
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!article || !commentText.trim()) return
-    setSubmitting(true)
-    try {
-      const newComment = await articleService.addComment(
-        article.id,
-        commentText.trim(),
-        replyTo?.parentId,
-      )
-      if (replyTo) {
-        setComments((prev) =>
-          prev.map((c) =>
-            c.id === replyTo.parentId
-              ? { ...c, replies: [...c.replies, newComment] }
-              : c,
-          ),
-        )
-      } else {
-        setComments((prev) => [...prev, newComment])
-      }
-      setCommentText('')
-      setReplyTo(null)
-      setShowSnippet(false)
-      setShowEmoji(false)
-    } catch {
-      toast.error('Yorum gönderilemedi')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleDeleteComment = async (commentId: string) => {
-    try {
-      await articleService.deleteComment(commentId)
-      setComments((prev) => {
-        // top-level comment
-        const topLevel = prev.filter((c) => c.id !== commentId)
-        // or a reply
-        return topLevel.map((c) => ({
-          ...c,
-          replies: c.replies.filter((r) => r.id !== commentId),
-        }))
-      })
-    } catch {
-      toast.error('Yorum silinemedi')
-    }
-  }
-
-  const handleReplyClick = (parentId: string, username: string) => {
-    setReplyTo({ parentId, username })
-    setCommentText(`@${username} `)
-    document.getElementById('comment-input')?.focus()
-  }
-
   /* ── Render: loading / error ── */
   if (loading) {
     return (
@@ -375,11 +197,6 @@ export default function ArticleViewPage() {
       </div>
     )
   }
-
-  const totalCommentCount = comments.reduce(
-    (sum, c) => sum + 1 + c.replies.length,
-    0,
-  )
 
   return (
     <div className="min-h-full bg-surface">
@@ -470,7 +287,7 @@ export default function ArticleViewPage() {
             title="Yorumlar"
           >
             <IconMessageCircle className="w-[18px] h-[18px]" />
-            {totalCommentCount > 0 && <span className="text-sm text-black dark:text-white">{totalCommentCount}</span>}
+            {(article.commentsCount ?? 0) > 0 && <span className="text-sm text-black dark:text-white">{article.commentsCount}</span>}
           </button>
 
           {/* Repost */}
@@ -571,108 +388,8 @@ export default function ArticleViewPage() {
 
         {/* ── Comments ── */}
         <div id="comments" className="mt-10">
-          <h2 className="text-base font-semibold text-white mb-4">
-            Yorumlar ({totalCommentCount})
-          </h2>
-
-          {isAuthenticated && user && (
-            <form onSubmit={handleAddComment} className="flex gap-3 mb-6">
-              <Avatar
-                src={user.avatarUrl}
-                alt={user.displayName ?? ''}
-                size="sm"
-                className="shrink-0 mt-0.5"
-              />
-              <div className="flex-1">
-                <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
-                  <div className="flex-1">
-                    {replyTo && (
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="text-xs text-brand-400">@{replyTo.username} yanıtlanıyor</span>
-                        <button
-                          type="button"
-                          onClick={() => { setReplyTo(null); setCommentText('') }}
-                          className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    )}
-                    <textarea
-                      ref={commentInputRef}
-                      id="comment-input"
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      placeholder="Yorum yaz..."
-                      rows={1}
-                      className="w-full bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
-                      style={{ minHeight: '24px' }}
-                    />
-                  </div>
-                  <div className="relative flex items-center gap-0.5 shrink-0">
-                    {showEmoji && (
-                      <EmojiPicker
-                        anchorRef={emojiBtnRef}
-                        onSelect={(e) => insertAtCursor(commentInputRef.current, commentText, e, setCommentText)}
-                        onClose={() => setShowEmoji(false)}
-                      />
-                    )}
-                    <button
-                      ref={emojiBtnRef}
-                      type="button"
-                      onClick={() => { setShowEmoji((v) => !v); setShowSnippet(false) }}
-                      title="Emoji ekle"
-                      className={cn('p-1.5 rounded-lg transition-colors', showEmoji ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-300')}
-                    >
-                      <IconMoodSmile className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setShowSnippet((v) => !v); setShowEmoji(false) }}
-                      title="Snippet ekle"
-                      className={cn('p-1.5 rounded-lg transition-colors', showSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300')}
-                    >
-                      <IconCode className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting || !commentText.trim()}
-                      className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
-                      title="Gönder"
-                    >
-                      {submitting ? <Spinner /> : <IconSend className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-                {showSnippet && (
-                  <SnippetPanel
-                    onInsert={(snippet) => insertAtCursor(commentInputRef.current, commentText, snippet, setCommentText)}
-                    onClose={() => setShowSnippet(false)}
-                  />
-                )}
-              </div>
-            </form>
-          )}
-
-          {commentsLoading ? (
-            <div className="flex justify-center py-10"><Spinner /></div>
-          ) : comments.length === 0 ? (
-            <p className="text-center text-gray-500 text-sm py-10">
-              Henüz yorum yok. İlk yorumu yap!
-            </p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {comments.map((c) => (
-                <CommentRow
-                  key={c.id}
-                  comment={c}
-                  currentUserId={user?.id}
-                  onReply={handleReplyClick}
-                  onDelete={handleDeleteComment}
-                />
-              ))}
-            </div>
-          )}
+          <h2 className="text-base font-semibold text-white mb-4">Yorumlar</h2>
+          <CommentThread articleId={article.id} />
         </div>
       </article>
 
@@ -690,7 +407,7 @@ export default function ArticleViewPage() {
       />
       <ArticleStatsModal
         open={statsOpen}
-        onClose={() => setStatsOpen(false)}
+        onClose={() => setStatsOpen(false)        }
         articleId={article.id}
         likesCount={article.likesCount}
         savesCount={article.savesCount}
