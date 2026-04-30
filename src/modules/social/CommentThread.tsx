@@ -124,7 +124,7 @@ export default function CommentThread({ postId, articleId, onCommentAdded }: Com
           <p className="text-sm mt-1">İlk yorumu sen yap!</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col divide-y divide-surface-border/50">
           {comments.map((comment) => (
             <CommentItem key={comment.id} comment={comment} postId={storeKey} />
           ))}

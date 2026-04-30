@@ -121,7 +121,7 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
   }
 
   return (
-    <div id={`comment-${comment.id}`} className="flex flex-col">
+    <div id={`comment-${comment.id}`} className="flex flex-col py-3">
       {/* Comment row */}
       <div className="flex gap-3">
         {/* Avatar column */}
