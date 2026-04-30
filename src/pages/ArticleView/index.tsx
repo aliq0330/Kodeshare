@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash, IconQuote } from '@tabler/icons-react'
+import { IconArrowLeft, IconClock, IconLink, IconBook2, IconHeart, IconMessageCircle, IconRepeat, IconBookmark, IconDots, IconShare, IconFolderPlus, IconChartBar, IconPencil, IconSend, IconTrash, IconQuote, IconCode } from '@tabler/icons-react'
 import { articleService } from '@services/articleService'
 import { useArticleStore } from '@store/articleStore'
 import type { ArticleRecord, ArticleComment } from '@services/articleService'
@@ -13,7 +13,9 @@ import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import { useComposerStore } from '@store/composerStore'
 import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
+import { CommentContent, SnippetPanel } from '@modules/social/CommentSnippet'
 import { timeAgo } from '@utils/formatters'
+import { cn } from '@utils/cn'
 import toast from 'react-hot-toast'
 
 function formatDate(iso: string) {
@@ -79,7 +81,7 @@ function CommentRow({ comment, currentUserId, onReply, onDelete }: CommentRowPro
               </button>
             )}
           </div>
-          <p className="text-sm text-gray-300 whitespace-pre-wrap break-words">{comment.content}</p>
+          <CommentContent content={comment.content} />
         </div>
         <button
           onClick={() => onReply(comment.id, comment.author.username)}
@@ -122,7 +124,7 @@ function CommentRow({ comment, currentUserId, onReply, onDelete }: CommentRowPro
                         </button>
                       )}
                     </div>
-                    <p className="text-sm text-gray-300 whitespace-pre-wrap break-words">{reply.content}</p>
+                    <CommentContent content={reply.content} />
                   </div>
                 </div>
               </div>
@@ -152,6 +154,7 @@ export default function ArticleViewPage() {
   const [commentText, setCommentText]       = useState('')
   const [replyTo, setReplyTo]               = useState<{ parentId: string; username: string } | null>(null)
   const [submitting, setSubmitting]         = useState(false)
+  const [showSnippet, setShowSnippet]       = useState(false)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [statsOpen, setStatsOpen]           = useState(false)
@@ -304,6 +307,7 @@ export default function ArticleViewPage() {
       }
       setCommentText('')
       setReplyTo(null)
+      setShowSnippet(false)
     } catch {
       toast.error('Yorum gönderilemedi')
     } finally {
@@ -568,43 +572,64 @@ export default function ArticleViewPage() {
                 size="sm"
                 className="shrink-0 mt-0.5"
               />
-              <div className="flex-1 flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
-                <div className="flex-1">
-                  {replyTo && (
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-xs text-brand-400">@{replyTo.username} yanıtlanıyor</span>
-                      <button
-                        type="button"
-                        onClick={() => { setReplyTo(null); setCommentText('') }}
-                        className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-                  <textarea
-                    id="comment-input"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Yorum yaz..."
-                    rows={1}
-                    className="w-full bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        handleAddComment(e as unknown as React.FormEvent)
-                      }
-                    }}
-                  />
+              <div className="flex-1">
+                <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
+                  <div className="flex-1">
+                    {replyTo && (
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-xs text-brand-400">@{replyTo.username} yanıtlanıyor</span>
+                        <button
+                          type="button"
+                          onClick={() => { setReplyTo(null); setCommentText('') }}
+                          className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                    <textarea
+                      id="comment-input"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Yorum yaz..."
+                      rows={1}
+                      className="w-full bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          handleAddComment(e as unknown as React.FormEvent)
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowSnippet((v) => !v)}
+                      title="Snippet ekle"
+                      className={cn(
+                        'p-1.5 rounded-lg transition-colors',
+                        showSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300',
+                      )}
+                    >
+                      <IconCode className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting || !commentText.trim()}
+                      className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
+                      title="Gönder"
+                    >
+                      {submitting ? <Spinner /> : <IconSend className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="submit"
-                  disabled={submitting || !commentText.trim()}
-                  className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
-                  title="Gönder"
-                >
-                  {submitting ? <Spinner /> : <IconSend className="w-4 h-4" />}
-                </button>
+                {showSnippet && (
+                  <SnippetPanel
+                    onInsert={(snippet) => setCommentText((prev) => prev ? `${prev}\n${snippet}` : snippet)}
+                    onClose={() => setShowSnippet(false)}
+                  />
+                )}
               </div>
             </form>
           )}

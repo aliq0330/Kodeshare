@@ -1,26 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { IconHeart, IconArrowBackUp, IconChevronDown, IconChevronUp, IconSend, IconDots, IconPencil, IconTrash } from '@tabler/icons-react'
+import { IconHeart, IconArrowBackUp, IconChevronDown, IconChevronUp, IconSend, IconDots, IconPencil, IconTrash, IconCode } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import { timeAgo } from '@utils/formatters'
 import { cn } from '@utils/cn'
 import { useCommentStore } from '@store/commentStore'
 import { useAuthStore } from '@store/authStore'
+import { CommentContent, SnippetPanel } from './CommentSnippet'
 import type { Comment } from '@/types'
 import toast from 'react-hot-toast'
-
-function renderContent(content: string) {
-  const parts = content.split(/(@\w+|#\w+)/g)
-  return parts.map((part, i) => {
-    if (part.startsWith('@')) {
-      return <Link key={i} to={`/profile/${part.slice(1)}`} className="text-brand-400 hover:underline">{part}</Link>
-    }
-    if (part.startsWith('#')) {
-      return <Link key={i} to={`/explore?tag=${part.slice(1)}`} className="text-brand-400 hover:underline">{part}</Link>
-    }
-    return part
-  })
-}
 
 interface CommentItemProps {
   comment: Comment
@@ -35,6 +23,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
   const [showReplyBox, setShowReplyBox] = useState(false)
   const [replyText, setReplyText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showReplySnippet, setShowReplySnippet] = useState(false)
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -70,6 +59,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
       await addReply(postId, comment.id, replyText.trim())
       setReplyText('')
       setShowReplyBox(false)
+      setShowReplySnippet(false)
     } catch {
       toast.error('Yanıt gönderilemedi')
     } finally {
@@ -125,9 +115,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                   <IconDots className="w-3.5 h-3.5" />
                 </button>
                 {menuOpen && (
-                  <div
-                    className="absolute right-0 top-full mt-1 z-20 card shadow-xl py-1 min-w-[120px]"
-                  >
+                  <div className="absolute right-0 top-full mt-1 z-20 card shadow-xl py-1 min-w-[120px]">
                     <button
                       onClick={() => { setEditText(comment.content); setEditMode(true); setMenuOpen(false) }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-surface-raised hover:text-white transition-colors"
@@ -181,7 +169,7 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
               </div>
             </form>
           ) : (
-            <p className="text-sm text-gray-300 leading-relaxed">{renderContent(comment.content)}</p>
+            <CommentContent content={comment.content} />
           )}
         </div>
 
@@ -214,34 +202,57 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
         </div>
 
         {showReplyBox && (
-          <form onSubmit={handleReply} className="mt-2 flex gap-2">
-            <div className="flex-1 flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
-              <textarea
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder={`@${comment.author.username} yanıtla...`}
-                rows={1}
-                className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
-                style={{ minHeight: '24px', maxHeight: '80px' }}
-                onInput={(e) => {
-                  const t = e.target as HTMLTextAreaElement
-                  t.style.height = 'auto'
-                  t.style.height = t.scrollHeight + 'px'
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleReply(e as unknown as React.FormEvent)
-                  }
-                }}
-              />
-              <button
-                type="submit"
-                disabled={!replyText.trim() || submitting}
-                className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
-              >
-                <IconSend className="w-3.5 h-3.5" />
-              </button>
+          <form onSubmit={handleReply} className="mt-2">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={`@${comment.author.username} yanıtla...`}
+                    rows={1}
+                    className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
+                    style={{ minHeight: '24px', maxHeight: '80px' }}
+                    onInput={(e) => {
+                      const t = e.target as HTMLTextAreaElement
+                      t.style.height = 'auto'
+                      t.style.height = t.scrollHeight + 'px'
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleReply(e as unknown as React.FormEvent)
+                      }
+                    }}
+                  />
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowReplySnippet((v) => !v)}
+                      title="Snippet ekle"
+                      className={cn(
+                        'p-1.5 rounded-lg transition-colors',
+                        showReplySnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300',
+                      )}
+                    >
+                      <IconCode className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!replyText.trim() || submitting}
+                      className="shrink-0 p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
+                    >
+                      <IconSend className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                {showReplySnippet && (
+                  <SnippetPanel
+                    onInsert={(snippet) => setReplyText((prev) => prev ? `${prev}\n${snippet}` : snippet)}
+                    onClose={() => setShowReplySnippet(false)}
+                  />
+                )}
+              </div>
             </div>
           </form>
         )}
