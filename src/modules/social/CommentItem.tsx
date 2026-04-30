@@ -43,7 +43,7 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
   const isOwner = !!user && user.id === comment.author.id
 
   const showLineBelow =
-    (depth === 0 && showReplies && comment.replies.length > 0) ||
+    (depth === 0 && (showReplyBox || (showReplies && comment.replies.length > 0))) ||
     (depth > 0 && !isLast)
 
   useEffect(() => {
@@ -278,8 +278,26 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
             )}
           </div>
 
-          {showReplyBox && (
-            <form onSubmit={handleReply} className="mt-2 pl-3 border-l-2 border-surface-border">
+        </div>
+      </div>
+
+      {/* Reply form row — same thread structure as reply items */}
+      {showReplyBox && (
+        <div className="flex gap-3">
+          <div className="flex flex-col items-center shrink-0">
+            <div className="w-px h-3 bg-surface-border" />
+            <Avatar
+              src={user?.avatarUrl ?? undefined}
+              alt={user?.displayName ?? ''}
+              size="sm"
+              className="mt-0"
+            />
+            {showReplies && comment.replies.length > 0 && (
+              <div className="w-px flex-1 bg-surface-border" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0 pt-3 pb-3">
+            <form onSubmit={handleReply}>
               <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
                 <textarea
                   ref={replyRef}
@@ -331,9 +349,9 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
                 />
               )}
             </form>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Replies — rendered at flex-col level so they take full width */}
       {showReplies && comment.replies.length > 0 && (
