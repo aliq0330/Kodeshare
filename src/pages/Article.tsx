@@ -58,6 +58,15 @@ export default function ArticlePage() {
     }
   }
 
+  const handleUpdate = async () => {
+    try {
+      await saveArticle()
+      toast.success('Makale güncellendi')
+    } catch (err) {
+      toast.error((err as Error).message || 'Kaydedilemedi')
+    }
+  }
+
   const handlePublish = async () => {
     try {
       await publishArticle()
@@ -147,8 +156,17 @@ export default function ArticlePage() {
               <span className="hidden sm:inline">Önizle</span>
             </button>
 
-            {/* Taslak kaydet */}
-            {!isPublished && (
+            {/* Taslak kaydet / Güncelle */}
+            {isPublished ? (
+              <button
+                onClick={handleUpdate}
+                disabled={isSaving || !isDirty}
+                className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-surface-border text-sm text-gray-300 hover:text-white hover:bg-surface-raised disabled:opacity-50 transition-colors"
+              >
+                <IconDeviceFloppy className="w-4 h-4" />
+                <span className="hidden sm:inline">Güncelle</span>
+              </button>
+            ) : (
               <button
                 onClick={handleSaveDraft}
                 disabled={isSaving}
@@ -191,6 +209,14 @@ export default function ArticlePage() {
                 <div className="absolute right-0 top-full mt-1 w-44 card shadow-2xl py-1 z-50">
                   {isPublished ? (
                     <>
+                      <button
+                        onClick={() => { handleUpdate(); setMenuOpen(false) }}
+                        disabled={isSaving || !isDirty}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors disabled:opacity-50"
+                      >
+                        <IconDeviceFloppy className="w-4 h-4 text-brand-400 shrink-0" />
+                        Güncelle
+                      </button>
                       <button
                         onClick={handleCopyLink}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
