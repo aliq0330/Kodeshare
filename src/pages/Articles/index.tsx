@@ -40,8 +40,13 @@ export default function ArticlesPage() {
     navigate('/makale')
   }
 
-  const handleOpen = (record: ArticleRecord) => {
-    loadArticle(record)
+  const handleOpen = async (record: ArticleRecord) => {
+    try {
+      const full = await articleService.get(record.id)
+      loadArticle(full)
+    } catch {
+      loadArticle(record)
+    }
     navigate('/makale')
   }
 

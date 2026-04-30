@@ -297,6 +297,18 @@ export const articleService = {
       .select(ARTICLE_FULL_SELECT)
       .single()
     if (error) throw new Error(error.message)
+
+    // Delete the auto-created feed post for this article
+    const { data: articleBlocks } = await supabase
+      .from('post_blocks')
+      .select('post_id')
+      .eq('type', 'article')
+      .contains('data', { articleId: id })
+    if (articleBlocks && articleBlocks.length > 0) {
+      const postIds = (articleBlocks as Array<{ post_id: string }>).map((b) => b.post_id)
+      await supabase.from('posts').delete().in('id', postIds)
+    }
+
     return mapArticle(data as unknown as Record<string, unknown>, userId)
   },
 

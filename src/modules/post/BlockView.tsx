@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { IconCopy, IconCheck, IconFolderOpen, IconFileCode, IconFileText, IconExternalLink, IconPlayerPlay } from '@tabler/icons-react'
+import { IconCopy, IconCheck, IconFolderOpen, IconFileCode, IconFileText, IconExternalLink, IconPlayerPlay, IconChevronRight, IconChevronDown } from '@tabler/icons-react'
 import CMHighlight from '@components/shared/CMHighlight'
 import { LANGUAGE_COLORS } from '@utils/constants'
 import { useIsLightMode } from '@hooks/useIsLightMode'
@@ -91,6 +91,7 @@ interface ProjectBlockViewProps {
 
 function ProjectBlockView({ block, compact, title, onFork }: ProjectBlockViewProps) {
   const files = (block.data.files as Array<{ name: string; language: string; content: string }>) ?? []
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
 
   if (compact) {
     return (
@@ -122,12 +123,23 @@ function ProjectBlockView({ block, compact, title, onFork }: ProjectBlockViewPro
       </div>
       <div className="border-b border-surface-border">
         {files.map((f, i) => (
-          <div key={i} className="flex items-center gap-2.5 px-3 py-2 border-b border-surface-border/40 last:border-0">
-            <span className="text-[10px] font-bold font-mono w-8 shrink-0" style={{ color: LANGUAGE_COLORS[f.language] ?? '#8b9ab5' }}>
-              {f.name.split('.').pop()?.toUpperCase()}
-            </span>
-            <IconFileCode className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-            <span className="text-sm text-gray-300 font-mono">{f.name}</span>
+          <div key={i} className="border-b border-surface-border/40 last:border-0">
+            <button
+              onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-raised/40 transition-colors text-left"
+            >
+              {expandedIdx === i
+                ? <IconChevronDown className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                : <IconChevronRight className="w-3.5 h-3.5 text-gray-500 shrink-0" />}
+              <span className="text-[10px] font-bold font-mono w-8 shrink-0" style={{ color: LANGUAGE_COLORS[f.language] ?? '#8b9ab5' }}>
+                {f.name.split('.').pop()?.toUpperCase()}
+              </span>
+              <IconFileCode className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+              <span className="text-sm text-gray-300 font-mono">{f.name}</span>
+            </button>
+            {expandedIdx === i && (
+              <CMHighlight code={f.content} lang={f.language} scroll className="max-h-[40vh]" />
+            )}
           </div>
         ))}
       </div>

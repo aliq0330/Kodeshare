@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconHeart, IconArrowBackUp, IconChevronDown, IconChevronUp, IconSend, IconDots, IconPencil, IconTrash } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
@@ -43,6 +43,15 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
   const menuRef = useRef<HTMLDivElement>(null)
 
   const isOwner = !!user && user.id === comment.author.id
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const h = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [menuOpen])
 
   const handleLike = async () => {
     if (!isAuthenticated) return
@@ -118,7 +127,6 @@ export default function CommentItem({ comment, postId, depth = 0 }: CommentItemP
                 {menuOpen && (
                   <div
                     className="absolute right-0 top-full mt-1 z-20 card shadow-xl py-1 min-w-[120px]"
-                    onMouseLeave={() => setMenuOpen(false)}
                   >
                     <button
                       onClick={() => { setEditText(comment.content); setEditMode(true); setMenuOpen(false) }}
