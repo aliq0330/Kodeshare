@@ -339,7 +339,7 @@ export default function ArticleEditor() {
           rows={1}
           className={cn(
             'w-full resize-none bg-transparent border-none outline-none overflow-hidden',
-            'text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight',
+            'text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight',
             'text-white dark:text-white placeholder:text-gray-700',
           )}
           style={{ minHeight: '3rem' }}
@@ -353,7 +353,7 @@ export default function ArticleEditor() {
           rows={1}
           className={cn(
             'w-full resize-none bg-transparent border-none outline-none overflow-hidden mt-3',
-            'text-xl sm:text-2xl font-light leading-relaxed',
+            'text-base sm:text-lg font-light leading-relaxed',
             'text-gray-400 dark:text-gray-400 placeholder:text-gray-700',
           )}
           style={{ minHeight: '2rem' }}
