@@ -808,14 +808,14 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
           {/* Quoted post preview */}
           {quotedPost && (
-            <div className="rounded-xl border border-brand-500/30 bg-surface-raised/40 p-3">
+            <div className="rounded-xl border border-surface-border bg-surface-raised/40 p-3">
               <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-brand-400 mb-2">
                 <IconQuote className="w-3 h-3" />
                 Alıntılanan Gönderi
               </div>
               <div className="flex items-center gap-2 mb-1.5">
                 <Avatar src={quotedPost.author.avatarUrl} alt={quotedPost.author.displayName} size="xs" />
-                <span className="text-xs font-medium text-white">{quotedPost.author.displayName}</span>
+                <span className="text-xs font-medium text-gray-200">{quotedPost.author.displayName}</span>
                 <span className="text-xs text-gray-500">@{quotedPost.author.username}</span>
               </div>
               <Link to={`/post/${quotedPost.id}`} className="block" onClick={(e) => e.stopPropagation()}>
@@ -824,6 +824,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                   <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{quotedPost.description}</p>
                 )}
               </Link>
+              {quotedPost.blocks.length > 0 && (
+                <div className="mt-2">
+                  <BlockView blocks={quotedPost.blocks} compact postTitle={quotedPost.title} />
+                </div>
+              )}
             </div>
           )}
 
@@ -860,7 +865,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         {composerMode === 'preview' && (() => {
           const previewTitle = description.trim().split('\n')[0].slice(0, 100) || 'Gönderi'
           const previewBlocks = composerBlocksToPostBlocks(blocks)
-          const hasContent = description.trim() || tags.length > 0 || previewBlocks.length > 0
+          const hasContent = description.trim() || tags.length > 0 || previewBlocks.length > 0 || !!quotedPost
           return (
             <div className="flex flex-col gap-4 flex-1">
               {hasContent ? (
@@ -878,6 +883,24 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                   )}
                   {previewBlocks.length > 0 && (
                     <BlockView blocks={previewBlocks} postTitle={previewTitle} />
+                  )}
+                  {quotedPost && (
+                    <div className="rounded-xl border border-surface-border bg-surface-raised/40 p-3">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Avatar src={quotedPost.author.avatarUrl} alt={quotedPost.author.displayName} size="xs" />
+                        <span className="text-xs font-medium text-gray-200">{quotedPost.author.displayName}</span>
+                        <span className="text-xs text-gray-500">@{quotedPost.author.username}</span>
+                      </div>
+                      <p className="text-sm font-semibold text-white line-clamp-2">{quotedPost.title}</p>
+                      {quotedPost.description && (
+                        <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{quotedPost.description}</p>
+                      )}
+                      {quotedPost.blocks.length > 0 && (
+                        <div className="mt-2">
+                          <BlockView blocks={quotedPost.blocks} compact postTitle={quotedPost.title} />
+                        </div>
+                      )}
+                    </div>
                   )}
                 </>
               ) : (
