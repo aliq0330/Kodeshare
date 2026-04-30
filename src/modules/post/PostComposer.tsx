@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconPlus, IconChevronDown, IconX, IconTrash, IconCloud, IconCloudUpload, IconClock, IconHash, IconEye, IconPencil } from '@tabler/icons-react'
+import { Link } from 'react-router-dom'
+import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconPlus, IconChevronDown, IconX, IconTrash, IconCloud, IconCloudUpload, IconClock, IconHash, IconEye, IconPencil, IconQuote } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
@@ -173,7 +174,7 @@ interface PostComposerProps {
 export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { user, isAuthenticated } = useAuthStore()
   const { createPost } = usePostStore()
-  const { open, prefilledProject, prefilledSnippet, prefilledArticle, editingPost, onEditSaved, openComposer, closeComposer } = useComposerStore()
+  const { open, prefilledProject, prefilledSnippet, prefilledArticle, editingPost, quotedPost, onEditSaved, openComposer, closeComposer } = useComposerStore()
 
   const [composerMode, setComposerMode] = useState<'edit' | 'preview'>('edit')
   const [description, setDescription] = useState('')
@@ -494,6 +495,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           description: desc || undefined,
           tags,
           blocks: validBlocks,
+          ...(quotedPost ? { repostedFrom: quotedPost.id } : {}),
         })
         if (cloudDraftId) void draftService.delete(cloudDraftId).catch(() => {})
         toast.success('Gönderi paylaşıldı!')
@@ -801,6 +803,27 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Quoted post preview */}
+          {quotedPost && (
+            <div className="rounded-xl border border-brand-500/30 bg-surface-raised/40 p-3">
+              <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-brand-400 mb-2">
+                <IconQuote className="w-3 h-3" />
+                Alıntılanan Gönderi
+              </div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <Avatar src={quotedPost.author.avatarUrl} alt={quotedPost.author.displayName} size="xs" />
+                <span className="text-xs font-medium text-white">{quotedPost.author.displayName}</span>
+                <span className="text-xs text-gray-500">@{quotedPost.author.username}</span>
+              </div>
+              <Link to={`/post/${quotedPost.id}`} className="block" onClick={(e) => e.stopPropagation()}>
+                <p className="text-sm font-semibold text-white line-clamp-2">{quotedPost.title}</p>
+                {quotedPost.description && (
+                  <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{quotedPost.description}</p>
+                )}
+              </Link>
             </div>
           )}
 

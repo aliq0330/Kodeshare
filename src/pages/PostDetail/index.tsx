@@ -8,7 +8,6 @@ import AddToSeriesModal from '@modules/series/AddToSeriesModal'
 import ShareModal from '@modules/social/ShareModal'
 import CommentThread from '@modules/social/CommentThread'
 import RepostMenu from '@modules/post/RepostMenu'
-import QuoteComposer from '@modules/post/QuoteComposer'
 import PostStatsModal from '@modules/post/PostStatsModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
@@ -31,13 +30,13 @@ export default function PostDetailPage() {
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [seriesModalOpen, setSeriesModalOpen]   = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
-  const [quoteOpen, setQuoteOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const { hash } = useLocation()
   const openEditComposer = useComposerStore((s) => s.openEditComposer)
+  const openWithQuote    = useComposerStore((s) => s.openWithQuote)
 
   const loadedComments = useCommentStore((s) => (post ? s.commentsByPost[post.id] : undefined))
   const liveCommentCount = loadedComments
@@ -349,7 +348,7 @@ export default function PostDetailPage() {
                 <RepostMenu
                   post={post}
                   onRepost={handleRepost}
-                  onQuote={() => setQuoteOpen(true)}
+                  onQuote={() => openWithQuote(post)}
                 />
               ) : (
                 <span className="flex items-center gap-1.5 text-sm">
@@ -397,13 +396,6 @@ export default function PostDetailPage() {
         likesCount={post.likesCount}
         repostCount={post.repostCount}
       />
-      {isAuthenticated && (
-        <QuoteComposer
-          open={quoteOpen}
-          onClose={() => setQuoteOpen(false)}
-          post={post}
-        />
-      )}
       <PostEditHistoryModal
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { SavedProject } from '@services/projectService'
-import type { Post, PostBlock } from '@/types'
+import type { Post, PostBlock, PostPreview } from '@/types'
 
 interface PrefilledSnippet {
   code: string
@@ -22,10 +22,12 @@ interface ComposerStore {
   prefilledSnippet: PrefilledSnippet | null
   prefilledArticle: PrefilledArticle | null
   editingPost: Post | null
+  quotedPost: PostPreview | null
   onEditSaved: ((updated: EditSavedPayload) => void) | null
   openWithProject: (project: SavedProject) => void
   openWithSnippet: (code: string, language: string) => void
   openWithArticle: (article: PrefilledArticle) => void
+  openWithQuote: (post: PostPreview) => void
   openComposer: () => void
   openEditComposer: (post: Post, onSaved?: (updated: EditSavedPayload) => void) => void
   closeComposer: () => void
@@ -37,11 +39,13 @@ export const useComposerStore = create<ComposerStore>((set) => ({
   prefilledSnippet:  null,
   prefilledArticle:  null,
   editingPost:       null,
+  quotedPost:        null,
   onEditSaved:       null,
-  openWithProject:   (project)        => set({ open: true, prefilledProject: project, prefilledSnippet: null, prefilledArticle: null, editingPost: null, onEditSaved: null }),
-  openWithSnippet:   (code, language) => set({ open: true, prefilledSnippet: { code, language }, prefilledProject: null, prefilledArticle: null, editingPost: null, onEditSaved: null }),
-  openWithArticle:   (article)        => set({ open: true, prefilledArticle: article, prefilledProject: null, prefilledSnippet: null, editingPost: null, onEditSaved: null }),
-  openComposer:      ()               => set({ open: true, prefilledProject: null, prefilledSnippet: null, prefilledArticle: null, editingPost: null, onEditSaved: null }),
-  openEditComposer:  (post, onSaved)  => set({ open: true, editingPost: post, onEditSaved: onSaved ?? null, prefilledProject: null, prefilledSnippet: null, prefilledArticle: null }),
-  closeComposer:     ()               => set({ open: false, editingPost: null, onEditSaved: null }),
+  openWithProject:   (project)        => set({ open: true, prefilledProject: project, prefilledSnippet: null, prefilledArticle: null, quotedPost: null, editingPost: null, onEditSaved: null }),
+  openWithSnippet:   (code, language) => set({ open: true, prefilledSnippet: { code, language }, prefilledProject: null, prefilledArticle: null, quotedPost: null, editingPost: null, onEditSaved: null }),
+  openWithArticle:   (article)        => set({ open: true, prefilledArticle: article, prefilledProject: null, prefilledSnippet: null, quotedPost: null, editingPost: null, onEditSaved: null }),
+  openWithQuote:     (post)           => set({ open: true, quotedPost: post, prefilledProject: null, prefilledSnippet: null, prefilledArticle: null, editingPost: null, onEditSaved: null }),
+  openComposer:      ()               => set({ open: true, prefilledProject: null, prefilledSnippet: null, prefilledArticle: null, quotedPost: null, editingPost: null, onEditSaved: null }),
+  openEditComposer:  (post, onSaved)  => set({ open: true, editingPost: post, onEditSaved: onSaved ?? null, prefilledProject: null, prefilledSnippet: null, prefilledArticle: null, quotedPost: null }),
+  closeComposer:     ()               => set({ open: false, editingPost: null, onEditSaved: null, quotedPost: null }),
 }))

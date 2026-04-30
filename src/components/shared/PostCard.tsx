@@ -11,7 +11,6 @@ import PostStatsModal from '@modules/post/PostStatsModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
 import RepostMenu from '@modules/post/RepostMenu'
-import QuoteComposer from '@modules/post/QuoteComposer'
 import { postService } from '@services/postService'
 import { articleService } from '@services/articleService'
 import { compactNumber, timeAgo } from '@utils/formatters'
@@ -47,7 +46,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   const loadArticle = useArticleStore((s) => s.loadArticle)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
-  const [quoteOpen, setQuoteOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [seriesModalOpen, setSeriesModalOpen] = useState(false)
@@ -58,6 +56,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   const menuRef = useRef<HTMLDivElement>(null)
 
   const openEditComposer = useComposerStore((s) => s.openEditComposer)
+  const openWithQuote    = useComposerStore((s) => s.openWithQuote)
   const isOwner = !!user && user.id === post.author.id
 
   const getArticleId = (p: Post): string | null => {
@@ -181,7 +180,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
   const handleQuote = () => {
     if (!isAuthenticated) return
-    setQuoteOpen(true)
+    openWithQuote(repostTarget)
   }
 
   const repostTarget: Post = localPost.type === 'repost' && localPost.repostedFrom
@@ -310,13 +309,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
         likesCount={displayArticleId ? (articleData?.likesCount ?? 0) : display.likesCount}
         repostCount={display.repostCount}
       />
-      {isAuthenticated && (
-        <QuoteComposer
-          open={quoteOpen}
-          onClose={() => setQuoteOpen(false)}
-          post={repostTarget}
-        />
-      )}
       {isOwnerPost && !displayArticleId && (
         <PostEditHistoryModal
           open={historyOpen}
