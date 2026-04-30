@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconArrowLeft, IconDeviceFloppy, IconSend, IconClock, IconChecks, IconDots, IconEye, IconLink, IconWorld, IconEyeOff, IconCopy } from '@tabler/icons-react'
+import { IconArrowLeft, IconDeviceFloppy, IconSend, IconClock, IconChecks, IconDots, IconEye, IconLink, IconWorld, IconEyeOff, IconCopy, IconBook2 } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useArticleStore, type ArticleBlock } from '@store/articleStore'
 import ArticleEditor from '@modules/article/ArticleEditor'
@@ -123,6 +123,15 @@ export default function ArticlePage() {
                 <span className="hidden sm:inline">Link</span>
               </button>
             )}
+
+            {/* Taslaklar */}
+            <button
+              onClick={() => navigate('/makaleler')}
+              className="flex items-center gap-1.5 px-3 h-8 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
+            >
+              <IconBook2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Taslaklar</span>
+            </button>
 
             {/* Önizle */}
             <button
