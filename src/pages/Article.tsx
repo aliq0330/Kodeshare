@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconArrowLeft, IconDeviceFloppy, IconSend, IconClock, IconChecks, IconDots, IconEye, IconWorld, IconEyeOff, IconCopy } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
@@ -44,8 +44,20 @@ export default function ArticlePage() {
 
   const [showPreview,    setShowPreview]    = useState(false)
   const [menuOpen,       setMenuOpen]       = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => () => reset(), [reset])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
 
   const articleUrl = supabaseId ? `${window.location.origin}${import.meta.env.BASE_URL}makale/${supabaseId}` : null
 
@@ -177,7 +189,7 @@ export default function ArticlePage() {
             )}
 
             {/* Daha fazla menüsü */}
-            <div className="relative">
+            <div ref={menuRef} className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
