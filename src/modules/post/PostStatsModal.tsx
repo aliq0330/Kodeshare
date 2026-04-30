@@ -71,6 +71,15 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
     collections: 'border-purple-400 text-purple-400',
   }
 
+  const tabTextColors: Record<Tab, string> = {
+    likes:       'text-red-400',
+    reposts:     'text-green-400',
+    saves:       'text-brand-400',
+    collections: 'text-purple-400',
+  }
+
+  const activeTab = tabs.find((t) => t.id === tab) ?? tabs[0]
+
   const emptyMessages: Record<Tab, string> = {
     likes:       'Henüz beğeni yok',
     reposts:     'Henüz repost yok',
@@ -106,15 +115,10 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
         </div>
 
         {/* Aktif sekme etiketi + sayı */}
-        {(() => {
-          const active = tabs.find((t) => t.id === tab)!
-          return (
-            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-surface-border">
-              <span className={`text-sm font-medium ${tabColors[tab].split(' ')[1]}`}>{active.label}</span>
-              <span className="text-xs text-gray-500 bg-surface-raised px-1.5 py-0.5 rounded-full">{active.count}</span>
-            </div>
-          )
-        })()}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-surface-border">
+          <span className={`text-sm font-medium ${tabTextColors[tab]}`}>{activeTab.label}</span>
+          <span className="text-xs text-gray-500 bg-surface-raised px-1.5 py-0.5 rounded-full">{activeTab.count}</span>
+        </div>
 
         {/* List */}
         <div className="overflow-y-auto flex-1">
