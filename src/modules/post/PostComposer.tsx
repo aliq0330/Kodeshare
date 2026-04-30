@@ -870,7 +870,9 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             <div className="flex flex-col gap-4 flex-1">
               {hasContent ? (
                 <>
-                  <h2 className="text-xl font-bold text-white leading-snug">{previewTitle}</h2>
+                  {!description.trim() && (
+                    <h2 className="text-xl font-bold text-white leading-snug">{previewTitle}</h2>
+                  )}
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 -mt-2">
                       {tags.map((tag) => (
