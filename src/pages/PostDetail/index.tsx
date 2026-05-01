@@ -259,78 +259,83 @@ export default function PostDetailPage() {
             )}
 
             {/* Actions */}
-            <div className="flex items-center gap-6 mt-1 text-gray-400">
-              <button
-                onClick={handleLike}
-                className={`flex items-center gap-1.5 transition-colors ${
-                  post.isLiked ? 'text-red-500' : 'hover:text-red-400'
-                }`}
-              >
-                <IconHeart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
-                {post.likesCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(post.likesCount)}</span>}
-              </button>
-              <button
-                onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
-                className="flex items-center gap-1.5 hover:text-white transition-colors"
-              >
-                <IconMessageCircle className="w-5 h-5" />
-                {displayCommentCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(displayCommentCount)}</span>}
-              </button>
-              {isAuthenticated ? (
-                <RepostMenu
-                  post={post}
-                  onRepost={handleRepost}
-                  onQuote={() => openWithQuote(post)}
-                />
-              ) : (
-                <span className="flex items-center gap-1.5 text-sm">
-                  <IconRepeat className="w-5 h-5" />
-                  {post.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(post.repostCount)}</span>}
-                </span>
-              )}
-              <button
-                onClick={handleSave}
-                className={`ml-auto flex items-center gap-1.5 transition-colors ${
-                  post.isSaved ? 'text-white' : 'hover:text-white'
-                }`}
-              >
-                <IconBookmark className={`w-5 h-5 ${post.isSaved ? 'fill-current' : ''}`} />
-              </button>
-              {isAuthenticated && (
-                <div className="relative shrink-0" ref={menuRef}>
-                  <button type="button" onClick={() => setMenuOpen((v) => !v)} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors" title="Daha fazla">
-                    <IconDots className="w-4 h-4" />
-                  </button>
-                  {menuOpen && (
-                    <div className="absolute right-0 bottom-full mb-1 z-20 w-48 card shadow-2xl py-1">
-                      <button type="button" onClick={() => { setMenuOpen(false); setStatsOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                        <IconChartBar className="w-4 h-4 text-gray-400" /><span className="text-white">İstatistikler</span>
-                      </button>
-                      <button type="button" onClick={() => { setMenuOpen(false); setShareModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                        <IconShare className="w-4 h-4 text-gray-400" /><span className="text-white">Paylaş</span>
-                      </button>
-                      <button type="button" onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                        <IconFolderPlus className="w-4 h-4" /><span className="text-white">Koleksiyona ekle</span>
-                      </button>
-                      {isOwner && (
-                        <button type="button" onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                          <IconStack2 className="w-4 h-4 text-gray-400" /><span className="text-white">Seriye ekle</span>
+            <div className="flex items-center mt-1 text-gray-400">
+              <div className="w-3/5 flex items-center justify-center gap-6">
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-1.5 transition-colors ${
+                    post.isLiked ? 'text-red-500' : 'hover:text-red-400'
+                  }`}
+                >
+                  <IconHeart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
+                  {post.likesCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(post.likesCount)}</span>}
+                </button>
+                <button
+                  onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="flex items-center gap-1.5 hover:text-white transition-colors"
+                >
+                  <IconMessageCircle className="w-5 h-5" />
+                  {displayCommentCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(displayCommentCount)}</span>}
+                </button>
+                {isAuthenticated ? (
+                  <RepostMenu
+                    post={post}
+                    onRepost={handleRepost}
+                    onQuote={() => openWithQuote(post)}
+                  />
+                ) : (
+                  <span className="flex items-center gap-1.5 text-sm">
+                    <IconRepeat className="w-5 h-5" />
+                    {post.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(post.repostCount)}</span>}
+                  </span>
+                )}
+              </div>
+
+              <div className="w-2/5 flex items-center justify-end gap-1">
+                <button
+                  onClick={handleSave}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    post.isSaved ? 'text-white' : 'hover:text-white'
+                  }`}
+                >
+                  <IconBookmark className={`w-5 h-5 ${post.isSaved ? 'fill-current' : ''}`} />
+                </button>
+                {isAuthenticated && (
+                  <div className="relative shrink-0" ref={menuRef}>
+                    <button type="button" onClick={() => setMenuOpen((v) => !v)} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors" title="Daha fazla">
+                      <IconDots className="w-4 h-4" />
+                    </button>
+                    {menuOpen && (
+                      <div className="absolute right-0 bottom-full mb-1 z-20 w-48 card shadow-2xl py-1">
+                        <button type="button" onClick={() => { setMenuOpen(false); setStatsOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconChartBar className="w-4 h-4 text-gray-400" /><span className="text-white">İstatistikler</span>
                         </button>
-                      )}
-                      {isOwner && (
-                        <button type="button" onClick={() => { setMenuOpen(false); openEditComposer(post, handleEditSaved) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                          <IconPencil className="w-4 h-4 text-gray-400" /><span className="text-white">Düzenle</span>
+                        <button type="button" onClick={() => { setMenuOpen(false); setShareModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconShare className="w-4 h-4 text-gray-400" /><span className="text-white">Paylaş</span>
                         </button>
-                      )}
-                      {isOwner && (
-                        <button type="button" onClick={handleDelete} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                          <IconTrash className="w-4 h-4 text-gray-400" /><span className="text-white">Sil</span>
+                        <button type="button" onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconFolderPlus className="w-4 h-4" /><span className="text-white">Koleksiyona ekle</span>
                         </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                        {isOwner && (
+                          <button type="button" onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                            <IconStack2 className="w-4 h-4 text-gray-400" /><span className="text-white">Seriye ekle</span>
+                          </button>
+                        )}
+                        {isOwner && (
+                          <button type="button" onClick={() => { setMenuOpen(false); openEditComposer(post, handleEditSaved) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                            <IconPencil className="w-4 h-4 text-gray-400" /><span className="text-white">Düzenle</span>
+                          </button>
+                        )}
+                        {isOwner && (
+                          <button type="button" onClick={handleDelete} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                            <IconTrash className="w-4 h-4 text-gray-400" /><span className="text-white">Sil</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
         </div>
       </article>

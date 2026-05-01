@@ -389,42 +389,46 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             </Link>
 
             {/* Aksiyon çubuğu */}
-            <div className="flex items-center gap-6 text-gray-400">
-              <button
-                onClick={handleArticleLike}
-                className={`flex items-center gap-1.5 transition-colors ${
-                  articleData?.isLiked ? 'text-red-500' : 'hover:text-red-400'
-                }`}
-              >
-                <IconHeart className={`w-5 h-5 ${articleData?.isLiked ? 'fill-current' : ''}`} />
-                {(articleData?.likesCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(articleData?.likesCount ?? 0)}</span>}
-              </button>
+            <div className="flex items-center text-gray-400">
+              <div className="w-3/5 flex items-center justify-center gap-6">
+                <button
+                  onClick={handleArticleLike}
+                  className={`flex items-center gap-1.5 transition-colors ${
+                    articleData?.isLiked ? 'text-red-500' : 'hover:text-red-400'
+                  }`}
+                >
+                  <IconHeart className={`w-5 h-5 ${articleData?.isLiked ? 'fill-current' : ''}`} />
+                  {(articleData?.likesCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(articleData?.likesCount ?? 0)}</span>}
+                </button>
 
-              <Link
-                to={commentLink}
-                className="flex items-center gap-1.5 hover:text-white transition-colors"
-              >
-                <IconMessageCircle className="w-5 h-5" />
-              </Link>
+                <Link
+                  to={commentLink}
+                  className="flex items-center gap-1.5 hover:text-white transition-colors"
+                >
+                  <IconMessageCircle className="w-5 h-5" />
+                </Link>
 
-              {isAuthenticated ? (
-                <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
-              ) : (
-                <span className="flex items-center gap-1.5 text-xs">
-                  <IconRepeat className="w-5 h-5" />
-                  {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
-                </span>
-              )}
+                {isAuthenticated ? (
+                  <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
+                ) : (
+                  <span className="flex items-center gap-1.5 text-xs">
+                    <IconRepeat className="w-5 h-5" />
+                    {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
+                  </span>
+                )}
+              </div>
 
-              <button
-                onClick={handleArticleSave}
-                className={`ml-auto flex items-center gap-1.5 transition-colors ${
-                  articleData?.isSaved ? 'text-white' : 'hover:text-white'
-                }`}
-              >
-                <IconBookmark className={`w-5 h-5 ${articleData?.isSaved ? 'fill-current' : ''}`} />
-              </button>
-              {menuDropdown}
+              <div className="w-2/5 flex items-center justify-end gap-1">
+                <button
+                  onClick={handleArticleSave}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    articleData?.isSaved ? 'text-white' : 'hover:text-white'
+                  }`}
+                >
+                  <IconBookmark className={`w-5 h-5 ${articleData?.isSaved ? 'fill-current' : ''}`} />
+                </button>
+                {menuDropdown}
+              </div>
             </div>
             <CommentPreview
               articleId={displayArticleId}
@@ -530,36 +534,40 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-4 mt-1 text-gray-400">
-            <button
-              onClick={handlePostLike}
-              className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
-            >
-              <IconHeart className={`w-5 h-5 ${display.isLiked ? 'fill-current' : ''}`} />
-              {display.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.likesCount)}</span>}
-            </button>
+          <div className="flex items-center mt-1 text-gray-400">
+            <div className="w-3/5 flex items-center justify-center gap-6">
+              <button
+                onClick={handlePostLike}
+                className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
+              >
+                <IconHeart className={`w-5 h-5 ${display.isLiked ? 'fill-current' : ''}`} />
+                {display.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.likesCount)}</span>}
+              </button>
 
-            <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors">
-              <IconMessageCircle className="w-5 h-5" />
-              {display.commentsCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.commentsCount)}</span>}
-            </Link>
+              <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors">
+                <IconMessageCircle className="w-5 h-5" />
+                {display.commentsCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.commentsCount)}</span>}
+              </Link>
 
-            {isAuthenticated ? (
-              <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
-            ) : (
-              <span className="flex items-center gap-1.5 text-xs">
-                <IconRepeat className="w-5 h-5" />
-                {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
-              </span>
-            )}
+              {isAuthenticated ? (
+                <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
+              ) : (
+                <span className="flex items-center gap-1.5 text-xs">
+                  <IconRepeat className="w-5 h-5" />
+                  {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
+                </span>
+              )}
+            </div>
 
-            <button
-              onClick={handlePostSave}
-              className={`ml-auto flex items-center transition-colors ${display.isSaved ? 'text-white' : 'hover:text-white'}`}
-            >
-              <IconBookmark className={`w-5 h-5 ${display.isSaved ? 'fill-current' : ''}`} />
-            </button>
-            {menuDropdown}
+            <div className="w-2/5 flex items-center justify-end gap-1">
+              <button
+                onClick={handlePostSave}
+                className={`p-1.5 rounded-lg transition-colors ${display.isSaved ? 'text-white' : 'hover:text-white'}`}
+              >
+                <IconBookmark className={`w-5 h-5 ${display.isSaved ? 'fill-current' : ''}`} />
+              </button>
+              {menuDropdown}
+            </div>
           </div>
           {display.commentsCount > 0 && (
             <CommentPreview

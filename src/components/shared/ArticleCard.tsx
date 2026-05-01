@@ -108,70 +108,74 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
             </Link>
 
             {/* Actions */}
-            <div className="flex items-center gap-6 text-gray-400">
-              <button
-                onClick={handleLike}
-                className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
-              >
-                <IconHeart className={`w-5 h-5 ${article.isLiked ? 'fill-current' : ''}`} />
-                {article.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.likesCount)}</span>}
-              </button>
-
-              <Link
-                to={`/makale/${article.id}#comments`}
-                className="flex items-center gap-1.5 hover:text-white transition-colors"
-              >
-                <IconMessageCircle className="w-5 h-5" />
-              </Link>
-
-              {isAuthenticated ? (
+            <div className="flex items-center text-gray-400">
+              <div className="w-3/5 flex items-center justify-center gap-6">
                 <button
-                  onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
-                  className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
+                  onClick={handleLike}
+                  className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
                 >
-                  <IconRepeat className="w-5 h-5" />
+                  <IconHeart className={`w-5 h-5 ${article.isLiked ? 'fill-current' : ''}`} />
+                  {article.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.likesCount)}</span>}
                 </button>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <IconRepeat className="w-5 h-5" />
-                </span>
-              )}
 
-              <button
-                onClick={handleSave}
-                className={`ml-auto flex items-center gap-1.5 transition-colors ${article.isSaved ? 'text-white' : 'hover:text-white'}`}
-              >
-                <IconBookmark className={`w-5 h-5 ${article.isSaved ? 'fill-current' : ''}`} />
-              </button>
-              {isAuthenticated && (
-                <div className="relative shrink-0" ref={menuRef}>
+                <Link
+                  to={`/makale/${article.id}#comments`}
+                  className="flex items-center gap-1.5 hover:text-white transition-colors"
+                >
+                  <IconMessageCircle className="w-5 h-5" />
+                </Link>
+
+                {isAuthenticated ? (
                   <button
-                    type="button"
-                    onClick={() => setMenuOpen((v) => !v)}
-                    className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                    onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
+                    className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
                   >
-                    <IconDots className="w-4 h-4" />
+                    <IconRepeat className="w-5 h-5" />
                   </button>
-                  {menuOpen && (
-                    <div className="absolute right-0 bottom-full mb-1 z-20 w-48 card shadow-2xl py-1">
-                      <button type="button" onClick={() => { setShareOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                        <IconShare className="w-4 h-4 text-sky-400" /><span className="text-white">Paylaş</span>
-                      </button>
-                      <button type="button" onClick={() => { setCollectOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                        <IconFolderPlus className="w-4 h-4 text-brand-400" /><span className="text-white">Koleksiyona ekle</span>
-                      </button>
-                      {onRemoveFromCollection && (
-                        <button type="button" onClick={() => { setMenuOpen(false); onRemoveFromCollection() }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                          <IconFolderMinus className="w-4 h-4 text-red-400" /><span className="text-red-400">Bu koleksiyondan çıkar</span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <IconRepeat className="w-5 h-5" />
+                  </span>
+                )}
+              </div>
+
+              <div className="w-2/5 flex items-center justify-end gap-1">
+                <button
+                  onClick={handleSave}
+                  className={`p-1.5 rounded-lg transition-colors ${article.isSaved ? 'text-white' : 'hover:text-white'}`}
+                >
+                  <IconBookmark className={`w-5 h-5 ${article.isSaved ? 'fill-current' : ''}`} />
+                </button>
+                {isAuthenticated && (
+                  <div className="relative shrink-0" ref={menuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setMenuOpen((v) => !v)}
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                    >
+                      <IconDots className="w-4 h-4" />
+                    </button>
+                    {menuOpen && (
+                      <div className="absolute right-0 bottom-full mb-1 z-20 w-48 card shadow-2xl py-1">
+                        <button type="button" onClick={() => { setShareOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconShare className="w-4 h-4 text-sky-400" /><span className="text-white">Paylaş</span>
                         </button>
-                      )}
-                      <button type="button" onClick={() => { setStatsOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                        <IconChartBar className="w-4 h-4 text-purple-400" /><span className="text-white">İstatistikler</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                        <button type="button" onClick={() => { setCollectOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconFolderPlus className="w-4 h-4 text-brand-400" /><span className="text-white">Koleksiyona ekle</span>
+                        </button>
+                        {onRemoveFromCollection && (
+                          <button type="button" onClick={() => { setMenuOpen(false); onRemoveFromCollection() }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                            <IconFolderMinus className="w-4 h-4 text-red-400" /><span className="text-red-400">Bu koleksiyondan çıkar</span>
+                          </button>
+                        )}
+                        <button type="button" onClick={() => { setStatsOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconChartBar className="w-4 h-4 text-purple-400" /><span className="text-white">İstatistikler</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <CommentPreview
               articleId={article.id}

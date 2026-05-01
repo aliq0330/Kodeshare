@@ -274,66 +274,65 @@ export default function ArticleViewPage() {
         <ArticleBlocksRenderer blocks={article.blocks} />
 
         {/* ── Toolbar ── */}
-        <div className="border-t border-surface-border/40 mt-10 pt-4 flex items-center gap-6 text-gray-400">
-          {/* Like */}
-          <button
-            onClick={handleLike}
-            className={`flex items-center gap-1.5 transition-colors ${
-              article.isLiked ? 'text-red-500' : 'hover:text-red-400'
-            }`}
-            title="Beğen"
-          >
-            <IconHeart className={`w-5 h-5 ${article.isLiked ? 'fill-current' : ''}`} />
-            {article.likesCount > 0 && <span className="text-sm text-black dark:text-white">{article.likesCount}</span>}
-          </button>
-
-          {/* Comments scroll */}
-          <button
-            onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex items-center gap-1.5 hover:text-white transition-colors"
-            title="Yorumlar"
-          >
-            <IconMessageCircle className="w-5 h-5" />
-            {(article.commentsCount ?? 0) > 0 && <span className="text-sm text-black dark:text-white">{article.commentsCount}</span>}
-          </button>
-
-          {/* Repost */}
-          <div className="relative" ref={repostMenuRef}>
+        <div className="border-t border-surface-border/40 mt-10 pt-4 flex items-center text-gray-400">
+          {/* Left 60% — like / comment / repost centered */}
+          <div className="w-3/5 flex items-center justify-center gap-6">
             <button
-              onClick={() => setRepostMenuOpen((v) => !v)}
-              className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
-              title="Yeniden paylaş"
+              onClick={handleLike}
+              className={`flex items-center gap-1.5 transition-colors ${
+                article.isLiked ? 'text-red-500' : 'hover:text-red-400'
+              }`}
+              title="Beğen"
             >
-              <IconRepeat className="w-5 h-5" />
+              <IconHeart className={`w-5 h-5 ${article.isLiked ? 'fill-current' : ''}`} />
+              {article.likesCount > 0 && <span className="text-sm text-black dark:text-white">{article.likesCount}</span>}
             </button>
-            {repostMenuOpen && (
-              <div className="absolute left-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
-                <button
-                  type="button"
-                  onClick={handleDirectRepost}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                >
-                  <IconRepeat className="w-4 h-4 text-green-400" />
-                  <span className="text-white">Yeniden Gönder</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleQuoteArticle}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                >
-                  <IconQuote className="w-4 h-4 text-brand-400" />
-                  <span className="text-white">Alıntı yap</span>
-                </button>
-              </div>
-            )}
+
+            <button
+              onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-1.5 hover:text-white transition-colors"
+              title="Yorumlar"
+            >
+              <IconMessageCircle className="w-5 h-5" />
+              {(article.commentsCount ?? 0) > 0 && <span className="text-sm text-black dark:text-white">{article.commentsCount}</span>}
+            </button>
+
+            <div className="relative" ref={repostMenuRef}>
+              <button
+                onClick={() => setRepostMenuOpen((v) => !v)}
+                className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
+                title="Yeniden paylaş"
+              >
+                <IconRepeat className="w-5 h-5" />
+              </button>
+              {repostMenuOpen && (
+                <div className="absolute left-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+                  <button
+                    type="button"
+                    onClick={handleDirectRepost}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <IconRepeat className="w-4 h-4 text-green-400" />
+                    <span className="text-white">Yeniden Gönder</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleQuoteArticle}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
+                  >
+                    <IconQuote className="w-4 h-4 text-brand-400" />
+                    <span className="text-white">Alıntı yap</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Right side */}
-          <div className="ml-auto flex items-center gap-1">
-            {/* Save */}
+          {/* Right 40% — save + 3-dot menu */}
+          <div className="w-2/5 flex items-center justify-end gap-1">
             <button
               onClick={handleSave}
-              className={`flex items-center gap-1.5 px-3 h-9 rounded-lg transition-colors ${
+              className={`p-1.5 rounded-lg transition-colors ${
                 article.isSaved
                   ? 'text-white'
                   : 'text-gray-400 hover:text-white hover:bg-surface-raised'
@@ -343,16 +342,6 @@ export default function ArticleViewPage() {
               <IconBookmark className={`w-5 h-5 ${article.isSaved ? 'fill-current' : ''}`} />
             </button>
 
-            {/* Stats */}
-            <button
-              onClick={() => setStatsOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
-              title="İstatistikler"
-            >
-              <IconChartBar className="w-5 h-5" />
-            </button>
-
-            {/* 3-dot menu */}
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen((v) => !v)}
@@ -373,6 +362,13 @@ export default function ArticleViewPage() {
                       Düzenle
                     </button>
                   )}
+                  <button
+                    onClick={() => { setStatsOpen(true); setMenuOpen(false) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
+                  >
+                    <IconChartBar className="w-4 h-4 text-gray-400 shrink-0" />
+                    İstatistikler
+                  </button>
                   <button
                     onClick={() => { setShareModalOpen(true); setMenuOpen(false) }}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left text-gray-300 hover:text-white hover:bg-surface-raised transition-colors"
