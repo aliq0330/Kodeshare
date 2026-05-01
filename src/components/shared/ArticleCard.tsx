@@ -8,6 +8,7 @@ import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import { articleService } from '@services/articleService'
 import type { ArticleRecord } from '@services/articleService'
 import { useAuthStore } from '@store/authStore'
+import { useFollowStore } from '@store/followStore'
 import { useComposerStore } from '@store/composerStore'
 import FollowButton from '@modules/social/FollowButton'
 import { timeAgo, compactNumber } from '@utils/formatters'
@@ -27,6 +28,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
   const [shareOpen, setShareOpen]   = useState(false)
   const [statsOpen, setStatsOpen]   = useState(false)
   const { isAuthenticated, user }   = useAuthStore()
+  const { followingIds, initialized } = useFollowStore()
   const openWithArticle             = useComposerStore((s) => s.openWithArticle)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -81,7 +83,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
               </Link>
             )}
             {isAuthenticated && user?.id !== article.authorId && (
-              <FollowButton userId={article.authorId} isFollowing={false} size="xs" />
+              <FollowButton userId={article.authorId} isFollowing={initialized ? followingIds.has(article.authorId) : false} size="xs" />
             )}
           </div>
 

@@ -15,6 +15,7 @@ import FollowButton from '@modules/social/FollowButton'
 import { useComposerStore } from '@store/composerStore'
 import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
+import { useFollowStore } from '@store/followStore'
 import toast from 'react-hot-toast'
 
 function formatDate(iso: string) {
@@ -46,6 +47,7 @@ export default function ArticleViewPage() {
   const navigate = useNavigate()
 
   const { isAuthenticated, user } = useAuthStore()
+  const { followingIds, initialized } = useFollowStore()
   const { openWithArticle } = useComposerStore()
   const createPost = usePostStore((s) => s.createPost)
   const loadArticle = useArticleStore((s) => s.loadArticle)
@@ -250,7 +252,7 @@ export default function ArticleViewPage() {
               </Link>
             )}
             {isAuthenticated && user && article.authorId !== user.id && (
-              <FollowButton userId={article.authorId} isFollowing={false} size="xs" />
+              <FollowButton userId={article.authorId} isFollowing={initialized ? followingIds.has(article.authorId) : false} size="xs" />
             )}
           </div>
 

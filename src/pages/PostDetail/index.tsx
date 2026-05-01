@@ -16,6 +16,7 @@ import { timeAgo, compactNumber } from '@utils/formatters'
 import { postService } from '@services/postService'
 import { projectService } from '@services/projectService'
 import { useAuthStore } from '@store/authStore'
+import { useFollowStore } from '@store/followStore'
 import { useCommentStore } from '@store/commentStore'
 import { useComposerStore } from '@store/composerStore'
 import toast from 'react-hot-toast'
@@ -25,6 +26,7 @@ export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
   const { isAuthenticated, user } = useAuthStore()
+  const { followingIds, initialized } = useFollowStore()
   const [post, setPost] = useState<Post | null>(null)
   const [likePulsing, setLikePulsing] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -196,7 +198,7 @@ export default function PostDetailPage() {
               </div>
             </Link>
             {isAuthenticated && !isOwner && (
-              <FollowButton userId={post.author.id} isFollowing={false} size="xs" />
+              <FollowButton userId={post.author.id} isFollowing={initialized ? followingIds.has(post.author.id) : false} size="xs" />
             )}
           </div>
 

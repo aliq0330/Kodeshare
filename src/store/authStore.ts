@@ -42,6 +42,7 @@ export const useAuthStore = create<AuthState>()(
           if (session?.user) {
             const profile = await fetchProfile(session.user.id)
             set({ user: profile, isAuthenticated: !!profile })
+            if (profile) useFollowStore.getState().init()
           } else {
             set({ user: null, isAuthenticated: false })
           }
@@ -63,6 +64,7 @@ export const useAuthStore = create<AuthState>()(
               setTimeout(async () => {
                 const profile = await fetchProfile(userId)
                 set({ user: profile, isAuthenticated: !!profile })
+                if (profile) useFollowStore.getState().init()
               }, 0)
             } else {
               set({ user: null, isAuthenticated: false })

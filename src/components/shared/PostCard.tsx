@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { usePostStore } from '@store/postStore'
 import { useArticleStore } from '@store/articleStore'
 import { useComposerStore } from '@store/composerStore'
+import { useFollowStore } from '@store/followStore'
 import FollowButton from '@modules/social/FollowButton'
 import type { Post, PostBlock } from '@/types'
 
@@ -44,6 +45,7 @@ const articleDataCache = new Map<string, ArticleData>()
 export default function PostCard({ post, onLike, onSave, onRemoveFromCollection, removeFromCollectionLabel }: PostCardProps) {
   const navigate = useNavigate()
   const { isAuthenticated, user } = useAuth()
+  const { followingIds, initialized } = useFollowStore()
   const repostPost = usePostStore((s) => s.repostPost)
   const loadArticle = useArticleStore((s) => s.loadArticle)
   const [likePulsing, setLikePulsing] = useState(false)
@@ -363,7 +365,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               </div>
             </Link>
             {isAuthenticated && user?.id !== display.author.id && (
-              <FollowButton userId={display.author.id} isFollowing={false} size="xs" />
+              <FollowButton userId={display.author.id} isFollowing={initialized ? followingIds.has(display.author.id) : false} size="xs" />
             )}
           </div>
 
