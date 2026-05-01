@@ -25,14 +25,14 @@ export default function Sidebar() {
             end={to === '/'}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
                 isActive
                   ? 'bg-brand-900/60 text-brand-300'
                   : 'text-gray-400 hover:bg-surface-raised hover:text-white',
               )
             }
           >
-            <Icon className="w-5 h-5" />
+            <Icon className="w-6 h-6" />
             {label}
           </NavLink>
         ))}
@@ -42,7 +42,7 @@ export default function Sidebar() {
               to="/makaleler"
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
                   isActive
                     ? 'bg-brand-900/60 text-brand-300'
                     : 'text-gray-400 hover:bg-surface-raised hover:text-white',
@@ -56,7 +56,7 @@ export default function Sidebar() {
               to={`/profile/${user?.username}`}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
                   isActive
                     ? 'bg-brand-900/60 text-brand-300'
                     : 'text-gray-400 hover:bg-surface-raised hover:text-white',
@@ -70,7 +70,7 @@ export default function Sidebar() {
               to="/settings"
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
                   isActive
                     ? 'bg-brand-900/60 text-brand-300'
                     : 'text-gray-400 hover:bg-surface-raised hover:text-white',
@@ -94,7 +94,7 @@ export default function Sidebar() {
           {trendingTags.map((tag) => (
             <button
               key={tag}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-brand-400 hover:bg-surface-raised rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-base text-gray-400 hover:text-brand-400 hover:bg-surface-raised rounded-lg transition-colors"
             >
               <IconHash className="w-3.5 h-3.5" />
               {tag.slice(1)}

@@ -9,12 +9,12 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <Navbar />
-      <div className="flex flex-1 max-w-[1440px] mx-auto w-full px-4 pt-14 pb-20 lg:pb-4 gap-1">
+      <div className="flex flex-1 max-w-[1440px] mx-auto w-full px-4 pt-14 pb-20 lg:pb-4 gap-0 justify-center">
         <aside className="hidden lg:block w-60 shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-none py-4">
           <Sidebar />
         </aside>
 
-        <main className="flex-1 min-w-0 py-4">
+        <main className="w-full lg:w-[672px] lg:shrink-0 min-w-0 py-4">
           <Outlet />
         </main>
 

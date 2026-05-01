@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { IconSearch } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 
@@ -9,8 +10,19 @@ const suggestedUsers = [
 ]
 
 export default function RightPanel() {
+  const navigate = useNavigate()
+
   return (
     <div className="flex flex-col gap-6">
+      {/* Search */}
+      <button
+        onClick={() => navigate('/explore', { state: { focusSearch: true } })}
+        className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-surface-border bg-surface-raised text-gray-500 hover:border-brand-500 hover:text-gray-300 transition-colors text-base text-left"
+      >
+        <IconSearch className="w-5 h-5 shrink-0" />
+        <span>Ara...</span>
+      </button>
+
       {/* Suggested users */}
       <div className="card p-4">
         <h3 className="text-base font-semibold text-white mb-4">Önerilen Kullanıcılar</h3>
