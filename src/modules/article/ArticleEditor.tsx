@@ -329,7 +329,7 @@ export default function ArticleEditor() {
       )}
 
       {/* ── Title + Subtitle ── */}
-      <div className="px-4 sm:px-6 pt-6 pb-2 max-w-3xl w-full mx-auto">
+      <div className="px-4 sm:px-6 pt-6 pb-2 max-w-3xl lg:max-w-[34rem] w-full mx-auto">
         <textarea
           ref={titleRef}
           value={title}
@@ -364,7 +364,7 @@ export default function ArticleEditor() {
       <ArticleToolbar />
 
       {/* ── Blocks ── */}
-      <div className="flex-1 px-4 sm:px-6 pb-32 max-w-3xl w-full mx-auto mt-8">
+      <div className="flex-1 px-4 sm:px-6 pb-32 max-w-3xl lg:max-w-[34rem] w-full mx-auto mt-8">
         <div className="flex flex-col gap-3 md:pl-10">
           {blocks.map((block, idx) => {
             const prevId = idx > 0 ? blocks[idx - 1].id : null
