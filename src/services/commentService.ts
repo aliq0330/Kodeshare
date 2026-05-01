@@ -91,7 +91,6 @@ export const commentService = {
       postId,
       commentId: newCommentId,
       message:   'Seni bir yorumda etiketledi',
-      excludeUserIds,
     })
 
     return { ...mapComment(data as Record<string, unknown>, userId), replies: [] }

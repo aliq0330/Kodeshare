@@ -510,12 +510,11 @@ export const articleService = {
     }
 
     void notifyMentions({
-      text:           content,
-      actorId:        userId,
+      text:      content,
+      actorId:   userId,
       articleId,
-      commentId:      newCommentId,
-      message:        'Seni bir yorumda etiketledi',
-      excludeUserIds,
+      commentId: newCommentId,
+      message:   'Seni bir yorumda etiketledi',
     })
 
     return mapComment(data as unknown as Record<string, unknown>, userId)
