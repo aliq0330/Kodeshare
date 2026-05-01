@@ -13,15 +13,15 @@ export default function RightPanel() {
     <div className="flex flex-col gap-6">
       {/* Suggested users */}
       <div className="card p-4">
-        <h3 className="text-sm font-semibold text-white mb-4">Önerilen Kullanıcılar</h3>
+        <h3 className="text-base font-semibold text-white mb-4">Önerilen Kullanıcılar</h3>
         <div className="flex flex-col gap-3">
           {suggestedUsers.map((u) => (
             <div key={u.id} className="flex items-center justify-between gap-3">
               <Link to={`/profile/${u.username}`} className="flex items-center gap-2.5 min-w-0">
                 <Avatar src={u.avatarUrl} alt={u.displayName} size="sm" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{u.displayName}</p>
-                  <p className="text-xs text-gray-500 truncate">@{u.username}</p>
+                  <p className="text-base font-medium text-white truncate">{u.displayName}</p>
+                  <p className="text-sm text-gray-500 truncate">@{u.username}</p>
                 </div>
               </Link>
               <Button variant="outline" size="xs">Takip</Button>

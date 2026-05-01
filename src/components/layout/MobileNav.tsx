@@ -22,7 +22,7 @@ export default function MobileNav() {
   const iconClass = (active: boolean) => cn('w-6 h-6', active && 'text-brand-400')
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface-card border-t border-surface-border h-16 flex items-center justify-around px-2">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-card border-t border-surface-border h-16 flex items-center justify-around px-2">
 
       {/* Anasayfa */}
       <NavLink to="/" end className={linkClass}>

@@ -25,7 +25,7 @@ export default function Sidebar() {
             end={to === '/'}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
                 isActive
                   ? 'bg-brand-900/60 text-brand-300'
                   : 'text-gray-400 hover:bg-surface-raised hover:text-white',
@@ -42,7 +42,7 @@ export default function Sidebar() {
               to="/makaleler"
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
                   isActive
                     ? 'bg-brand-900/60 text-brand-300'
                     : 'text-gray-400 hover:bg-surface-raised hover:text-white',
@@ -56,7 +56,7 @@ export default function Sidebar() {
               to={`/profile/${user?.username}`}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
                   isActive
                     ? 'bg-brand-900/60 text-brand-300'
                     : 'text-gray-400 hover:bg-surface-raised hover:text-white',
@@ -70,7 +70,7 @@ export default function Sidebar() {
               to="/settings"
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors',
                   isActive
                     ? 'bg-brand-900/60 text-brand-300'
                     : 'text-gray-400 hover:bg-surface-raised hover:text-white',

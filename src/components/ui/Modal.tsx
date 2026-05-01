@@ -44,20 +44,21 @@ export default function Modal({ open, onClose, title, titleAction, subheader, ch
     <div
       className={cn(
         'fixed inset-0 z-50 flex',
-        isFullscreen ? '' : 'items-center justify-center p-4',
+        isFullscreen ? 'lg:items-center lg:justify-center lg:p-4' : 'items-center justify-center p-4',
       )}
     >
-      {!isFullscreen && (
-        <div
-          className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
-          onClick={onClose}
-        />
-      )}
+      <div
+        className={cn(
+          'absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in',
+          isFullscreen && 'hidden lg:block',
+        )}
+        onClick={onClose}
+      />
       <div
         className={cn(
           'relative w-full bg-surface-card flex flex-col animate-slide-up z-10',
           isFullscreen
-            ? 'h-full max-h-full rounded-none'
+            ? 'h-full max-h-full rounded-none lg:h-auto lg:max-h-[calc(100dvh-2rem)] lg:rounded-xl lg:max-w-2xl lg:shadow-2xl lg:border lg:border-surface-border'
             : 'card shadow-2xl max-h-[calc(100dvh-2rem)]',
           sizes[size],
           className,
@@ -82,7 +83,7 @@ export default function Modal({ open, onClose, title, titleAction, subheader, ch
             {subheader}
           </div>
         )}
-        <div className={cn('overflow-y-auto', isFullscreen ? 'flex-1 flex flex-col p-4' : 'p-5')}>
+        <div className={cn('overflow-y-auto', isFullscreen ? 'flex-1 flex flex-col p-4 lg:max-h-[calc(100dvh-12rem)]' : 'p-5')}>
           {children}
         </div>
       </div>

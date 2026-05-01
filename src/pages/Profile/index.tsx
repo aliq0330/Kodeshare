@@ -43,7 +43,7 @@ export default function ProfilePage() {
       </div>
 
       {isPrivate ? (
-        <div className="max-w-3xl mx-auto w-full card p-10 flex flex-col items-center gap-3 text-center">
+        <div className="max-w-2xl mx-auto w-full card p-10 flex flex-col items-center gap-3 text-center">
           <div className="w-14 h-14 rounded-full bg-surface-raised flex items-center justify-center">
             <IconLock className="w-6 h-6 text-gray-400" />
           </div>
@@ -51,7 +51,7 @@ export default function ProfilePage() {
           <p className="text-sm text-gray-500">İçerikleri görmek için takip etmelisin.</p>
         </div>
       ) : (
-        <>
+        <div className="max-w-2xl mx-auto w-full">
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
@@ -63,7 +63,7 @@ export default function ProfilePage() {
           {activeTab === 'series'      && <SeriesTab username={username} isOwn={isOwn} />}
           {activeTab === 'likes'       && <LikesTab username={username} />}
           {activeTab === 'saved'       && isOwn && <SavedTab />}
-        </>
+        </div>
       )}
     </div>
   )
