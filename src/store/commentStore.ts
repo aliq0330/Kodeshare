@@ -20,8 +20,8 @@ function mapArticleComment(c: ArticleComment, fallbackArticleId?: string): Comme
     },
     parentId: c.parentId,
     replies: c.replies.map((r) => mapArticleComment(r, fallbackArticleId)),
-    likesCount: 0,
-    isLiked: false,
+    likesCount: c.likesCount,
+    isLiked: c.isLiked,
     mentions: [],
     createdAt: c.createdAt,
     updatedAt: c.createdAt,
@@ -151,8 +151,13 @@ export const useCommentStore = create<CommentState>((set, get) => ({
     set((s) => ({ commentsByPost: { ...s.commentsByPost, [postId]: toggle(s.commentsByPost[postId] ?? []) } }))
 
     try {
-      if (wasLiked) await commentService.unlike(commentId)
-      else await commentService.like(commentId)
+      if (postId.startsWith('article:')) {
+        if (wasLiked) await articleService.unlikeComment(commentId)
+        else await articleService.likeComment(commentId)
+      } else {
+        if (wasLiked) await commentService.unlike(commentId)
+        else await commentService.like(commentId)
+      }
     } catch {
       // Hata durumunda geri al
       set((s) => ({ commentsByPost: { ...s.commentsByPost, [postId]: toggle(s.commentsByPost[postId] ?? []) } }))

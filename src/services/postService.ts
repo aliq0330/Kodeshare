@@ -181,7 +181,10 @@ export const postService = {
   async like(postId: string): Promise<void> {
     const userId = await currentUserId()
     const { error } = await supabase.from('post_likes').insert({ user_id: userId!, post_id: postId })
-    if (error) throw new Error(error.message)
+    if (error) {
+      if (error.code === '23505') return
+      throw new Error(error.message)
+    }
     const { data: post } = await supabase.from('posts').select('author_id').eq('id', postId).single()
     if (post && userId) {
       void notify({

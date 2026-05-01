@@ -118,7 +118,8 @@ export const commentService = {
   async like(commentId: string): Promise<void> {
     const userId = await currentUserId()
     if (!userId) throw new Error('Giriş yapmalısın')
-    await supabase.from('comment_likes').insert({ user_id: userId, comment_id: commentId })
+    const { error } = await supabase.from('comment_likes').insert({ user_id: userId, comment_id: commentId })
+    if (error && error.code !== '23505') throw new Error(error.message)
   },
 
   async unlike(commentId: string): Promise<void> {

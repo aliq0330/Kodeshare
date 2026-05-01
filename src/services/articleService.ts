@@ -82,6 +82,8 @@ export interface ArticleComment {
   parentId: string | null
   content: string
   createdAt: string
+  likesCount: number
+  isLiked: boolean
   author: {
     username: string
     displayName: string
@@ -186,15 +188,18 @@ function mapArticle(row: Record<string, unknown>, _currentUid?: string, comments
   }
 }
 
-function mapComment(row: Record<string, unknown>): ArticleComment {
+function mapComment(row: Record<string, unknown>, userId?: string): ArticleComment {
   const a = row.author as Record<string, unknown> | null
+  const likes = (row.article_comment_likes as { user_id: string }[]) ?? []
   return {
-    id:        row.id as string,
-    articleId: row.article_id as string,
-    authorId:  row.author_id as string,
-    parentId:  (row.parent_id as string) ?? null,
-    content:   row.content as string,
-    createdAt: row.created_at as string,
+    id:         row.id as string,
+    articleId:  row.article_id as string,
+    authorId:   row.author_id as string,
+    parentId:   (row.parent_id as string) ?? null,
+    content:    row.content as string,
+    createdAt:  row.created_at as string,
+    likesCount: likes.length,
+    isLiked:    userId ? likes.some((l) => l.user_id === userId) : false,
     author: a ? {
       username:    a.username as string,
       displayName: a.display_name as string,
@@ -385,26 +390,41 @@ export const articleService = {
   },
 
   async getComments(articleId: string): Promise<ArticleComment[]> {
+    const uid = await optionalUserId()
+    const COMMENT_SELECT = '*, author:profiles!article_comments_author_id_fkey(username, display_name, avatar_url), article_comment_likes(user_id)'
+
     const { data, error } = await supabase
       .from('article_comments')
-      .select('*, author:profiles!article_comments_author_id_fkey(username, display_name, avatar_url)')
+      .select(COMMENT_SELECT)
       .eq('article_id', articleId)
       .is('parent_id', null)
       .order('created_at', { ascending: true })
     if (error) throw new Error(error.message)
 
-    const top = (data ?? []).map(mapComment)
+    const top = (data ?? []).map((r) => mapComment(r as unknown as Record<string, unknown>, uid))
 
     const withReplies = await Promise.all(top.map(async (c) => {
       const { data: replies } = await supabase
         .from('article_comments')
-        .select('*, author:profiles!article_comments_author_id_fkey(username, display_name, avatar_url)')
+        .select(COMMENT_SELECT)
         .eq('parent_id', c.id)
         .order('created_at', { ascending: true })
-      return { ...c, replies: (replies ?? []).map(mapComment) }
+      return { ...c, replies: (replies ?? []).map((r) => mapComment(r as unknown as Record<string, unknown>, uid)) }
     }))
 
     return withReplies
+  },
+
+  async likeComment(commentId: string): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase.from('article_comment_likes').insert({ comment_id: commentId, user_id: userId })
+    if (error && error.code !== '23505') throw new Error(error.message)
+  },
+
+  async unlikeComment(commentId: string): Promise<void> {
+    const userId = await currentUserId()
+    const { error } = await supabase.from('article_comment_likes').delete().eq('comment_id', commentId).eq('user_id', userId)
+    if (error) throw new Error(error.message)
   },
 
   async addComment(articleId: string, content: string, parentId?: string): Promise<ArticleComment> {
