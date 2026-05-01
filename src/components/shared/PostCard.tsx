@@ -348,21 +348,18 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           </div>
         )}
 
-        <div className="flex gap-3 px-4 pt-3 pb-4">
-          {/* Avatar */}
-          <Link to={`/profile/${display.author.username}`} className="shrink-0">
-            <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" online={display.author.isOnline} />
-          </Link>
-
-          <div className="flex-1 min-w-0">
-            {/* Yazar satırı */}
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <Link to={`/profile/${display.author.username}`} className="min-w-0">
+        <div className="px-4 pt-3 pb-4">
+          {/* Yazar satırı */}
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <Link to={`/profile/${display.author.username}`} className="flex items-center gap-3 min-w-0">
+              <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" online={display.author.isOnline} className="shrink-0" />
+              <div className="min-w-0">
                 <span className="block font-bold text-base text-white leading-snug">{display.author.displayName}</span>
                 <span className="text-sm text-gray-400">@{display.author.username} · {timeAgo(display.createdAt)}</span>
-              </Link>
-              {menuDropdown}
-            </div>
+              </div>
+            </Link>
+            {menuDropdown}
+          </div>
 
             {/* Kapak görseli */}
             {coverImage && (
@@ -429,7 +426,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               articleId={displayArticleId}
               detailLink={commentLink}
             />
-          </div>
         </div>
 
         {modals}
@@ -451,17 +447,12 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
         </div>
       )}
 
-      <div className="flex gap-3 px-4 pt-3 pb-4">
-        {/* Left: Avatar */}
-        <Link to={`/profile/${display.author.username}`} className="shrink-0">
-          <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" />
-        </Link>
-
-        {/* Right: Content */}
-        <div className="flex-1 min-w-0">
-          {/* Author row */}
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <Link to={`/profile/${display.author.username}`} className="min-w-0">
+      <div className="px-4 pt-3 pb-4">
+        {/* Author row */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <Link to={`/profile/${display.author.username}`} className="flex items-center gap-3 min-w-0">
+            <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" className="shrink-0" />
+            <div className="min-w-0">
               <span className="block font-bold text-base text-white leading-snug">{display.author.displayName}</span>
               <span className="text-sm text-gray-400">
                 @{display.author.username} · {timeAgo(display.createdAt)}
@@ -475,9 +466,10 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                   <IconClock className="w-3 h-3" />
                 </button>
               )}
-            </Link>
-            {menuDropdown}
-          </div>
+            </div>
+          </Link>
+          {menuDropdown}
+        </div>
 
           {/* Description */}
           {display.description && (
@@ -569,7 +561,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               detailLink={commentLink}
             />
           )}
-        </div>
       </div>
 
       {modals}

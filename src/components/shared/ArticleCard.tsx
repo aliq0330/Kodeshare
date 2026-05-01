@@ -65,23 +65,18 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
   return (
     <>
       <article className="border-b border-surface-border/40 group">
-        <div className="flex gap-3 px-4 pt-3 pb-4">
-          {/* Avatar */}
-          {article.author && (
-            <Link to={`/profile/${article.author.username}`} className="shrink-0">
-              <Avatar src={article.author.avatarUrl} alt={article.author.displayName} size="md" />
-            </Link>
-          )}
-
-          <div className="flex-1 min-w-0">
-            {/* Author row */}
-            <div className="flex items-start justify-between gap-2 mb-1">
-              {article.author && (
-                <Link to={`/profile/${article.author.username}`} className="min-w-0">
+        <div className="px-4 pt-3 pb-4">
+          {/* Author row */}
+          <div className="flex items-center justify-between gap-2 mb-2">
+            {article.author && (
+              <Link to={`/profile/${article.author.username}`} className="flex items-center gap-3 min-w-0">
+                <Avatar src={article.author.avatarUrl} alt={article.author.displayName} size="md" className="shrink-0" />
+                <div className="min-w-0">
                   <span className="block font-bold text-base text-white leading-snug">{article.author.displayName}</span>
                   <span className="text-sm text-gray-400">@{article.author.username} · {timeAgo(article.createdAt)}</span>
-                </Link>
-              )}
+                </div>
+              </Link>
+            )}
               {isAuthenticated && (
                 <div className="relative shrink-0" ref={menuRef}>
                   <button
@@ -199,7 +194,6 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
               commentsCount={article.commentsCount}
               detailLink={`/makale/${article.id}#comments`}
             />
-          </div>
         </div>
       </article>
 
