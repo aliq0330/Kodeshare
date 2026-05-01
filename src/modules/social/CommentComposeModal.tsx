@@ -98,22 +98,13 @@ export default function CommentComposeModal({
       <div className="relative w-full max-w-lg bg-surface-card rounded-2xl shadow-2xl z-10 animate-slide-up overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
+        <div className="flex items-center px-4 py-3 border-b border-surface-border">
           <button
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-surface-raised text-gray-400 hover:text-white transition-colors"
           >
             <IconX className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            disabled={!text.trim() || submitting}
-            onClick={() => void handleSubmit()}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-500 hover:bg-brand-400 disabled:opacity-40 text-white text-sm font-semibold transition-colors"
-          >
-            {submitting && <Spinner className="w-3.5 h-3.5" />}
-            Gönder
           </button>
         </div>
 
@@ -186,7 +177,15 @@ export default function CommentComposeModal({
                 >
                   <IconCode className="w-4 h-4" />
                 </button>
-                <span className="ml-auto text-xs text-gray-600 select-none">⌘↵</span>
+                <button
+                  type="button"
+                  disabled={!text.trim() || submitting}
+                  onClick={() => void handleSubmit()}
+                  className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-500 hover:bg-brand-400 disabled:opacity-40 text-white text-sm font-semibold transition-colors"
+                >
+                  {submitting && <Spinner className="w-3.5 h-3.5" />}
+                  Gönder
+                </button>
               </div>
 
               {showSnippet && (

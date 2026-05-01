@@ -119,7 +119,7 @@ export function EmojiPicker({ onSelect, onClose, anchorRef }: EmojiPickerProps) 
   return (
     <div
       ref={pickerRef}
-      className="absolute bottom-full right-0 mb-1 z-40 p-2 rounded-xl border border-surface-border bg-[#0d1117] shadow-2xl"
+      className="absolute bottom-full left-0 mb-1 z-40 p-2 rounded-xl border border-surface-border bg-surface-card shadow-2xl"
       style={{ width: '272px' }}
     >
       <div className="grid grid-cols-8 gap-1">
@@ -154,7 +154,7 @@ export function SnippetPanel({ onInsert, onClose }: SnippetPanelProps) {
   }
 
   return (
-    <div className="mt-2 rounded-xl border border-surface-border bg-[#0d1117] p-3 flex flex-col gap-2">
+    <div className="mt-2 rounded-xl border border-surface-border bg-surface-card p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <select
           value={lang}
