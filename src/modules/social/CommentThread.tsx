@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { IconSend, IconCode, IconMoodSmile } from '@tabler/icons-react'
-import { cn } from '@utils/cn'
+import { useEffect, useState } from 'react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import CommentItem from './CommentItem'
-import { SnippetPanel, EmojiPicker, insertAtCursor } from './CommentSnippet'
+import CommentComposeModal from './CommentComposeModal'
+import type { ComposeContext } from './CommentComposeModal'
 import { useAuthStore } from '@store/authStore'
 import { useCommentStore } from '@store/commentStore'
 import toast from 'react-hot-toast'
@@ -13,107 +12,53 @@ interface CommentThreadProps {
   postId?: string
   articleId?: string
   onCommentAdded?: () => void
+  context?: ComposeContext
 }
 
-export default function CommentThread({ postId, articleId, onCommentAdded }: CommentThreadProps) {
+export default function CommentThread({ postId, articleId, onCommentAdded, context }: CommentThreadProps) {
   const { user, isAuthenticated } = useAuthStore()
   const { commentsByPost, isLoading, fetchComments, addComment } = useCommentStore()
-  const [text, setText] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [showSnippet, setShowSnippet] = useState(false)
-  const [showEmoji, setShowEmoji] = useState(false)
-  const textareaRef  = useRef<HTMLTextAreaElement>(null)
-  const emojiBtnRef  = useRef<HTMLButtonElement>(null)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const storeKey = articleId ? `article:${articleId}` : (postId ?? '')
-
   const comments = commentsByPost[storeKey] ?? []
   const loading = isLoading[storeKey] ?? false
 
   useEffect(() => { fetchComments(storeKey) }, [storeKey, fetchComments])
 
-  useEffect(() => {
-    const el = textareaRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [text])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!text.trim() || submitting) return
-    setSubmitting(true)
+  const handleSubmit = async (text: string) => {
     try {
-      await addComment(storeKey, text.trim())
-      setText('')
-      setShowSnippet(false)
-      setShowEmoji(false)
+      await addComment(storeKey, text)
       onCommentAdded?.()
     } catch {
       toast.error('Yorum gönderilemedi')
-    } finally {
-      setSubmitting(false)
+      throw new Error('failed')
     }
   }
 
   return (
     <div className="flex flex-col gap-4">
       {isAuthenticated && (
-        <form onSubmit={handleSubmit} className="flex items-start gap-3">
-          <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="sm" className="mt-1 shrink-0" />
-          <div className="flex-1">
-            <div className="flex items-end gap-2 bg-surface-raised border border-surface-border rounded-xl px-3 py-2">
-              <textarea
-                ref={textareaRef}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Yorum yaz... (@mention, #hashtag destekler)"
-                rows={1}
-                className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none"
-                style={{ minHeight: '24px' }}
-              />
-              <div className="relative flex items-center gap-0.5 shrink-0">
-                {showEmoji && (
-                  <EmojiPicker
-                    anchorRef={emojiBtnRef}
-                    onSelect={(e) => insertAtCursor(textareaRef.current, text, e, setText)}
-                    onClose={() => setShowEmoji(false)}
-                  />
-                )}
-                <button
-                  ref={emojiBtnRef}
-                  type="button"
-                  onClick={() => { setShowEmoji((v) => !v); setShowSnippet(false) }}
-                  title="Emoji ekle"
-                  className={cn('p-1.5 rounded-lg transition-colors', showEmoji ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-300')}
-                >
-                  <IconMoodSmile className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowSnippet((v) => !v); setShowEmoji(false) }}
-                  title="Snippet ekle"
-                  className={cn('p-1.5 rounded-lg transition-colors', showSnippet ? 'text-brand-400' : 'text-gray-600 hover:text-gray-300')}
-                >
-                  <IconCode className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="submit"
-                  disabled={!text.trim() || submitting}
-                  className="p-1.5 rounded-lg text-brand-400 hover:text-brand-300 disabled:opacity-40 transition-colors"
-                >
-                  {submitting ? <Spinner className="w-3.5 h-3.5" /> : <IconSend className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-            {showSnippet && (
-              <SnippetPanel
-                onInsert={(snippet) => insertAtCursor(textareaRef.current, text, snippet, setText)}
-                onClose={() => setShowSnippet(false)}
-              />
-            )}
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-3 w-full text-left group"
+        >
+          <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="sm" className="shrink-0" />
+          <div className="flex-1 bg-surface-raised border border-surface-border group-hover:border-brand-500/50 rounded-xl px-3 py-2.5 text-sm text-gray-500 transition-colors">
+            Yorum yaz...
           </div>
-        </form>
+        </button>
+      )}
+
+      {context && (
+        <CommentComposeModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          context={context}
+          placeholder="Yorumunu yaz... (@mention destekler)"
+          onSubmit={handleSubmit}
+        />
       )}
 
       {loading && comments.length === 0 ? (

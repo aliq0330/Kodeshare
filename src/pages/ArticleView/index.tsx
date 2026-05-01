@@ -401,7 +401,17 @@ export default function ArticleViewPage() {
       {/* Comments — same full-bleed treatment as PostDetail */}
       <div id="comments" className="-mx-4 lg:mx-0 px-4 pt-4 pb-10">
         <h2 className="text-base font-semibold text-white mb-4">Yorumlar</h2>
-        <CommentThread articleId={article.id} />
+        <CommentThread
+          articleId={article.id}
+          context={{
+            author: {
+              avatarUrl:   article.author?.avatarUrl ?? null,
+              displayName: article.author?.displayName ?? '',
+              username:    article.author?.username ?? '',
+            },
+            content: article.title ?? '',
+          }}
+        />
       </div>
       </div>
 

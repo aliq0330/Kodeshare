@@ -385,6 +385,14 @@ export default function PostDetailPage() {
         <CommentThread
           postId={post.id}
           onCommentAdded={() => setPost((p) => p ? { ...p, commentsCount: p.commentsCount + 1 } : p)}
+          context={{
+            author: {
+              avatarUrl:   post.author.avatarUrl,
+              displayName: post.author.displayName,
+              username:    post.author.username,
+            },
+            content: post.description ?? post.title ?? '',
+          }}
         />
       </div>
     </div>
