@@ -28,11 +28,6 @@ export default function ExplorePage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-white mb-1">Keşfet</h1>
-        <p className="text-gray-500 text-sm">Binlerce proje ve geliştiriciyi keşfet</p>
-      </div>
-
       {/* Search */}
       <Input
         ref={inputRef}

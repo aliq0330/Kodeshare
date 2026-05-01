@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import Tabs from '@components/ui/Tabs'
 import { FEED_TABS } from '@utils/constants'
+import { cn } from '@utils/cn'
 import Feed from './components/Feed'
 import TagFilter from '@components/shared/TagFilter'
 
@@ -19,14 +19,23 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col max-w-2xl mx-auto">
-      <h1 className="text-xl font-bold text-white px-1 pt-1 pb-2">Ana Sayfa</h1>
-
-      <div className="sticky top-14 z-10 bg-surface -mx-4 lg:mx-0 px-4 lg:px-0">
-        <Tabs
-          tabs={FEED_TABS.map((t) => ({ id: t.id, label: t.label }))}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-        />
+      <div className="sticky top-14 z-10 bg-surface -mx-4 lg:mx-0">
+        <div className="flex border-b border-surface-border">
+          {FEED_TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={cn(
+                'flex-1 flex justify-center items-center py-3 text-[28px] font-medium border-b-2 -mb-px transition-colors',
+                activeTab === t.id
+                  ? 'border-white text-white font-semibold'
+                  : 'border-transparent text-gray-400 hover:text-gray-300',
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         <TagFilter tags={TAGS} activeTag={activeTag} onChange={setActiveTag} className="mt-1" />
       </div>
 
