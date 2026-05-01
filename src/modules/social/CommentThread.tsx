@@ -21,7 +21,10 @@ export default function CommentThread({ postId, articleId, onCommentAdded, conte
   const [modalOpen, setModalOpen] = useState(false)
 
   const storeKey = articleId ? `article:${articleId}` : (postId ?? '')
-  const comments = commentsByPost[storeKey] ?? []
+  const rawComments = commentsByPost[storeKey] ?? []
+  const comments = [...rawComments].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )
   const loading = isLoading[storeKey] ?? false
 
   useEffect(() => { fetchComments(storeKey) }, [storeKey, fetchComments])

@@ -272,7 +272,7 @@ export default function PostDetailPage() {
                   }`}
                 >
                   <IconHeart
-                    className={`w-5 h-5 ${post.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                    className={`w-[22px] h-[22px] ${post.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
                     onAnimationEnd={() => setLikePulsing(false)}
                   />
                   {post.likesCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(post.likesCount)}</span>}
@@ -281,7 +281,7 @@ export default function PostDetailPage() {
                   onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
                   className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
-                  <IconMessageCircle className="w-5 h-5" />
+                  <IconMessageCircle className="w-[22px] h-[22px]" />
                   {displayCommentCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(displayCommentCount)}</span>}
                 </button>
                 {isAuthenticated ? (
@@ -292,7 +292,7 @@ export default function PostDetailPage() {
                   />
                 ) : (
                   <span className="flex items-center gap-1.5 text-sm">
-                    <IconRepeat className="w-5 h-5" />
+                    <IconRepeat className="w-[22px] h-[22px]" />
                     {post.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(post.repostCount)}</span>}
                   </span>
                 )}
@@ -305,7 +305,7 @@ export default function PostDetailPage() {
                     post.isSaved ? 'text-white' : 'hover:text-white'
                   }`}
                 >
-                  <IconBookmark className={`w-5 h-5 ${post.isSaved ? 'fill-current' : ''}`} />
+                  <IconBookmark className={`w-[22px] h-[22px] ${post.isSaved ? 'fill-current' : ''}`} />
                 </button>
                 {isAuthenticated && (
                   <div className="relative shrink-0" ref={menuRef}>

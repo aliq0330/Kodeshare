@@ -403,7 +403,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                   }`}
                 >
                   <IconHeart
-                    className={`w-5 h-5 ${articleData?.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                    className={`w-[22px] h-[22px] ${articleData?.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
                     onAnimationEnd={() => setLikePulsing(false)}
                   />
                   {(articleData?.likesCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(articleData?.likesCount ?? 0)}</span>}
@@ -413,14 +413,14 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                   to={commentLink}
                   className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
-                  <IconMessageCircle className="w-5 h-5" />
+                  <IconMessageCircle className="w-[22px] h-[22px]" />
                 </Link>
 
                 {isAuthenticated ? (
                   <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
                 ) : (
                   <span className="flex items-center gap-1.5 text-xs">
-                    <IconRepeat className="w-5 h-5" />
+                    <IconRepeat className="w-[22px] h-[22px]" />
                     {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
                   </span>
                 )}
@@ -433,7 +433,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                     articleData?.isSaved ? 'text-white' : 'hover:text-white'
                   }`}
                 >
-                  <IconBookmark className={`w-5 h-5 ${articleData?.isSaved ? 'fill-current' : ''}`} />
+                  <IconBookmark className={`w-[22px] h-[22px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
                 </button>
                 {menuDropdown}
               </div>
@@ -549,14 +549,14 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
               >
                 <IconHeart
-                  className={`w-5 h-5 ${display.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                  className={`w-[22px] h-[22px] ${display.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
                   onAnimationEnd={() => setLikePulsing(false)}
                 />
                 {display.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.likesCount)}</span>}
               </button>
 
               <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors">
-                <IconMessageCircle className="w-5 h-5" />
+                <IconMessageCircle className="w-[22px] h-[22px]" />
                 {display.commentsCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.commentsCount)}</span>}
               </Link>
 
@@ -564,7 +564,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
               ) : (
                 <span className="flex items-center gap-1.5 text-xs">
-                  <IconRepeat className="w-5 h-5" />
+                  <IconRepeat className="w-[22px] h-[22px]" />
                   {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
                 </span>
               )}
@@ -575,7 +575,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 onClick={handlePostSave}
                 className={`p-1.5 rounded-lg transition-colors ${display.isSaved ? 'text-white' : 'hover:text-white'}`}
               >
-                <IconBookmark className={`w-5 h-5 ${display.isSaved ? 'fill-current' : ''}`} />
+                <IconBookmark className={`w-[22px] h-[22px] ${display.isSaved ? 'fill-current' : ''}`} />
               </button>
               {menuDropdown}
             </div>

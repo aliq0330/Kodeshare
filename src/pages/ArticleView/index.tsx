@@ -289,7 +289,7 @@ export default function ArticleViewPage() {
               title="Beğen"
             >
               <IconHeart
-                className={`w-5 h-5 ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                className={`w-[22px] h-[22px] ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
                 onAnimationEnd={() => setLikePulsing(false)}
               />
               {article.likesCount > 0 && <span className="text-sm text-black dark:text-white">{article.likesCount}</span>}
@@ -300,7 +300,7 @@ export default function ArticleViewPage() {
               className="flex items-center gap-1.5 hover:text-white transition-colors"
               title="Yorumlar"
             >
-              <IconMessageCircle className="w-5 h-5" />
+              <IconMessageCircle className="w-[22px] h-[22px]" />
               {(article.commentsCount ?? 0) > 0 && <span className="text-sm text-black dark:text-white">{article.commentsCount}</span>}
             </button>
 
@@ -310,7 +310,7 @@ export default function ArticleViewPage() {
                 className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
                 title="Yeniden paylaş"
               >
-                <IconRepeat className="w-5 h-5" />
+                <IconRepeat className="w-[22px] h-[22px]" />
               </button>
               {repostMenuOpen && (
                 <div className="absolute left-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
@@ -346,7 +346,7 @@ export default function ArticleViewPage() {
               }`}
               title={article.isSaved ? 'Kaydedildi' : 'Kaydet'}
             >
-              <IconBookmark className={`w-5 h-5 ${article.isSaved ? 'fill-current' : ''}`} />
+              <IconBookmark className={`w-[22px] h-[22px] ${article.isSaved ? 'fill-current' : ''}`} />
             </button>
 
             <div className="relative" ref={menuRef}>
@@ -355,7 +355,7 @@ export default function ArticleViewPage() {
                 className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
                 title="Daha fazla"
               >
-                <IconDots className="w-5 h-5" />
+                <IconDots className="w-[22px] h-[22px]" />
               </button>
 
               {menuOpen && (

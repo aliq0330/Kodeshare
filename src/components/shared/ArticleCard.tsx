@@ -119,7 +119,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                   className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
                 >
                   <IconHeart
-                    className={`w-5 h-5 ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                    className={`w-[22px] h-[22px] ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
                     onAnimationEnd={() => setLikePulsing(false)}
                   />
                   {article.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.likesCount)}</span>}
@@ -129,7 +129,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                   to={`/makale/${article.id}#comments`}
                   className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
-                  <IconMessageCircle className="w-5 h-5" />
+                  <IconMessageCircle className="w-[22px] h-[22px]" />
                 </Link>
 
                 {isAuthenticated ? (
@@ -137,11 +137,11 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                     onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
                     className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
                   >
-                    <IconRepeat className="w-5 h-5" />
+                    <IconRepeat className="w-[22px] h-[22px]" />
                   </button>
                 ) : (
                   <span className="flex items-center gap-1.5">
-                    <IconRepeat className="w-5 h-5" />
+                    <IconRepeat className="w-[22px] h-[22px]" />
                   </span>
                 )}
               </div>
@@ -151,7 +151,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                   onClick={handleSave}
                   className={`p-1.5 rounded-lg transition-colors ${article.isSaved ? 'text-white' : 'hover:text-white'}`}
                 >
-                  <IconBookmark className={`w-5 h-5 ${article.isSaved ? 'fill-current' : ''}`} />
+                  <IconBookmark className={`w-[22px] h-[22px] ${article.isSaved ? 'fill-current' : ''}`} />
                 </button>
                 {isAuthenticated && (
                   <div className="relative shrink-0" ref={menuRef}>

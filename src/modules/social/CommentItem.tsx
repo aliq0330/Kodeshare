@@ -267,19 +267,24 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
       />
 
       {/* Replies */}
-      {showReplies && comment.replies.length > 0 && (
-        <div className="flex flex-col">
-          {comment.replies.map((reply, i) => (
-            <CommentItem
-              key={reply.id}
-              comment={reply}
-              postId={postId}
-              depth={depth + 1}
-              isLast={i === comment.replies.length - 1}
-            />
-          ))}
-        </div>
-      )}
+      {showReplies && comment.replies.length > 0 && (() => {
+        const sorted = [...comment.replies].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+        return (
+          <div className="flex flex-col">
+            {sorted.map((reply, i) => (
+              <CommentItem
+                key={reply.id}
+                comment={reply}
+                postId={postId}
+                depth={depth + 1}
+                isLast={i === sorted.length - 1}
+              />
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }
