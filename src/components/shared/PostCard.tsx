@@ -355,7 +355,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             <Link to={`/profile/${display.author.username}`} className="flex items-center gap-3 min-w-0">
               <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" online={display.author.isOnline} className="shrink-0" />
               <div className="min-w-0">
-                <span className="block font-bold text-base text-white leading-snug">{display.author.displayName}</span>
+                <span className="block font-bold text-base text-white leading-none">{display.author.displayName}</span>
                 <span className="text-sm text-gray-400">@{display.author.username} · {timeAgo(display.createdAt)}</span>
               </div>
             </Link>
@@ -457,7 +457,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           <Link to={`/profile/${display.author.username}`} className="flex items-center gap-3 min-w-0">
             <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" className="shrink-0" />
             <div className="min-w-0">
-              <span className="block font-bold text-base text-white leading-snug">{display.author.displayName}</span>
+              <span className="block font-bold text-base text-white leading-none">{display.author.displayName}</span>
               <span className="text-sm text-gray-400">
                 @{display.author.username} · {timeAgo(display.createdAt)}
               </span>

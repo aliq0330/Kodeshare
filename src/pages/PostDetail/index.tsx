@@ -176,7 +176,7 @@ export default function PostDetailPage() {
             <Link to={`/profile/${post.author.username}`} className="flex items-center gap-3 min-w-0">
               <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="md" online={post.author.isOnline} className="shrink-0" />
               <div className="min-w-0">
-                <span className="block font-bold text-base text-white leading-snug">{post.author.displayName}</span>
+                <span className="block font-bold text-base text-white leading-none">{post.author.displayName}</span>
                 <span className="text-sm text-gray-400">
                   @{post.author.username} · {timeAgo(post.createdAt)}
                   {post.isEdited && (

@@ -73,7 +73,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
               <Link to={`/profile/${article.author.username}`} className="flex items-center gap-3 min-w-0">
                 <Avatar src={article.author.avatarUrl} alt={article.author.displayName} size="md" className="shrink-0" />
                 <div className="min-w-0">
-                  <span className="block font-bold text-base text-white leading-snug">{article.author.displayName}</span>
+                  <span className="block font-bold text-base text-white leading-none">{article.author.displayName}</span>
                   <span className="text-sm text-gray-400">@{article.author.username} · {timeAgo(article.createdAt)}</span>
                 </div>
               </Link>

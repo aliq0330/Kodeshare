@@ -240,7 +240,7 @@ export default function ArticleViewPage() {
                   size="md"
                 />
                 <div>
-                  <p className="font-bold text-base text-white leading-snug group-hover:text-brand-300 transition-colors">
+                  <p className="font-bold text-base text-white leading-none group-hover:text-brand-300 transition-colors">
                     {article.author.displayName}
                   </p>
                   <p className="text-sm text-gray-400">@{article.author.username}</p>
