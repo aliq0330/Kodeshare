@@ -19,17 +19,17 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col max-w-2xl mx-auto">
-      <div className="sticky top-14 z-10 bg-surface -mx-4 lg:mx-0">
+      <div className="sticky top-14 lg:top-0 z-10 bg-surface -mx-4 lg:mx-0">
         <div className="flex border-b border-surface-border">
           {FEED_TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               className={cn(
-                'flex-1 flex justify-center items-center py-3 text-[28px] font-medium border-b-2 -mb-px transition-colors',
+                'flex-1 flex justify-center items-center py-3 text-base border-b-2 -mb-px transition-colors',
                 activeTab === t.id
-                  ? 'border-white text-white font-semibold'
-                  : 'border-transparent text-gray-400 hover:text-gray-300',
+                  ? 'border-black dark:border-white text-white font-black'
+                  : 'border-transparent text-gray-400 font-medium hover:text-gray-300',
               )}
             >
               {t.label}

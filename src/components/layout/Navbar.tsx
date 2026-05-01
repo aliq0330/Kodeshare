@@ -25,7 +25,7 @@ export default function Navbar() {
   ]
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 h-14 border-b border-surface-border bg-surface-card">
+    <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 border-b border-surface-border bg-surface-card">
       <div className="flex items-center gap-2 h-full max-w-[1440px] mx-auto px-3">
 
         {/* Burger */}

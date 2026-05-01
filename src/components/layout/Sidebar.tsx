@@ -1,90 +1,81 @@
 import { NavLink } from 'react-router-dom'
-import { IconHome, IconCompass, IconStar, IconUser, IconSettings, IconHash, IconTrendingUp, IconBook2 } from '@tabler/icons-react'
+import {
+  IconHome, IconHomeFilled,
+  IconCompass, IconCompassFilled,
+  IconStar, IconStarFilled,
+  IconUser, IconUserFilled,
+  IconSettings, IconSettingsFilled,
+  IconHash, IconTrendingUp,
+  IconBook2, IconBook2Filled,
+} from '@tabler/icons-react'
 import { useAuthStore } from '@store/authStore'
 import { cn } from '@utils/cn'
 
 const navItems = [
-  { to: '/',            icon: IconHome,      label: 'Ana Sayfa' },
-  { to: '/explore',     icon: IconCompass,   label: 'Keşfet' },
-  { to: '/featured',    icon: IconStar,      label: 'Öne Çıkanlar' },
+  { to: '/',         icon: IconHome,     iconFilled: IconHomeFilled,    label: 'Ana Sayfa', end: true },
+  { to: '/explore',  icon: IconCompass,  iconFilled: IconCompassFilled, label: 'Keşfet',    end: false },
+  { to: '/featured', icon: IconStar,     iconFilled: IconStarFilled,    label: 'Öne Çıkanlar', end: false },
 ]
 
 const trendingTags = ['#react', '#css', '#animation', '#ui', '#nextjs', '#tailwind']
+
+const linkClass = (isActive: boolean) =>
+  cn(
+    'flex items-center gap-3 px-3 py-2 rounded-lg text-lg transition-colors',
+    isActive
+      ? 'text-white font-black'
+      : 'text-gray-400 font-medium hover:bg-surface-raised hover:text-white',
+  )
 
 export default function Sidebar() {
   const { user, isAuthenticated } = useAuthStore()
 
   return (
     <nav className="flex flex-col gap-6">
-      {/* Main navigation */}
       <div className="flex flex-col gap-1">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
-                isActive
-                  ? 'bg-brand-900/60 text-brand-300'
-                  : 'text-gray-400 hover:bg-surface-raised hover:text-white',
-              )
-            }
-          >
-            <Icon className="w-6 h-6" />
-            {label}
+        {navItems.map(({ to, icon: Icon, iconFilled: IconFilled, label, end }) => (
+          <NavLink key={to} to={to} end={end} className={({ isActive }) => linkClass(isActive)}>
+            {({ isActive }) => (
+              <>
+                {isActive ? <IconFilled className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
+
         {isAuthenticated && (
           <>
-            <NavLink
-              to="/makaleler"
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
-                  isActive
-                    ? 'bg-brand-900/60 text-brand-300'
-                    : 'text-gray-400 hover:bg-surface-raised hover:text-white',
-                )
-              }
-            >
-              <IconBook2 className="w-5 h-5" />
-              Makalelerim
+            <NavLink to="/makaleler" className={({ isActive }) => linkClass(isActive)}>
+              {({ isActive }) => (
+                <>
+                  {isActive ? <IconBook2Filled className="w-6 h-6" /> : <IconBook2 className="w-6 h-6" />}
+                  Makalelerim
+                </>
+              )}
             </NavLink>
-            <NavLink
-              to={`/profile/${user?.username}`}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
-                  isActive
-                    ? 'bg-brand-900/60 text-brand-300'
-                    : 'text-gray-400 hover:bg-surface-raised hover:text-white',
-                )
-              }
-            >
-              <IconUser className="w-5 h-5" />
-              Profilim
+
+            <NavLink to={`/profile/${user?.username}`} className={({ isActive }) => linkClass(isActive)}>
+              {({ isActive }) => (
+                <>
+                  {isActive ? <IconUserFilled className="w-6 h-6" /> : <IconUser className="w-6 h-6" />}
+                  Profilim
+                </>
+              )}
             </NavLink>
-            <NavLink
-              to="/settings"
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-lg font-medium transition-colors',
-                  isActive
-                    ? 'bg-brand-900/60 text-brand-300'
-                    : 'text-gray-400 hover:bg-surface-raised hover:text-white',
-                )
-              }
-            >
-              <IconSettings className="w-5 h-5" />
-              Ayarlar
+
+            <NavLink to="/settings" className={({ isActive }) => linkClass(isActive)}>
+              {({ isActive }) => (
+                <>
+                  {isActive ? <IconSettingsFilled className="w-6 h-6" /> : <IconSettings className="w-6 h-6" />}
+                  Ayarlar
+                </>
+              )}
             </NavLink>
           </>
         )}
       </div>
 
-      {/* Trending tags */}
       <div>
         <p className="flex items-center gap-2 px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
           <IconTrendingUp className="w-3.5 h-3.5" />

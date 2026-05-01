@@ -56,7 +56,7 @@ export default function ProfilePage() {
             tabs={tabs}
             activeTab={activeTab}
             onChange={setActiveTab}
-            className="sticky top-14 z-10 bg-surface"
+            className="sticky top-14 lg:top-0 z-10 bg-surface"
           />
           {activeTab === 'posts'       && <PostsTab username={username} />}
           {activeTab === 'collections' && <CollectionsTab username={username} isOwn={isOwn} />}
