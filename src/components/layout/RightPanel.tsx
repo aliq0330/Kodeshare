@@ -24,7 +24,7 @@ export default function RightPanel() {
       </button>
 
       {/* Suggested users */}
-      <div className="card p-4">
+      <div className="p-4">
         <h3 className="text-base font-semibold text-white mb-4">Önerilen Kullanıcılar</h3>
         <div className="flex flex-col gap-3">
           {suggestedUsers.map((u) => (
