@@ -263,7 +263,7 @@ export default function PostDetailPage() {
             )}
 
             {/* Yayınlanma tarihi */}
-            <div className="border-t border-surface-border mt-4 pt-3">
+            <div className="border-t border-surface-border mt-4 py-3">
               <p className="text-sm text-gray-500">{formatDateTime(post.createdAt)}</p>
             </div>
 
@@ -286,7 +286,7 @@ export default function PostDetailPage() {
             )}
 
             {/* Actions */}
-            <div className="border-t border-surface-border flex items-center py-1 text-gray-400">
+            <div className="border-t border-surface-border flex items-center py-3 text-gray-400">
               <div className="w-3/5 grid grid-cols-3 items-center">
                 <button
                   onClick={handleLike}

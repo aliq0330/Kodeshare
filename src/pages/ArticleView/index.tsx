@@ -279,7 +279,7 @@ export default function ArticleViewPage() {
         <ArticleBlocksRenderer blocks={article.blocks} />
 
         {/* Yayınlanma tarihi */}
-        <div className="border-t border-surface-border mt-10 pt-3">
+        <div className="border-t border-surface-border mt-10 py-3">
           <p className="text-sm text-gray-500">{formatDateTime(article.createdAt)}</p>
         </div>
 
@@ -299,7 +299,7 @@ export default function ArticleViewPage() {
         )}
 
         {/* ── Toolbar ── */}
-        <div className="border-t border-surface-border flex items-center pt-2 pb-1 text-gray-400">
+        <div className="border-t border-surface-border flex items-center py-3 text-gray-400">
           {/* Left 60% — like / comment / repost centered */}
           <div className="w-3/5 grid grid-cols-3 items-center">
             <button
