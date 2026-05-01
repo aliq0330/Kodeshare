@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconPlus, IconChevronDown, IconX, IconTrash, IconCloud, IconCloudUpload, IconClock, IconHash, IconEye, IconPencil, IconQuote } from '@tabler/icons-react'
+import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconChevronDown, IconX, IconTrash, IconCloud, IconCloudUpload, IconClock, IconHash, IconEye, IconPencil, IconQuote } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
@@ -184,10 +184,9 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const [blocks, setBlocks]           = useState<ComposerBlock[]>([])
   const [loading, setLoading]         = useState(false)
-  const [addMenuOpen, setAddMenuOpen] = useState(false)
   const [expandedId, setExpandedId]   = useState<string | null>(null)
 
-  const addMenuRef      = useRef<HTMLDivElement>(null)
+
   const tagSuggestRef   = useRef<HTMLDivElement>(null)
   const searchDebounce  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hydratedRef     = useRef(false)
@@ -287,16 +286,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     return () => document.removeEventListener('mousedown', h)
   }, [suggestionsOpen])
 
-  // Close add-block menu on outside click
-  useEffect(() => {
-    if (!addMenuOpen) return
-    const h = (e: MouseEvent) => {
-      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) setAddMenuOpen(false)
-    }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [addMenuOpen])
-
   // Close project picker on outside click
   useEffect(() => {
     if (!pickerBlockId) return
@@ -341,7 +330,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
 
   const addBlock = (type: PostBlockType) => {
     setBlocks((bs) => [...bs, makeBlock(type)])
-    setAddMenuOpen(false)
   }
 
   const removeBlock = (localId: string) => {
@@ -400,7 +388,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     setComposerMode('edit')
     setDescription(''); setTags([]); setTagInput(''); setTagSuggestions([]); setSuggestionsOpen(false)
     setBlocks([])
-    setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null); setAddMenuOpen(false)
+    setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null)
     setCloudDraftId(null)
     hydratedRef.current = false
   }
@@ -832,33 +820,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             </div>
           )}
 
-          {/* Add block button */}
-          <div className="relative" ref={addMenuRef}>
-            <button
-              type="button"
-              onClick={() => setAddMenuOpen((v) => !v)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-surface-border text-sm text-gray-500 hover:border-brand-500 hover:text-brand-400 transition-colors"
-            >
-              <IconPlus className="w-4 h-4" />
-              Blok Ekle
-            </button>
-            {addMenuOpen && (
-              <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1">
-                {BLOCK_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.type}
-                    type="button"
-                    onClick={() => addBlock(opt.type)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-surface-raised transition-colors text-gray-300 hover:text-white"
-                  >
-                    <span className="text-brand-400">{opt.icon}</span>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
         </div>
         )} {/* end composerMode === 'edit' */}
 
@@ -916,18 +877,37 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         })()}
 
         {/* Sticky footer */}
-        <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-t border-surface-border bg-surface-card flex-wrap">
-          {isAuthenticated && !editingPost && (
-            <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleCloudSave} loading={cloudSaving}>
-              <IconCloudUpload className="w-4 h-4" />
-              {cloudDraftId ? 'Taslağı Güncelle' : 'Taslak Kaydet'}
-            </Button>
+        <div className="shrink-0 border-t border-surface-border bg-surface-card">
+          {/* Block type buttons */}
+          {composerMode === 'edit' && (
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-surface-border overflow-x-auto scrollbar-none">
+              {BLOCK_OPTIONS.map((opt) => (
+                <button
+                  key={opt.type}
+                  type="button"
+                  onClick={() => addBlock(opt.type)}
+                  className="flex flex-col items-center justify-center gap-1 h-[50px] w-[50px] shrink-0 rounded-lg border border-surface-border text-gray-400 hover:text-brand-400 hover:border-brand-500 transition-colors"
+                >
+                  <span className="text-brand-400">{opt.icon}</span>
+                  <span className="text-[9px] font-medium leading-none">{opt.label}</span>
+                </button>
+              ))}
+            </div>
           )}
-          <div className="flex justify-end gap-2 ml-auto">
-            <Button variant="ghost" onClick={handleClose}>İptal</Button>
-            <Button variant="primary" onClick={handleSubmit} loading={loading}>
-              {editingPost ? 'Güncelle' : 'Paylaş'}
-            </Button>
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 px-4 py-3 flex-wrap">
+            {isAuthenticated && !editingPost && (
+              <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleCloudSave} loading={cloudSaving}>
+                <IconCloudUpload className="w-4 h-4" />
+                {cloudDraftId ? 'Taslağı Güncelle' : 'Taslak Kaydet'}
+              </Button>
+            )}
+            <div className="flex justify-end gap-2 ml-auto">
+              <Button variant="ghost" onClick={handleClose}>İptal</Button>
+              <Button variant="primary" onClick={handleSubmit} loading={loading}>
+                {editingPost ? 'Güncelle' : 'Paylaş'}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
