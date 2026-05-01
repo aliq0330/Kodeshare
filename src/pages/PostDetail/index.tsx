@@ -259,21 +259,21 @@ export default function PostDetailPage() {
             )}
 
             {/* Actions */}
-            <div className="flex items-center gap-4 mt-1 text-gray-400">
+            <div className="flex items-center gap-6 mt-1 text-gray-400">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-1.5 transition-colors ${
                   post.isLiked ? 'text-red-500' : 'hover:text-red-400'
                 }`}
               >
-                <IconHeart className={`w-[18px] h-[18px] ${post.isLiked ? 'fill-current' : ''}`} />
+                <IconHeart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
                 {post.likesCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(post.likesCount)}</span>}
               </button>
               <button
                 onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
                 className="flex items-center gap-1.5 hover:text-white transition-colors"
               >
-                <IconMessageCircle className="w-[18px] h-[18px]" />
+                <IconMessageCircle className="w-5 h-5" />
                 {displayCommentCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(displayCommentCount)}</span>}
               </button>
               {isAuthenticated ? (
@@ -284,7 +284,7 @@ export default function PostDetailPage() {
                 />
               ) : (
                 <span className="flex items-center gap-1.5 text-sm">
-                  <IconRepeat className="w-[18px] h-[18px]" />
+                  <IconRepeat className="w-5 h-5" />
                   {post.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(post.repostCount)}</span>}
                 </span>
               )}
@@ -294,7 +294,7 @@ export default function PostDetailPage() {
                   post.isSaved ? 'text-white' : 'hover:text-white'
                 }`}
               >
-                <IconBookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
+                <IconBookmark className={`w-5 h-5 ${post.isSaved ? 'fill-current' : ''}`} />
               </button>
               {isAuthenticated && (
                 <div className="relative shrink-0" ref={menuRef}>

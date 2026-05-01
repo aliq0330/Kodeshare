@@ -274,7 +274,7 @@ export default function ArticleViewPage() {
         <ArticleBlocksRenderer blocks={article.blocks} />
 
         {/* ── Toolbar ── */}
-        <div className="border-t border-surface-border/40 mt-10 pt-4 flex items-center gap-4 text-gray-400">
+        <div className="border-t border-surface-border/40 mt-10 pt-4 flex items-center gap-6 text-gray-400">
           {/* Like */}
           <button
             onClick={handleLike}
@@ -283,7 +283,7 @@ export default function ArticleViewPage() {
             }`}
             title="Beğen"
           >
-            <IconHeart className={`w-[18px] h-[18px] ${article.isLiked ? 'fill-current' : ''}`} />
+            <IconHeart className={`w-5 h-5 ${article.isLiked ? 'fill-current' : ''}`} />
             {article.likesCount > 0 && <span className="text-sm text-black dark:text-white">{article.likesCount}</span>}
           </button>
 
@@ -293,7 +293,7 @@ export default function ArticleViewPage() {
             className="flex items-center gap-1.5 hover:text-white transition-colors"
             title="Yorumlar"
           >
-            <IconMessageCircle className="w-[18px] h-[18px]" />
+            <IconMessageCircle className="w-5 h-5" />
             {(article.commentsCount ?? 0) > 0 && <span className="text-sm text-black dark:text-white">{article.commentsCount}</span>}
           </button>
 
@@ -304,7 +304,7 @@ export default function ArticleViewPage() {
               className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
               title="Yeniden paylaş"
             >
-              <IconRepeat className="w-[18px] h-[18px]" />
+              <IconRepeat className="w-5 h-5" />
             </button>
             {repostMenuOpen && (
               <div className="absolute left-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
@@ -340,7 +340,7 @@ export default function ArticleViewPage() {
               }`}
               title={article.isSaved ? 'Kaydedildi' : 'Kaydet'}
             >
-              <IconBookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
+              <IconBookmark className={`w-5 h-5 ${article.isSaved ? 'fill-current' : ''}`} />
             </button>
 
             {/* Stats */}
@@ -349,7 +349,7 @@ export default function ArticleViewPage() {
               className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
               title="İstatistikler"
             >
-              <IconChartBar className="w-[18px] h-[18px]" />
+              <IconChartBar className="w-5 h-5" />
             </button>
 
             {/* 3-dot menu */}
@@ -359,7 +359,7 @@ export default function ArticleViewPage() {
                 className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors"
                 title="Daha fazla"
               >
-                <IconDots className="w-[18px] h-[18px]" />
+                <IconDots className="w-5 h-5" />
               </button>
 
               {menuOpen && (
