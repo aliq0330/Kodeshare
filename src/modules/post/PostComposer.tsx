@@ -518,6 +518,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         onClose={handleClose}
         title={editingPost ? 'Gönderiyi Düzenle' : 'Yeni Gönderi'}
         size="fullscreen"
+        className="lg:max-w-[672px]"
         titleAction={isAuthenticated ? (
           <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
             <IconCloud className="w-4 h-4" />

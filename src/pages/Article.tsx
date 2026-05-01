@@ -104,9 +104,9 @@ export default function ArticlePage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <>
       {/* ── Sabit üst başlık ── */}
-      <header className="fixed top-0 left-0 right-0 z-40 h-14 bg-surface/95 backdrop-blur-md border-b border-surface-border">
+      <header className="fixed top-0 left-0 right-0 lg:left-60 z-40 h-14 bg-surface/95 backdrop-blur-md border-b border-surface-border">
         <div className="flex items-center justify-between h-full px-3 sm:px-5 max-w-[1200px] mx-auto gap-3">
           {/* Geri */}
           <button
@@ -244,7 +244,7 @@ export default function ArticlePage() {
       <main className="flex-1 pt-14">
         {showPreview ? <ArticlePreview /> : <ArticleEditor />}
       </main>
-    </div>
+    </>
   )
 }
 

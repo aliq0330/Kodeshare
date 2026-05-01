@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import MainLayout from '@layouts/MainLayout'
 import EditorLayout from '@layouts/EditorLayout'
+import ArticleLayout from '@layouts/ArticleLayout'
 import AuthLayout from '@layouts/AuthLayout'
 import HomePage from '@pages/Home'
 import ExplorePage from '@pages/Explore'
@@ -68,12 +69,14 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
       </Route>
 
-      {/* Article editor — full screen, own layout */}
+      {/* Article editor — sidebar layout on desktop */}
       <Route
         path="/makale"
         element={
           <ProtectedRoute>
-            <ArticlePage />
+            <ArticleLayout>
+              <ArticlePage />
+            </ArticleLayout>
           </ProtectedRoute>
         }
       />

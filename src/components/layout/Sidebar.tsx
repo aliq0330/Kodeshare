@@ -7,8 +7,10 @@ import {
   IconSettings, IconSettingsFilled,
   IconHash, IconTrendingUp,
   IconBook2, IconBookFilled,
+  IconCode, IconMessage, IconSquarePlus,
 } from '@tabler/icons-react'
 import { useAuthStore } from '@store/authStore'
+import { useComposerStore } from '@store/composerStore'
 import { cn } from '@utils/cn'
 
 const navItems = [
@@ -29,6 +31,7 @@ const linkClass = (isActive: boolean) =>
 
 export default function Sidebar() {
   const { user, isAuthenticated } = useAuthStore()
+  const { openComposer } = useComposerStore()
 
   return (
     <nav className="flex flex-col gap-6">
@@ -46,6 +49,29 @@ export default function Sidebar() {
 
         {isAuthenticated && (
           <>
+            <NavLink to="/messages" className={({ isActive }) => linkClass(isActive)}>
+              {({ isActive }) => (
+                <>
+                  <IconMessage className={cn('w-6 h-6', isActive && 'fill-white stroke-none')} />
+                  Mesajlar
+                </>
+              )}
+            </NavLink>
+
+            <NavLink to="/editor" className={({ isActive }) => linkClass(isActive)}>
+              {({ isActive }) => (
+                <>
+                  <IconCode className="w-6 h-6" />
+                  Editör
+                </>
+              )}
+            </NavLink>
+
+            <button onClick={openComposer} className={linkClass(false)}>
+              <IconSquarePlus className="w-6 h-6" />
+              Yeni Gönderi
+            </button>
+
             <NavLink to="/makaleler" className={({ isActive }) => linkClass(isActive)}>
               {({ isActive }) => (
                 <>

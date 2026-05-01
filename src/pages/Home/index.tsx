@@ -20,7 +20,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col max-w-2xl mx-auto">
       <div className="sticky top-14 lg:top-0 z-10 bg-surface -mx-4 lg:mx-0 lg:border-x border-surface-border/40">
-        <div className="flex pt-5">
+        <div className="flex pt-[6px] lg:pt-5">
           {FEED_TABS.map((t) => (
             <button
               key={t.id}
