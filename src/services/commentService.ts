@@ -137,7 +137,7 @@ function mapComment(c: Record<string, unknown>, userId?: string): Comment {
     author:     mapProfile(c.author as Record<string, unknown>),
     parentId:   c.parent_id as string | null,
     replies:    [],
-    likesCount: (c.likes_count as number) ?? 0,
+    likesCount: (c.likes_count as number) ?? likes.length,
     isLiked:    userId ? likes.some((l) => l.user_id === userId) : false,
     mentions:   [],
     createdAt:  c.created_at as string,

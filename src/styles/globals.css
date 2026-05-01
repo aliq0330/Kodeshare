@@ -217,12 +217,19 @@ html.dark svg *:not([stroke="none"]) {
   transform-origin: center;
 }
 
-.like-icon-liked {
+/* Specificity must beat `:root svg *:not([stroke="none"])` (0,2,1) and `:root svg` (0,1,1) */
+:root svg.like-icon-liked,
+html.light svg.like-icon-liked,
+html.dark svg.like-icon-liked {
   color: rgb(248 113 113) !important;
 }
-.like-icon-liked *:not([stroke="none"]) {
+:root svg.like-icon-liked *:not([stroke="none"]),
+html.light svg.like-icon-liked *:not([stroke="none"]),
+html.dark svg.like-icon-liked *:not([stroke="none"]) {
   stroke: rgb(248 113 113) !important;
 }
-.like-icon-liked *:not([fill="none"]) {
+:root svg.like-icon-liked *:not([fill="none"]),
+html.light svg.like-icon-liked *:not([fill="none"]),
+html.dark svg.like-icon-liked *:not([fill="none"]) {
   fill: rgb(248 113 113) !important;
 }
