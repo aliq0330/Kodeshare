@@ -218,7 +218,7 @@ export default function ArticleViewPage() {
       )}
 
       <div className="max-w-4xl mx-auto">
-      <article className="px-4 sm:px-6 py-10">
+      <article className="px-4 sm:px-6 pt-10 pb-0 border-b border-surface-border/40">
         {/* Title */}
         {article.title && (
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-white mb-4">
@@ -279,13 +279,13 @@ export default function ArticleViewPage() {
         <ArticleBlocksRenderer blocks={article.blocks} />
 
         {/* Yayınlanma tarihi */}
-        <div className="border-t border-surface-border mt-10 py-3">
+        <div className="border-t border-surface-border/40 mt-10 py-3">
           <p className="text-sm text-gray-500">{formatDateTime(article.createdAt)}</p>
         </div>
 
         {/* İstatistikler */}
         {(article.likesCount > 0 || (article.commentsCount ?? 0) > 0 || article.savesCount > 0) && (
-          <div className="border-t border-surface-border py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <div className="border-t border-surface-border/40 py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             {article.likesCount > 0 && (
               <span className="text-gray-500"><strong className="text-white">{compactNumber(article.likesCount)}</strong> beğeni</span>
             )}
@@ -299,7 +299,7 @@ export default function ArticleViewPage() {
         )}
 
         {/* ── Toolbar ── */}
-        <div className="border-t border-surface-border flex items-center py-3 text-gray-400">
+        <div className="border-t border-surface-border/40 flex items-center py-3 text-gray-400">
           {/* Left 60% — like / comment / repost centered */}
           <div className="w-3/5 grid grid-cols-3 items-center">
             <button

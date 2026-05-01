@@ -174,7 +174,7 @@ export default function PostDetailPage() {
       </Link>
 
       <article className="-mx-4 lg:mx-0 border-b border-surface-border/40">
-        <div className="px-4 pt-3 pb-4">
+        <div className="px-4 pt-3 pb-0">
           {/* Author row */}
           <div className="flex items-center justify-between gap-2 mb-2">
             <Link to={`/profile/${post.author.username}`} className="flex items-center gap-3 min-w-0">
@@ -263,13 +263,13 @@ export default function PostDetailPage() {
             )}
 
             {/* Yayınlanma tarihi */}
-            <div className="border-t border-surface-border mt-4 py-3">
+            <div className="border-t border-surface-border/40 mt-4 py-3">
               <p className="text-sm text-gray-500">{formatDateTime(post.createdAt)}</p>
             </div>
 
             {/* İstatistikler */}
             {(post.likesCount > 0 || displayCommentCount > 0 || post.repostCount > 0 || post.savesCount > 0) && (
-              <div className="border-t border-surface-border py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <div className="border-t border-surface-border/40 py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                 {post.likesCount > 0 && (
                   <span className="text-gray-500"><strong className="text-white">{compactNumber(post.likesCount)}</strong> beğeni</span>
                 )}
@@ -286,7 +286,7 @@ export default function PostDetailPage() {
             )}
 
             {/* Actions */}
-            <div className="border-t border-surface-border flex items-center py-3 text-gray-400">
+            <div className="border-t border-surface-border/40 flex items-center py-3 text-gray-400">
               <div className="w-3/5 grid grid-cols-3 items-center">
                 <button
                   onClick={handleLike}
