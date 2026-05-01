@@ -9,6 +9,10 @@ export function fullDate(date: string): string {
   return format(new Date(date), 'd MMMM yyyy', { locale: tr })
 }
 
+export function formatDateTime(date: string): string {
+  return format(new Date(date), 'HH:mm · d MMMM yyyy', { locale: tr })
+}
+
 export function compactNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`

@@ -12,7 +12,7 @@ import FollowButton from '@modules/social/FollowButton'
 import PostStatsModal from '@modules/post/PostStatsModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
-import { timeAgo, compactNumber } from '@utils/formatters'
+import { timeAgo, compactNumber, formatDateTime } from '@utils/formatters'
 import { postService } from '@services/postService'
 import { projectService } from '@services/projectService'
 import { useAuthStore } from '@store/authStore'
@@ -262,8 +262,31 @@ export default function PostDetailPage() {
               </div>
             )}
 
+            {/* Yayınlanma tarihi */}
+            <div className="border-t border-surface-border mt-4 pt-3">
+              <p className="text-sm text-gray-500">{formatDateTime(post.createdAt)}</p>
+            </div>
+
+            {/* İstatistikler */}
+            {(post.likesCount > 0 || displayCommentCount > 0 || post.repostCount > 0 || post.savesCount > 0) && (
+              <div className="border-t border-surface-border py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                {post.likesCount > 0 && (
+                  <span className="text-gray-500"><strong className="text-white">{compactNumber(post.likesCount)}</strong> beğeni</span>
+                )}
+                {displayCommentCount > 0 && (
+                  <span className="text-gray-500"><strong className="text-white">{compactNumber(displayCommentCount)}</strong> yorum</span>
+                )}
+                {post.repostCount > 0 && (
+                  <span className="text-gray-500"><strong className="text-white">{compactNumber(post.repostCount)}</strong> repost</span>
+                )}
+                {post.savesCount > 0 && (
+                  <span className="text-gray-500"><strong className="text-white">{compactNumber(post.savesCount)}</strong> kaydetme</span>
+                )}
+              </div>
+            )}
+
             {/* Actions */}
-            <div className="flex items-center mt-1 text-gray-400">
+            <div className="border-t border-surface-border flex items-center py-1 text-gray-400">
               <div className="w-3/5 grid grid-cols-3 items-center">
                 <button
                   onClick={handleLike}

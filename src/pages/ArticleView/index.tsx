@@ -16,6 +16,7 @@ import { useComposerStore } from '@store/composerStore'
 import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
 import { useFollowStore } from '@store/followStore'
+import { compactNumber, formatDateTime } from '@utils/formatters'
 import toast from 'react-hot-toast'
 
 function formatDate(iso: string) {
@@ -277,8 +278,28 @@ export default function ArticleViewPage() {
         {/* Blocks */}
         <ArticleBlocksRenderer blocks={article.blocks} />
 
+        {/* Yayınlanma tarihi */}
+        <div className="border-t border-surface-border mt-10 pt-3">
+          <p className="text-sm text-gray-500">{formatDateTime(article.createdAt)}</p>
+        </div>
+
+        {/* İstatistikler */}
+        {(article.likesCount > 0 || (article.commentsCount ?? 0) > 0 || article.savesCount > 0) && (
+          <div className="border-t border-surface-border py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {article.likesCount > 0 && (
+              <span className="text-gray-500"><strong className="text-white">{compactNumber(article.likesCount)}</strong> beğeni</span>
+            )}
+            {(article.commentsCount ?? 0) > 0 && (
+              <span className="text-gray-500"><strong className="text-white">{compactNumber(article.commentsCount ?? 0)}</strong> yorum</span>
+            )}
+            {article.savesCount > 0 && (
+              <span className="text-gray-500"><strong className="text-white">{compactNumber(article.savesCount)}</strong> kaydetme</span>
+            )}
+          </div>
+        )}
+
         {/* ── Toolbar ── */}
-        <div className="border-t border-surface-border/40 mt-10 pt-4 flex items-center text-gray-400">
+        <div className="border-t border-surface-border flex items-center pt-2 pb-1 text-gray-400">
           {/* Left 60% — like / comment / repost centered */}
           <div className="w-3/5 grid grid-cols-3 items-center">
             <button
