@@ -482,7 +482,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           {/* Description */}
           {display.description && (
             <Link to={primaryLink} className="block mb-2">
-              <p className="text-sm text-white line-clamp-3 leading-relaxed whitespace-pre-wrap">{display.description}</p>
+              <p className="text-[16.9px] leading-[22px] tracking-normal text-white line-clamp-3 whitespace-pre-wrap">{display.description}</p>
             </Link>
           )}
 

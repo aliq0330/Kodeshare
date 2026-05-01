@@ -151,7 +151,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm text-white line-clamp-2 group-hover:text-brand-300 transition-colors">{article.title}</h3>
                   {article.subtitle && (
-                    <p className="text-sm text-gray-400 line-clamp-2 mt-0.5">{article.subtitle}</p>
+                    <p className="text-[16.9px] leading-[22px] tracking-normal text-gray-400 line-clamp-2 mt-0.5">{article.subtitle}</p>
                   )}
                 </div>
               </div>

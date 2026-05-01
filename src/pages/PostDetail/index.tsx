@@ -275,7 +275,7 @@ export default function PostDetailPage() {
               </div>
             )}
 
-            {post.description && <p className="text-sm text-white mb-3 whitespace-pre-wrap leading-relaxed">{post.description}</p>}
+            {post.description && <p className="text-[16.9px] leading-[22px] tracking-normal text-white mb-3 whitespace-pre-wrap">{post.description}</p>}
 
             {/* Blocks */}
             {post.blocks.length > 0 && (

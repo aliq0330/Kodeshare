@@ -220,7 +220,7 @@ export default function ArticleViewPage() {
           </h1>
         )}
         {article.subtitle && (
-          <p className="text-xl text-gray-400 font-light leading-relaxed mb-6">
+          <p className="text-[16.9px] leading-[22px] tracking-normal text-gray-400 mb-6">
             {article.subtitle}
           </p>
         )}
