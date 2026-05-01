@@ -6,7 +6,7 @@ import {
   IconUser, IconUserFilled,
   IconSettings, IconSettingsFilled,
   IconHash, IconTrendingUp,
-  IconBook2, IconBook2Filled,
+  IconBook2, IconBookFilled,
 } from '@tabler/icons-react'
 import { useAuthStore } from '@store/authStore'
 import { cn } from '@utils/cn'
@@ -49,7 +49,7 @@ export default function Sidebar() {
             <NavLink to="/makaleler" className={({ isActive }) => linkClass(isActive)}>
               {({ isActive }) => (
                 <>
-                  {isActive ? <IconBook2Filled className="w-6 h-6" /> : <IconBook2 className="w-6 h-6" />}
+                  {isActive ? <IconBookFilled className="w-6 h-6" /> : <IconBook2 className="w-6 h-6" />}
                   Makalelerim
                 </>
               )}
