@@ -46,6 +46,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   const { isAuthenticated, user } = useAuth()
   const repostPost = usePostStore((s) => s.repostPost)
   const loadArticle = useArticleStore((s) => s.loadArticle)
+  const [likePulsing, setLikePulsing] = useState(false)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
@@ -103,6 +104,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
   const handleArticleLike = async () => {
     if (!displayArticleId || !isAuthenticated) return
+    setLikePulsing(true)
     if (articleData?.isLiked) {
       await articleService.unlike(displayArticleId)
       setArticleData((s) => s ? { ...s, isLiked: false, likesCount: s.likesCount - 1 } : s)
@@ -124,6 +126,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   }
 
   const handlePostLike = () => {
+    setLikePulsing(true)
     setLocalPost((prev) => {
       const isRepost = prev.type === 'repost' && !!prev.repostedFrom
       if (isRepost) {
@@ -397,7 +400,10 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                     articleData?.isLiked ? 'text-red-500' : 'hover:text-red-400'
                   }`}
                 >
-                  <IconHeart className={`w-5 h-5 ${articleData?.isLiked ? 'fill-current' : ''}`} />
+                  <IconHeart
+                    className={`w-5 h-5 ${articleData?.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                    onAnimationEnd={() => setLikePulsing(false)}
+                  />
                   {(articleData?.likesCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(articleData?.likesCount ?? 0)}</span>}
                 </button>
 
@@ -540,7 +546,10 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 onClick={handlePostLike}
                 className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
               >
-                <IconHeart className={`w-5 h-5 ${display.isLiked ? 'fill-current' : ''}`} />
+                <IconHeart
+                  className={`w-5 h-5 ${display.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                  onAnimationEnd={() => setLikePulsing(false)}
+                />
                 {display.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.likesCount)}</span>}
               </button>
 

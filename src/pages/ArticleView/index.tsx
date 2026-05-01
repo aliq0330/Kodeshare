@@ -51,6 +51,7 @@ export default function ArticleViewPage() {
   const loadArticle = useArticleStore((s) => s.loadArticle)
 
   const [article, setArticle]               = useState<ArticleRecord | null>(null)
+  const [likePulsing, setLikePulsing]       = useState(false)
   const [loading, setLoading]               = useState(true)
   const [error, setError]                   = useState<string | null>(null)
   const [collectModalOpen, setCollectModalOpen] = useState(false)
@@ -100,6 +101,7 @@ export default function ArticleViewPage() {
   const handleLike = async () => {
     if (!article) return
     if (!isAuthenticated) { toast.error('Beğenmek için giriş yapmalısın'); return }
+    setLikePulsing(true)
     const wasLiked = article.isLiked
     setArticle((a) =>
       a ? { ...a, isLiked: !a.isLiked, likesCount: Math.max(0, a.likesCount + (a.isLiked ? -1 : 1)) } : a,
@@ -284,7 +286,10 @@ export default function ArticleViewPage() {
               }`}
               title="Beğen"
             >
-              <IconHeart className={`w-5 h-5 ${article.isLiked ? 'fill-current' : ''}`} />
+              <IconHeart
+                className={`w-5 h-5 ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                onAnimationEnd={() => setLikePulsing(false)}
+              />
               {article.likesCount > 0 && <span className="text-sm text-black dark:text-white">{article.likesCount}</span>}
             </button>
 

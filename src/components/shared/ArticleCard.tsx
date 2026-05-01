@@ -21,6 +21,7 @@ interface ArticleCardProps {
 
 export default function ArticleCard({ article: initialArticle, onRemoveFromCollection }: ArticleCardProps) {
   const [article, setArticle]       = useState(initialArticle)
+  const [likePulsing, setLikePulsing] = useState(false)
   const [menuOpen, setMenuOpen]     = useState(false)
   const [collectOpen, setCollectOpen] = useState(false)
   const [shareOpen, setShareOpen]   = useState(false)
@@ -40,6 +41,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
 
   const handleLike = async () => {
     if (!isAuthenticated) { toast.error('Beğenmek için giriş yapmalısın'); return }
+    setLikePulsing(true)
     const wasLiked = article.isLiked
     setArticle((a) => ({ ...a, isLiked: !a.isLiked, likesCount: Math.max(0, a.likesCount + (a.isLiked ? -1 : 1)) }))
     try {
@@ -114,7 +116,10 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                   onClick={handleLike}
                   className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
                 >
-                  <IconHeart className={`w-5 h-5 ${article.isLiked ? 'fill-current' : ''}`} />
+                  <IconHeart
+                    className={`w-5 h-5 ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                    onAnimationEnd={() => setLikePulsing(false)}
+                  />
                   {article.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.likesCount)}</span>}
                 </button>
 

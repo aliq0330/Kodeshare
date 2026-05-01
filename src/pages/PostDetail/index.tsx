@@ -26,6 +26,7 @@ export default function PostDetailPage() {
   const navigate = useNavigate()
   const { isAuthenticated, user } = useAuthStore()
   const [post, setPost] = useState<Post | null>(null)
+  const [likePulsing, setLikePulsing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [collectModalOpen, setCollectModalOpen] = useState(false)
@@ -97,6 +98,7 @@ export default function PostDetailPage() {
 
   const handleLike = async () => {
     if (!post || !isAuthenticated) return
+    setLikePulsing(true)
     const wasLiked = post.isLiked
     setPost((p) => p ? { ...p, isLiked: !p.isLiked, likesCount: Math.max(0, p.likesCount + (p.isLiked ? -1 : 1)) } : p)
     try {
@@ -267,7 +269,10 @@ export default function PostDetailPage() {
                     post.isLiked ? 'text-red-500' : 'hover:text-red-400'
                   }`}
                 >
-                  <IconHeart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
+                  <IconHeart
+                    className={`w-5 h-5 ${post.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                    onAnimationEnd={() => setLikePulsing(false)}
+                  />
                   {post.likesCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(post.likesCount)}</span>}
                 </button>
                 <button

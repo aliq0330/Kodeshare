@@ -133,7 +133,6 @@ export const useCommentStore = create<CommentState>((set, get) => ({
   },
 
   toggleLike: async (postId, commentId) => {
-    if (postId.startsWith('article:')) return
     const all = get().commentsByPost[postId] ?? []
     const comment =
       all.find((c) => c.id === commentId) ??
