@@ -17,9 +17,9 @@ export default function MobileNav() {
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn('flex items-center justify-center px-4 py-2 rounded-lg transition-colors',
-      isActive ? 'text-brand-400' : 'text-gray-500')
+      isActive ? 'text-brand-400' : 'text-gray-400')
 
-  const iconClass = (active: boolean) => cn('w-7 h-7', active && 'text-brand-400')
+  const iconClass = (active: boolean) => cn('w-6 h-6', active && 'text-brand-400')
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface-card border-t border-surface-border h-16 flex items-center justify-around px-2">
@@ -33,7 +33,7 @@ export default function MobileNav() {
       <button
         onClick={() => navigate('/explore', { state: { focusSearch: true } })}
         className={cn('flex items-center justify-center px-4 py-2 rounded-lg transition-colors',
-          pathname === '/explore' ? 'text-brand-400' : 'text-gray-500')}
+          pathname === '/explore' ? 'text-brand-400' : 'text-gray-400')}
       >
         <IconSearch className={iconClass(pathname === '/explore')} />
       </button>
@@ -41,9 +41,9 @@ export default function MobileNav() {
       {/* Yeni Gönderi */}
       <button
         onClick={() => isAuthenticated ? openComposer() : navigate('/login')}
-        className="flex items-center justify-center px-4 py-2 rounded-lg transition-colors text-gray-500 hover:text-brand-400"
+        className="flex items-center justify-center px-4 py-2 rounded-lg transition-colors text-gray-400 hover:text-brand-400"
       >
-        <IconEditCircle className="w-7 h-7" />
+        <IconEditCircle className="w-6 h-6" />
       </button>
 
       {/* Bildirim */}
