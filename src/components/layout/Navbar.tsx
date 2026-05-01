@@ -1,19 +1,15 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { IconSearch, IconBell, IconMessage, IconShieldCheck, IconEditCircle } from '@tabler/icons-react'
+import { useNavigate } from 'react-router-dom'
+import { IconShieldCheck } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Dropdown from '@components/ui/Dropdown'
 import BurgerMenu from '@components/layout/BurgerMenu'
 import { useAuthStore } from '@store/authStore'
-import { useNotificationStore } from '@store/notificationStore'
-import { useComposerStore } from '@store/composerStore'
 import { isAdmin } from '@/lib/admin'
 import Button from '@components/ui/Button'
 
 export default function Navbar() {
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuthStore()
-  const unreadCount = useNotificationStore((s) => s.unreadCount)
-  const openComposer = useComposerStore((s) => s.openComposer)
 
   const userMenuItems = [
     ...(isAdmin(user?.id) ? [{
@@ -41,58 +37,16 @@ export default function Navbar() {
         {/* Right icons */}
         <div className="flex items-center gap-0.5 shrink-0">
           {isAuthenticated ? (
-            <>
-              <button
-                onClick={() => navigate('/explore', { state: { focusSearch: true } })}
-                className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
-                title="Ara"
-              >
-                <IconSearch className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={openComposer}
-                className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
-                title="Yeni Gönderi"
-              >
-                <IconEditCircle className="w-5 h-5" />
-              </button>
-
-              <Link
-                to="/notifications"
-                className="relative p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
-              >
-                <IconBell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-black rounded-full" />
-                )}
-              </Link>
-
-              <Link
-                to="/messages"
-                className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
-              >
-                <IconMessage className="w-5 h-5" />
-              </Link>
-
-              <Dropdown
-                trigger={
-                  <button className="p-1 rounded-full hover:bg-surface-raised transition-colors">
-                    <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="xs" />
-                  </button>
-                }
-                items={userMenuItems}
-              />
-            </>
+            <Dropdown
+              trigger={
+                <button className="p-1 rounded-full hover:bg-surface-raised transition-colors">
+                  <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="xs" />
+                </button>
+              }
+              items={userMenuItems}
+            />
           ) : (
             <>
-              <button
-                onClick={() => navigate('/explore', { state: { focusSearch: true } })}
-                className="p-2 rounded-lg hover:bg-surface-raised text-gray-500 hover:text-gray-900 transition-colors"
-                title="Ara"
-              >
-                <IconSearch className="w-5 h-5" />
-              </button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Giriş Yap</Button>
               <Button variant="primary" size="sm" onClick={() => navigate('/register')}>Kayıt Ol</Button>
             </>

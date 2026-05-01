@@ -1,65 +1,90 @@
-import { NavLink } from 'react-router-dom'
-import { IconHome, IconCompass, IconStar, IconUser, IconCode, IconFileText } from '@tabler/icons-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { IconHome, IconSearch, IconEditCircle, IconBell, IconMessage } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
-
-const NAV_ITEMS = [
-  { to: '/',          icon: IconHome,     label: 'Ana Sayfa', end: true },
-  { to: '/explore',   icon: IconCompass,  label: 'Keşfet' },
-  { to: '/editor',    icon: IconCode,    label: 'Editör' },
-  { to: '/featured',  icon: IconStar,     label: 'Öne Çıkanlar' },
-]
+import { useNotificationStore } from '@store/notificationStore'
+import { useComposerStore } from '@store/composerStore'
+import { useMessageStore } from '@store/messageStore'
 
 export default function MobileNav() {
-  const { user, isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuthStore()
+  const unreadNotifications = useNotificationStore((s) => s.unreadCount)
+  const openComposer = useComposerStore((s) => s.openComposer)
+  const conversations = useMessageStore((s) => s.conversations)
+  const unreadMessages = conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0)
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    cn('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors min-w-0',
+      isActive ? 'text-brand-400' : 'text-gray-500')
+
+  const iconClass = (active: boolean) => cn('w-5 h-5', active && 'text-brand-400')
+  const labelClass = 'text-[10px] font-medium truncate'
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-surface-border h-16 flex items-center justify-around px-2">
-      {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={end}
-          className={({ isActive }) =>
-            cn('flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors', isActive ? 'text-brand-400' : 'text-gray-500')
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <Icon className={cn('w-5 h-5', isActive && 'text-brand-400')} />
-              <span className="text-[10px] font-medium">{label}</span>
-            </>
-          )}
-        </NavLink>
-      ))}
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-surface-border h-16 flex items-center justify-around px-2">
 
-      {isAuthenticated && (
-        <NavLink
-          to="/makaleler"
-          className={({ isActive }) =>
-            cn('flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors', isActive ? 'text-brand-400' : 'text-gray-500')
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <IconFileText className={cn('w-5 h-5', isActive && 'text-brand-400')} />
-              <span className="text-[10px] font-medium">Makale</span>
-            </>
-          )}
-        </NavLink>
-      )}
+      {/* Anasayfa */}
+      <NavLink to="/" end className={linkClass}>
+        {({ isActive }) => (
+          <>
+            <IconHome className={iconClass(isActive)} />
+            <span className={labelClass}>Anasayfa</span>
+          </>
+        )}
+      </NavLink>
 
-      {isAuthenticated && (
-        <NavLink
-          to={`/profile/${user?.username}`}
-          className={({ isActive }) =>
-            cn('flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-colors', isActive ? 'text-brand-400' : 'text-gray-500')
-          }
-        >
-          <IconUser className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Profil</span>
-        </NavLink>
-      )}
+      {/* Ara */}
+      <NavLink to="/explore" className={linkClass}>
+        {({ isActive }) => (
+          <>
+            <IconSearch className={iconClass(isActive)} />
+            <span className={labelClass}>Ara</span>
+          </>
+        )}
+      </NavLink>
+
+      {/* Yeni Gönderi */}
+      <button
+        onClick={() => isAuthenticated ? openComposer() : navigate('/login')}
+        className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors text-gray-500 hover:text-brand-400 min-w-0"
+      >
+        <IconEditCircle className="w-5 h-5" />
+        <span className={labelClass}>Gönderi</span>
+      </button>
+
+      {/* Bildirim */}
+      <NavLink
+        to={isAuthenticated ? '/notifications' : '/login'}
+        className={linkClass}
+      >
+        {({ isActive }) => (
+          <span className="relative flex flex-col items-center gap-0.5">
+            <IconBell className={iconClass(isActive)} />
+            {unreadNotifications > 0 && (
+              <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-black rounded-full" />
+            )}
+            <span className={labelClass}>Bildirim</span>
+          </span>
+        )}
+      </NavLink>
+
+      {/* Mesajlaşma */}
+      <NavLink
+        to={isAuthenticated ? '/messages' : '/login'}
+        className={linkClass}
+      >
+        {({ isActive }) => (
+          <span className="relative flex flex-col items-center gap-0.5">
+            <IconMessage className={iconClass(isActive)} />
+            {unreadMessages > 0 && (
+              <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-black rounded-full" />
+            )}
+            <span className={labelClass}>Mesajlar</span>
+          </span>
+        )}
+      </NavLink>
+
     </nav>
   )
 }
