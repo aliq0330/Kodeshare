@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { IconHome, IconSearch, IconEditCircle, IconBell, IconMessage } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
@@ -8,6 +8,7 @@ import { useMessageStore } from '@store/messageStore'
 
 export default function MobileNav() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { isAuthenticated } = useAuthStore()
   const unreadNotifications = useNotificationStore((s) => s.unreadCount)
   const openComposer = useComposerStore((s) => s.openComposer)
@@ -35,14 +36,14 @@ export default function MobileNav() {
       </NavLink>
 
       {/* Ara */}
-      <NavLink to="/explore" className={linkClass}>
-        {({ isActive }) => (
-          <>
-            <IconSearch className={iconClass(isActive)} />
-            <span className={labelClass}>Ara</span>
-          </>
-        )}
-      </NavLink>
+      <button
+        onClick={() => navigate('/explore', { state: { focusSearch: true } })}
+        className={cn('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors min-w-0',
+          pathname === '/explore' ? 'text-brand-400' : 'text-gray-500')}
+      >
+        <IconSearch className={iconClass(pathname === '/explore')} />
+        <span className={labelClass}>Ara</span>
+      </button>
 
       {/* Yeni Gönderi */}
       <button
