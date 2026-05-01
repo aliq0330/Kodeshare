@@ -59,6 +59,7 @@ export function useSupabaseRealtime() {
                 type:      n.type as Notification['type'],
                 actor:     mapProfile(actor as Record<string, unknown>),
                 postId:    n.post_id as string | null,
+                articleId: n.article_id as string | null,
                 commentId: n.comment_id as string | null,
                 message:   n.message as string,
                 isRead:    false,
