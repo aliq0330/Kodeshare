@@ -31,7 +31,7 @@ export default function PostActions({ post, onLike, onSave, onShare, onRepost, s
         )}
       >
         <IconHeart
-          className={cn('w-4 h-4', post.isLiked && 'fill-current', pulsing && 'animate-like-pulse')}
+          className={cn('w-4 h-4', post.isLiked && 'fill-current like-icon-liked', pulsing && 'animate-like-pulse')}
           onAnimationEnd={() => setPulsing(false)}
         />
         {showCounts && compactNumber(post.likesCount)}

@@ -258,7 +258,7 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
               className={cn('flex items-center gap-1.5 text-sm transition-colors', comment.isLiked ? 'text-red-400' : 'text-gray-500 hover:text-red-400')}
             >
               <IconHeart
-                className={cn('w-4 h-4', comment.isLiked && 'fill-current', likePulsing && 'animate-like-pulse')}
+                className={cn('w-4 h-4', comment.isLiked && 'fill-current like-icon-liked', likePulsing && 'animate-like-pulse')}
                 onAnimationEnd={() => setLikePulsing(false)}
               />
               {comment.likesCount > 0 && comment.likesCount}
