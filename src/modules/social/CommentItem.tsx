@@ -27,6 +27,7 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
   const [showReplySnippet,  setShowReplySnippet]  = useState(false)
   const [showReplyEmoji,    setShowReplyEmoji]    = useState(false)
 
+  const [likePulsing,       setLikePulsing]       = useState(false)
   const [menuOpen,          setMenuOpen]          = useState(false)
   const [editMode,          setEditMode]          = useState(false)
   const [editText,          setEditText]          = useState(comment.content)
@@ -71,6 +72,7 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
 
   const handleLike = async () => {
     if (!isAuthenticated) return
+    setLikePulsing(true)
     try { await toggleLike(postId, comment.id) }
     catch { toast.error('Bir hata oluştu') }
   }
@@ -255,7 +257,10 @@ export default function CommentItem({ comment, postId, depth = 0, isLast = false
               onClick={handleLike}
               className={cn('flex items-center gap-1.5 text-sm transition-colors', comment.isLiked ? 'text-red-400' : 'text-gray-500 hover:text-red-400')}
             >
-              <IconHeart className={cn('w-4 h-4', comment.isLiked && 'fill-current')} />
+              <IconHeart
+                className={cn('w-4 h-4', comment.isLiked && 'fill-current', likePulsing && 'animate-like-pulse')}
+                onAnimationEnd={() => setLikePulsing(false)}
+              />
               {comment.likesCount > 0 && comment.likesCount}
             </button>
             {isAuthenticated && depth === 0 && (

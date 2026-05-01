@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { IconHeart, IconMessageCircle, IconBookmark, IconGitFork } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { compactNumber } from '@utils/formatters'
@@ -13,16 +14,26 @@ interface PostActionsProps {
 }
 
 export default function PostActions({ post, onLike, onSave, onShare, onRepost, showCounts = true }: PostActionsProps) {
+  const [pulsing, setPulsing] = useState(false)
+
+  const handleLike = () => {
+    setPulsing(true)
+    onLike?.()
+  }
+
   return (
     <div className="flex items-center gap-3">
       <button
-        onClick={onLike}
+        onClick={handleLike}
         className={cn(
           'flex items-center gap-1.5 text-sm transition-colors',
           post.isLiked ? 'text-red-400' : 'text-gray-500 hover:text-red-400',
         )}
       >
-        <IconHeart className={cn('w-4 h-4', post.isLiked && 'fill-current')} />
+        <IconHeart
+          className={cn('w-4 h-4', post.isLiked && 'fill-current', pulsing && 'animate-like-pulse')}
+          onAnimationEnd={() => setPulsing(false)}
+        />
         {showCounts && compactNumber(post.likesCount)}
       </button>
 

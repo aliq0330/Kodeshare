@@ -34,11 +34,18 @@ export default {
         'slide-up':   'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
+        'like-pulse': 'likePulse 0.4s ease-out',
       },
       keyframes: {
         fadeIn:    { from: { opacity: 0 }, to: { opacity: 1 } },
         slideUp:   { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
         slideDown: { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+        likePulse: {
+          '0%':   { transform: 'scale(1)' },
+          '40%':  { transform: 'scale(1.45)' },
+          '70%':  { transform: 'scale(0.9)' },
+          '100%': { transform: 'scale(1)' },
+        },
       },
     },
   },
