@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { usePostStore } from '@store/postStore'
 import { useArticleStore } from '@store/articleStore'
 import { useComposerStore } from '@store/composerStore'
+import FollowButton from '@modules/social/FollowButton'
 import type { Post, PostBlock } from '@/types'
 
 interface PostCardProps {
@@ -358,7 +359,9 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 <span className="text-sm text-gray-400">@{display.author.username} · {timeAgo(display.createdAt)}</span>
               </div>
             </Link>
-            {menuDropdown}
+            {isAuthenticated && user?.id !== display.author.id && (
+              <FollowButton userId={display.author.id} isFollowing={false} size="xs" />
+            )}
           </div>
 
             {/* Kapak görseli */}
@@ -421,6 +424,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               >
                 <IconBookmark className={`w-[18px] h-[18px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
               </button>
+              {menuDropdown}
             </div>
             <CommentPreview
               articleId={displayArticleId}
@@ -468,7 +472,9 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
               )}
             </div>
           </Link>
-          {menuDropdown}
+          {isAuthenticated && user?.id !== display.author.id && (
+            <FollowButton userId={display.author.id} isFollowing={false} size="xs" />
+          )}
         </div>
 
           {/* Description */}
@@ -553,6 +559,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             >
               <IconBookmark className={`w-[18px] h-[18px] ${display.isSaved ? 'fill-current' : ''}`} />
             </button>
+            {menuDropdown}
           </div>
           {display.commentsCount > 0 && (
             <CommentPreview

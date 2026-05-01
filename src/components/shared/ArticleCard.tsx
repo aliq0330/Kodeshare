@@ -9,6 +9,7 @@ import { articleService } from '@services/articleService'
 import type { ArticleRecord } from '@services/articleService'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
+import FollowButton from '@modules/social/FollowButton'
 import { timeAgo, compactNumber } from '@utils/formatters'
 import toast from 'react-hot-toast'
 import CommentPreview from '@components/shared/CommentPreview'
@@ -24,7 +25,7 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
   const [collectOpen, setCollectOpen] = useState(false)
   const [shareOpen, setShareOpen]   = useState(false)
   const [statsOpen, setStatsOpen]   = useState(false)
-  const { isAuthenticated }         = useAuthStore()
+  const { isAuthenticated, user }   = useAuthStore()
   const openWithArticle             = useComposerStore((s) => s.openWithArticle)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -77,56 +78,10 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 </div>
               </Link>
             )}
-              {isAuthenticated && (
-                <div className="relative shrink-0" ref={menuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen((v) => !v)}
-                    className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
-                  >
-                    <IconDots className="w-4 h-4" />
-                  </button>
-                  {menuOpen && (
-                    <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
-                      <button
-                        type="button"
-                        onClick={() => { setShareOpen(true); setMenuOpen(false) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <IconShare className="w-4 h-4 text-sky-400" />
-                        <span className="text-white">Paylaş</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setCollectOpen(true); setMenuOpen(false) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <IconFolderPlus className="w-4 h-4 text-brand-400" />
-                        <span className="text-white">Koleksiyona ekle</span>
-                      </button>
-                      {onRemoveFromCollection && (
-                        <button
-                          type="button"
-                          onClick={() => { setMenuOpen(false); onRemoveFromCollection() }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                        >
-                          <IconFolderMinus className="w-4 h-4 text-red-400" />
-                          <span className="text-red-400">Bu koleksiyondan çıkar</span>
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => { setStatsOpen(true); setMenuOpen(false) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <IconChartBar className="w-4 h-4 text-purple-400" />
-                        <span className="text-white">İstatistikler</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            {isAuthenticated && user?.id !== article.authorId && (
+              <FollowButton userId={article.authorId} isFollowing={false} size="xs" />
+            )}
+          </div>
 
             {/* Cover image */}
             {article.coverImage && (
@@ -188,6 +143,35 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
               >
                 <IconBookmark className={`w-[18px] h-[18px] ${article.isSaved ? 'fill-current' : ''}`} />
               </button>
+              {isAuthenticated && (
+                <div className="relative shrink-0" ref={menuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen((v) => !v)}
+                    className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+                  >
+                    <IconDots className="w-4 h-4" />
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 bottom-full mb-1 z-20 w-48 card shadow-2xl py-1">
+                      <button type="button" onClick={() => { setShareOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                        <IconShare className="w-4 h-4 text-sky-400" /><span className="text-white">Paylaş</span>
+                      </button>
+                      <button type="button" onClick={() => { setCollectOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                        <IconFolderPlus className="w-4 h-4 text-brand-400" /><span className="text-white">Koleksiyona ekle</span>
+                      </button>
+                      {onRemoveFromCollection && (
+                        <button type="button" onClick={() => { setMenuOpen(false); onRemoveFromCollection() }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconFolderMinus className="w-4 h-4 text-red-400" /><span className="text-red-400">Bu koleksiyondan çıkar</span>
+                        </button>
+                      )}
+                      <button type="button" onClick={() => { setStatsOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                        <IconChartBar className="w-4 h-4 text-purple-400" /><span className="text-white">İstatistikler</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <CommentPreview
               articleId={article.id}

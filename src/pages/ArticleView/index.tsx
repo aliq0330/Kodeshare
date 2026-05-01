@@ -11,6 +11,7 @@ import AddToCollectionModal from '@collections/AddToCollectionModal'
 import ArticleShareModal from '@modules/social/ArticleShareModal'
 import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import CommentThread from '@modules/social/CommentThread'
+import FollowButton from '@modules/social/FollowButton'
 import { useComposerStore } from '@store/composerStore'
 import { usePostStore } from '@store/postStore'
 import { useAuthStore } from '@store/authStore'
@@ -245,6 +246,9 @@ export default function ArticleViewPage() {
                   <p className="text-sm text-gray-400">@{article.author.username}</p>
                 </div>
               </Link>
+            )}
+            {isAuthenticated && user && article.authorId !== user.id && (
+              <FollowButton userId={article.authorId} isFollowing={false} size="xs" />
             )}
           </div>
 

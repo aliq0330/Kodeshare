@@ -8,6 +8,7 @@ import AddToSeriesModal from '@modules/series/AddToSeriesModal'
 import ShareModal from '@modules/social/ShareModal'
 import CommentThread from '@modules/social/CommentThread'
 import RepostMenu from '@modules/post/RepostMenu'
+import FollowButton from '@modules/social/FollowButton'
 import PostStatsModal from '@modules/post/PostStatsModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
@@ -192,77 +193,10 @@ export default function PostDetailPage() {
                 </span>
               </div>
             </Link>
-              {isAuthenticated && (
-                <div className="relative shrink-0" ref={menuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen((v) => !v)}
-                    className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
-                    title="Daha fazla"
-                  >
-                    <IconDots className="w-4 h-4" />
-                  </button>
-                  {menuOpen && (
-                    <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
-                      <button
-                        type="button"
-                        onClick={() => { setMenuOpen(false); setStatsOpen(true) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <IconChartBar className="w-4 h-4 text-gray-400" />
-                        <span className="text-white">İstatistikler</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setMenuOpen(false); setShareModalOpen(true) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <IconShare className="w-4 h-4 text-gray-400" />
-                        <span className="text-white">Paylaş</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                      >
-                        <IconFolderPlus className="w-4 h-4" />
-                        <span className="text-white">Koleksiyona ekle</span>
-                      </button>
-                      {isOwner && (
-                        <button
-                          type="button"
-                          onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                        >
-                          <IconStack2 className="w-4 h-4 text-gray-400" />
-                          <span className="text-white">Seriye ekle</span>
-                        </button>
-                      )}
-                      {isOwner && (
-                        <button
-                          type="button"
-                          onClick={() => { setMenuOpen(false); openEditComposer(post, handleEditSaved) }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                        >
-                          <IconPencil className="w-4 h-4 text-gray-400" />
-                          <span className="text-white">Düzenle</span>
-                        </button>
-                      )}
-                      {isOwner && (
-                        <button
-                          type="button"
-                          onClick={handleDelete}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
-                        >
-                          <IconTrash className="w-4 h-4 text-gray-400" />
-                          <span className="text-white">Sil</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            {isAuthenticated && !isOwner && (
+              <FollowButton userId={post.author.id} isFollowing={false} size="xs" />
+            )}
+          </div>
 
             {/* Tags */}
             {post.tags.length > 0 && (
@@ -362,6 +296,41 @@ export default function PostDetailPage() {
               >
                 <IconBookmark className={`w-[18px] h-[18px] ${post.isSaved ? 'fill-current' : ''}`} />
               </button>
+              {isAuthenticated && (
+                <div className="relative shrink-0" ref={menuRef}>
+                  <button type="button" onClick={() => setMenuOpen((v) => !v)} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors" title="Daha fazla">
+                    <IconDots className="w-4 h-4" />
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 bottom-full mb-1 z-20 w-48 card shadow-2xl py-1">
+                      <button type="button" onClick={() => { setMenuOpen(false); setStatsOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                        <IconChartBar className="w-4 h-4 text-gray-400" /><span className="text-white">İstatistikler</span>
+                      </button>
+                      <button type="button" onClick={() => { setMenuOpen(false); setShareModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                        <IconShare className="w-4 h-4 text-gray-400" /><span className="text-white">Paylaş</span>
+                      </button>
+                      <button type="button" onClick={() => { setMenuOpen(false); setCollectModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                        <IconFolderPlus className="w-4 h-4" /><span className="text-white">Koleksiyona ekle</span>
+                      </button>
+                      {isOwner && (
+                        <button type="button" onClick={() => { setMenuOpen(false); setSeriesModalOpen(true) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconStack2 className="w-4 h-4 text-gray-400" /><span className="text-white">Seriye ekle</span>
+                        </button>
+                      )}
+                      {isOwner && (
+                        <button type="button" onClick={() => { setMenuOpen(false); openEditComposer(post, handleEditSaved) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconPencil className="w-4 h-4 text-gray-400" /><span className="text-white">Düzenle</span>
+                        </button>
+                      )}
+                      {isOwner && (
+                        <button type="button" onClick={handleDelete} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+                          <IconTrash className="w-4 h-4 text-gray-400" /><span className="text-white">Sil</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
         </div>
       </article>
