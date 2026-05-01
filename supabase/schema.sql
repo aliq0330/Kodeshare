@@ -284,7 +284,7 @@ create table public.notifications (
   type       text not null check (type in ('like','comment','reply','follow','follow_request','mention','repost','message','collection_save')),
   post_id    uuid references public.posts(id) on delete cascade,
   article_id uuid references public.articles(id) on delete cascade,
-  comment_id uuid references public.comments(id) on delete cascade,
+  comment_id uuid,
   message    text not null,
   is_read    boolean default false,
   created_at timestamptz default now()
