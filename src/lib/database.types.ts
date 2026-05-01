@@ -118,7 +118,7 @@ export interface Database {
         Update: Partial<Pick<Database['public']['Tables']['messages']['Row'], 'status'>>
       }
       notifications: {
-        Row: { id: string; user_id: string; actor_id: string; type: string; post_id: string | null; comment_id: string | null; message: string; is_read: boolean; created_at: string }
+        Row: { id: string; user_id: string; actor_id: string; type: string; post_id: string | null; article_id: string | null; comment_id: string | null; message: string; is_read: boolean; created_at: string }
         Insert: Omit<Database['public']['Tables']['notifications']['Row'], 'id' | 'created_at'>
         Update: Partial<Pick<Database['public']['Tables']['notifications']['Row'], 'is_read'>>
       }
