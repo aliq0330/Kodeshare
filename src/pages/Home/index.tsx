@@ -36,7 +36,7 @@ export default function HomePage() {
             </button>
           ))}
         </div>
-        <TagFilter tags={TAGS} activeTag={activeTag} onChange={setActiveTag} className="border-b-0" />
+        <TagFilter tags={TAGS} activeTag={activeTag} onChange={setActiveTag} className="border-y border-surface-border/40" />
       </div>
 
       <Feed tab={activeTab} tag={activeTag} />

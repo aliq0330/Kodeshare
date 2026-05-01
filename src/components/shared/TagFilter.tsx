@@ -15,7 +15,7 @@ interface TagFilterProps {
 export default function TagFilter({ tags, activeTag, onChange, className }: TagFilterProps) {
   return (
     <div className={cn('border-b border-surface-border', className)}>
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none px-1 pt-2 pb-2.5">
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none px-1 py-[10px]">
         {tags.map((tag) => (
           <button
             key={tag.id}
