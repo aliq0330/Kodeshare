@@ -16,72 +16,56 @@ export default function MobileNav() {
   const unreadMessages = conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0)
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    cn('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors min-w-0',
+    cn('flex items-center justify-center px-4 py-2 rounded-lg transition-colors',
       isActive ? 'text-brand-400' : 'text-gray-500')
 
-  const iconClass = (active: boolean) => cn('w-5 h-5', active && 'text-brand-400')
-  const labelClass = 'text-[10px] font-medium truncate'
+  const iconClass = (active: boolean) => cn('w-7 h-7', active && 'text-brand-400')
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-surface-border h-16 flex items-center justify-around px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface-card border-t border-surface-border h-16 flex items-center justify-around px-2">
 
       {/* Anasayfa */}
       <NavLink to="/" end className={linkClass}>
-        {({ isActive }) => (
-          <>
-            <IconHome className={iconClass(isActive)} />
-            <span className={labelClass}>Anasayfa</span>
-          </>
-        )}
+        {({ isActive }) => <IconHome className={iconClass(isActive)} />}
       </NavLink>
 
       {/* Ara */}
       <button
         onClick={() => navigate('/explore', { state: { focusSearch: true } })}
-        className={cn('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors min-w-0',
+        className={cn('flex items-center justify-center px-4 py-2 rounded-lg transition-colors',
           pathname === '/explore' ? 'text-brand-400' : 'text-gray-500')}
       >
         <IconSearch className={iconClass(pathname === '/explore')} />
-        <span className={labelClass}>Ara</span>
       </button>
 
       {/* Yeni Gönderi */}
       <button
         onClick={() => isAuthenticated ? openComposer() : navigate('/login')}
-        className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors text-gray-500 hover:text-brand-400 min-w-0"
+        className="flex items-center justify-center px-4 py-2 rounded-lg transition-colors text-gray-500 hover:text-brand-400"
       >
-        <IconEditCircle className="w-5 h-5" />
-        <span className={labelClass}>Gönderi</span>
+        <IconEditCircle className="w-7 h-7" />
       </button>
 
       {/* Bildirim */}
-      <NavLink
-        to={isAuthenticated ? '/notifications' : '/login'}
-        className={linkClass}
-      >
+      <NavLink to={isAuthenticated ? '/notifications' : '/login'} className={linkClass}>
         {({ isActive }) => (
-          <span className="relative flex flex-col items-center gap-0.5">
+          <span className="relative">
             <IconBell className={iconClass(isActive)} />
             {unreadNotifications > 0 && (
-              <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-black rounded-full" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-black rounded-full" />
             )}
-            <span className={labelClass}>Bildirim</span>
           </span>
         )}
       </NavLink>
 
       {/* Mesajlaşma */}
-      <NavLink
-        to={isAuthenticated ? '/messages' : '/login'}
-        className={linkClass}
-      >
+      <NavLink to={isAuthenticated ? '/messages' : '/login'} className={linkClass}>
         {({ isActive }) => (
-          <span className="relative flex flex-col items-center gap-0.5">
+          <span className="relative">
             <IconMessage className={iconClass(isActive)} />
             {unreadMessages > 0 && (
-              <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-black rounded-full" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-black rounded-full" />
             )}
-            <span className={labelClass}>Mesajlar</span>
           </span>
         )}
       </NavLink>
