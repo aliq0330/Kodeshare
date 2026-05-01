@@ -350,16 +350,16 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
         <div className="flex gap-3 px-4 pt-3 pb-4">
           {/* Avatar */}
-          <Link to={`/profile/${display.author.username}`} className="shrink-0 mt-0.5">
-            <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" online={display.author.isOnline} />
+          <Link to={`/profile/${display.author.username}`} className="shrink-0">
+            <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" online={display.author.isOnline} />
           </Link>
 
           <div className="flex-1 min-w-0">
             {/* Yazar satırı */}
             <div className="flex items-start justify-between gap-2 mb-1">
               <Link to={`/profile/${display.author.username}`} className="min-w-0">
-                <span className="font-semibold text-sm text-white">{display.author.displayName}</span>
-                <span className="text-xs text-gray-400 ml-1.5">@{display.author.username} · {timeAgo(display.createdAt)}</span>
+                <span className="block font-bold text-base text-white leading-snug">{display.author.displayName}</span>
+                <span className="text-sm text-gray-400">@{display.author.username} · {timeAgo(display.createdAt)}</span>
               </Link>
               {menuDropdown}
             </div>
@@ -453,8 +453,8 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
       <div className="flex gap-3 px-4 pt-3 pb-4">
         {/* Left: Avatar */}
-        <Link to={`/profile/${display.author.username}`} className="shrink-0 mt-0.5">
-          <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="sm" />
+        <Link to={`/profile/${display.author.username}`} className="shrink-0">
+          <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" />
         </Link>
 
         {/* Right: Content */}
@@ -462,8 +462,8 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           {/* Author row */}
           <div className="flex items-start justify-between gap-2 mb-1">
             <Link to={`/profile/${display.author.username}`} className="min-w-0">
-              <span className="font-semibold text-sm text-white">{display.author.displayName}</span>
-              <span className="text-xs text-gray-400 ml-1.5">
+              <span className="block font-bold text-base text-white leading-snug">{display.author.displayName}</span>
+              <span className="text-sm text-gray-400">
                 @{display.author.username} · {timeAgo(display.createdAt)}
               </span>
               {localPost.isEdited && (

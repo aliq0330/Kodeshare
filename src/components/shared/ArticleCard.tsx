@@ -68,8 +68,8 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
         <div className="flex gap-3 px-4 pt-3 pb-4">
           {/* Avatar */}
           {article.author && (
-            <Link to={`/profile/${article.author.username}`} className="shrink-0 mt-0.5">
-              <Avatar src={article.author.avatarUrl} alt={article.author.displayName} size="sm" />
+            <Link to={`/profile/${article.author.username}`} className="shrink-0">
+              <Avatar src={article.author.avatarUrl} alt={article.author.displayName} size="md" />
             </Link>
           )}
 
@@ -78,8 +78,8 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
             <div className="flex items-start justify-between gap-2 mb-1">
               {article.author && (
                 <Link to={`/profile/${article.author.username}`} className="min-w-0">
-                  <span className="font-semibold text-sm text-white">{article.author.displayName}</span>
-                  <span className="text-xs text-gray-400 ml-1.5">@{article.author.username} · {timeAgo(article.createdAt)}</span>
+                  <span className="block font-bold text-base text-white leading-snug">{article.author.displayName}</span>
+                  <span className="text-sm text-gray-400">@{article.author.username} · {timeAgo(article.createdAt)}</span>
                 </Link>
               )}
               {isAuthenticated && (

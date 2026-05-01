@@ -170,16 +170,16 @@ export default function PostDetailPage() {
 
       <article className="-mx-4 lg:mx-0 border-b border-surface-border/40">
         <div className="flex gap-3 px-4 pt-3 pb-4">
-          <Link to={`/profile/${post.author.username}`} className="shrink-0 mt-0.5">
-            <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="sm" online={post.author.isOnline} />
+          <Link to={`/profile/${post.author.username}`} className="shrink-0">
+            <Avatar src={post.author.avatarUrl} alt={post.author.displayName} size="md" online={post.author.isOnline} />
           </Link>
 
           <div className="flex-1 min-w-0">
             {/* Author row */}
             <div className="flex items-start justify-between gap-2 mb-1">
               <Link to={`/profile/${post.author.username}`} className="min-w-0">
-                <span className="font-semibold text-sm text-white">{post.author.displayName}</span>
-                <span className="text-xs text-gray-400 ml-1.5">
+                <span className="block font-bold text-base text-white leading-snug">{post.author.displayName}</span>
+                <span className="text-sm text-gray-400">
                   @{post.author.username} · {timeAgo(post.createdAt)}
                 </span>
                 {post.isEdited && (

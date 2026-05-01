@@ -231,18 +231,18 @@ export default function ArticleViewPage() {
             {article.author && (
               <Link
                 to={`/profile/${article.author.username}`}
-                className="flex items-center gap-2.5 group"
+                className="flex items-center gap-3 group"
               >
                 <Avatar
                   src={article.author.avatarUrl}
                   alt={article.author.displayName}
-                  size="sm"
+                  size="md"
                 />
                 <div>
-                  <p className="text-sm font-medium text-white group-hover:text-brand-300 transition-colors">
+                  <p className="font-bold text-base text-white leading-snug group-hover:text-brand-300 transition-colors">
                     {article.author.displayName}
                   </p>
-                  <p className="text-xs text-gray-500">@{article.author.username}</p>
+                  <p className="text-sm text-gray-400">@{article.author.username}</p>
                 </div>
               </Link>
             )}
