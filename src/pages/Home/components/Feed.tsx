@@ -28,7 +28,7 @@ export default function Feed({ tab, tag }: FeedProps) {
 
   if (isLoading && posts.length === 0) {
     return (
-      <div className="-mx-4 lg:mx-0 px-1 lg:px-0 flex flex-col lg:border-t lg:border-surface-border/40">
+      <div className="-mx-4 lg:mx-0 px-1 lg:px-0 flex flex-col lg:border-t-0">
         {Array.from({ length: 5 }).map((_, i) => (
           <PostCardSkeleton key={i} />
         ))}
@@ -63,7 +63,7 @@ export default function Feed({ tab, tag }: FeedProps) {
   }
 
   return (
-    <div className="-mx-4 lg:mx-0 px-1 lg:px-0 flex flex-col lg:border-t lg:border-surface-border/40">
+    <div className="-mx-4 lg:mx-0 px-1 lg:px-0 flex flex-col lg:border-t-0">
       {posts.map((post) => (
         <PostCard
           key={post.id}
