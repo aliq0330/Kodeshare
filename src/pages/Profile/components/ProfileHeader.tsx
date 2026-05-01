@@ -65,7 +65,7 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
 
   if (loading) {
     return (
-      <div className="card flex justify-center py-16">
+      <div className="card lg:rounded-none flex justify-center py-16">
         <Spinner size="lg" />
       </div>
     )
@@ -73,14 +73,14 @@ export default function ProfileHeader({ username, onProfileLoad, onFollowStateLo
 
   if (!profile) {
     return (
-      <div className="card p-10 text-center text-gray-500">
+      <div className="card lg:rounded-none p-10 text-center text-gray-500">
         Kullanıcı bulunamadı
       </div>
     )
   }
 
   return (
-    <div className="card overflow-hidden">
+    <div className="card lg:rounded-none overflow-hidden">
       <div className="h-36 bg-gradient-to-br from-brand-900 to-surface-raised relative">
         {profile.coverUrl && (
           <img src={profile.coverUrl} alt="Kapak" className="w-full h-full object-cover" />
