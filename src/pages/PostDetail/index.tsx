@@ -260,7 +260,7 @@ export default function PostDetailPage() {
 
             {/* Actions */}
             <div className="flex items-center mt-1 text-gray-400">
-              <div className="w-3/5 flex items-center justify-center gap-6">
+              <div className="w-3/5 grid grid-cols-3 items-center">
                 <button
                   onClick={handleLike}
                   className={`flex items-center gap-1.5 transition-colors ${

@@ -276,7 +276,7 @@ export default function ArticleViewPage() {
         {/* ── Toolbar ── */}
         <div className="border-t border-surface-border/40 mt-10 pt-4 flex items-center text-gray-400">
           {/* Left 60% — like / comment / repost centered */}
-          <div className="w-3/5 flex items-center justify-center gap-6">
+          <div className="w-3/5 grid grid-cols-3 items-center">
             <button
               onClick={handleLike}
               className={`flex items-center gap-1.5 transition-colors ${
