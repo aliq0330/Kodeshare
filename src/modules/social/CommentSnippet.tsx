@@ -74,7 +74,16 @@ function TextSegment({ content }: { content: string }) {
 export function CommentContent({ content }: { content: string }) {
   const segments = parse(content)
   return (
-    <div className="text-sm text-gray-300 leading-relaxed break-words">
+    <div
+      className="text-gray-300 break-words"
+      style={{
+        fontSize: '16.9px',
+        lineHeight: '22px',
+        letterSpacing: '0px',
+        flex: '1 1 0%',
+        fontFamily: 'InterVariable, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"',
+      }}
+    >
       {segments.map((seg, i) =>
         seg.type === 'text' ? (
           <TextSegment key={i} content={seg.content} />
