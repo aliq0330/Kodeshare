@@ -16,6 +16,7 @@ export interface Notification {
   type: NotificationType
   actor: UserPreview
   postId: string | null
+  articleId: string | null
   commentId: string | null
   message: string
   isRead: boolean

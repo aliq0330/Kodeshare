@@ -21,10 +21,11 @@ interface NotifyPayload {
   type:       NotificationType
   message:    string
   postId?:    string | null
+  articleId?: string | null
   commentId?: string | null
 }
 
-export async function notify({ userId, actorId, type, message, postId, commentId }: NotifyPayload): Promise<void> {
+export async function notify({ userId, actorId, type, message, postId, articleId, commentId }: NotifyPayload): Promise<void> {
   if (userId === actorId) return
   try {
     const ok = await notificationPrefsService.shouldNotify(userId, TYPE_TO_PREF[type])
@@ -34,6 +35,7 @@ export async function notify({ userId, actorId, type, message, postId, commentId
       actor_id:   actorId,
       type,
       post_id:    postId    ?? null,
+      article_id: articleId ?? null,
       comment_id: commentId ?? null,
       message,
     })
@@ -53,10 +55,11 @@ export function extractMentions(text: string | null | undefined): string[] {
 }
 
 export async function notifyMentions(params: {
-  text:     string | null | undefined
-  actorId:  string
-  message:  string
-  postId?:  string | null
+  text:       string | null | undefined
+  actorId:    string
+  message:    string
+  postId?:    string | null
+  articleId?: string | null
   commentId?: string | null
   excludeUserIds?: string[]
 }): Promise<void> {
@@ -81,6 +84,7 @@ export async function notifyMentions(params: {
       type:      'mention',
       message:   params.message,
       postId:    params.postId,
+      articleId: params.articleId,
       commentId: params.commentId,
     })
   }

@@ -22,6 +22,7 @@ export const notificationService = {
       type:      n.type as Notification['type'],
       actor:     mapProfile(n.actor as Record<string, unknown>),
       postId:    n.post_id,
+      articleId: n.article_id,
       commentId: n.comment_id,
       message:   n.message,
       isRead:    n.is_read,

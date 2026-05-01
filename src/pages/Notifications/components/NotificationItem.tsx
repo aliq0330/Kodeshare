@@ -28,9 +28,12 @@ function notificationTarget(n: Notification): string {
   if (n.type === 'comment' || n.type === 'reply' || n.type === 'mention') {
     if (n.postId && n.commentId) return `/post/${n.postId}#comment-${n.commentId}`
     if (n.postId) return `/post/${n.postId}`
+    if (n.articleId) return `/makale/${n.articleId}#comments`
     return `/profile/${n.actor.username}`
   }
-  return n.postId ? `/post/${n.postId}` : `/profile/${n.actor.username}`
+  if (n.postId) return `/post/${n.postId}`
+  if (n.articleId) return `/makale/${n.articleId}`
+  return `/profile/${n.actor.username}`
 }
 
 export default function NotificationItem({ notification }: NotificationItemProps) {

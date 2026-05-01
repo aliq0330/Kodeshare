@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { notify, notifyMentions } from './notificationHelpers'
 import type { ArticleBlock } from '@store/articleStore'
 
 async function createArticleFeedPost(article: {
@@ -368,7 +369,20 @@ export const articleService = {
   async like(id: string): Promise<void> {
     const userId = await currentUserId()
     const { error } = await supabase.from('article_likes').insert({ article_id: id, user_id: userId })
-    if (error && error.code !== '23505') throw new Error(error.message)
+    if (error) {
+      if (error.code === '23505') return
+      throw new Error(error.message)
+    }
+    const { data: article } = await supabase.from('articles').select('author_id').eq('id', id).single()
+    if (article) {
+      void notify({
+        userId:    (article as { author_id: string }).author_id,
+        actorId:   userId,
+        type:      'like',
+        articleId: id,
+        message:   'Makaleni beğendi',
+      })
+    }
   },
 
   async unlike(id: string): Promise<void> {
@@ -418,7 +432,25 @@ export const articleService = {
   async likeComment(commentId: string): Promise<void> {
     const userId = await currentUserId()
     const { error } = await supabase.from('article_comment_likes').insert({ comment_id: commentId, user_id: userId })
-    if (error && error.code !== '23505') throw new Error(error.message)
+    if (error) {
+      if (error.code === '23505') return
+      throw new Error(error.message)
+    }
+    const { data: comment } = await supabase
+      .from('article_comments')
+      .select('author_id, article_id')
+      .eq('id', commentId)
+      .single()
+    if (comment) {
+      void notify({
+        userId:    (comment as { author_id: string }).author_id,
+        actorId:   userId,
+        type:      'like',
+        articleId: (comment as { article_id: string }).article_id,
+        commentId,
+        message:   'Yorumunu beğendi',
+      })
+    }
   },
 
   async unlikeComment(commentId: string): Promise<void> {
@@ -435,7 +467,58 @@ export const articleService = {
       .select('*, author:profiles!article_comments_author_id_fkey(username, display_name, avatar_url)')
       .single()
     if (error) throw new Error(error.message)
-    return mapComment(data as unknown as Record<string, unknown>)
+
+    const newCommentId = (data as { id: string }).id
+    const excludeUserIds: string[] = []
+
+    if (parentId) {
+      const { data: parent } = await supabase
+        .from('article_comments')
+        .select('author_id')
+        .eq('id', parentId)
+        .single()
+      if (parent) {
+        const parentAuthorId = (parent as { author_id: string }).author_id
+        excludeUserIds.push(parentAuthorId)
+        void notify({
+          userId:    parentAuthorId,
+          actorId:   userId,
+          type:      'reply',
+          articleId,
+          commentId: newCommentId,
+          message:   'Yorumuna yanıt verdi',
+        })
+      }
+    } else {
+      const { data: article } = await supabase
+        .from('articles')
+        .select('author_id')
+        .eq('id', articleId)
+        .single()
+      if (article) {
+        const articleAuthorId = (article as { author_id: string }).author_id
+        excludeUserIds.push(articleAuthorId)
+        void notify({
+          userId:    articleAuthorId,
+          actorId:   userId,
+          type:      'comment',
+          articleId,
+          commentId: newCommentId,
+          message:   'Makaleni yorumladı',
+        })
+      }
+    }
+
+    void notifyMentions({
+      text:           content,
+      actorId:        userId,
+      articleId,
+      commentId:      newCommentId,
+      message:        'Seni bir yorumda etiketledi',
+      excludeUserIds,
+    })
+
+    return mapComment(data as unknown as Record<string, unknown>, userId)
   },
 
   async deleteComment(commentId: string): Promise<void> {
