@@ -28,7 +28,7 @@ export default function HomePage() {
               className={cn(
                 'flex-1 flex justify-center items-center py-3 text-base border-b-2 transition-colors',
                 activeTab === t.id
-                  ? 'border-black dark:border-white text-white font-black'
+                  ? 'border-[#1e3a8a] text-[#6b8cda] font-black'
                   : 'border-transparent text-gray-400 font-medium hover:text-gray-300',
               )}
             >
