@@ -61,7 +61,7 @@ export const postService = {
     // skeletonu uzun süre görmez.
     if (posts.length > 0) {
       result.hydrate = () => Promise.allSettled([
-        hydrateRepostedFrom(posts),
+        hydrateRepostedFrom(posts, userId),
         hydrateReposted(posts, userId),
         userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
       ]).then(() => undefined)
@@ -277,7 +277,7 @@ export const postService = {
     const posts = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
     if (posts.length > 0) {
       await Promise.allSettled([
-        hydrateRepostedFrom(posts),
+        hydrateRepostedFrom(posts, userId),
         hydrateReposted(posts, userId),
         userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
       ])
@@ -304,7 +304,7 @@ export const postService = {
     const posts: PostPreview[] = (data ?? []).map((p) => mapPost(p as Record<string, unknown>, userId))
     if (posts.length > 0) {
       await Promise.allSettled([
-        hydrateRepostedFrom(posts),
+        hydrateRepostedFrom(posts, userId),
         hydrateReposted(posts, userId),
         userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
       ])
@@ -330,7 +330,7 @@ export const postService = {
       .map((p) => mapPost(p, userId))
     if (posts.length > 0) {
       await Promise.allSettled([
-        hydrateRepostedFrom(posts),
+        hydrateRepostedFrom(posts, userId),
         hydrateReposted(posts, userId),
         hydrateUserInteractions(posts, posts.map((p) => p.id), userId),
       ])
@@ -355,7 +355,7 @@ export const postService = {
       .map((p) => mapPost(p, userId))
     if (posts.length > 0) {
       await Promise.allSettled([
-        hydrateRepostedFrom(posts),
+        hydrateRepostedFrom(posts, userId),
         hydrateReposted(posts, userId),
         userId ? hydrateUserInteractions(posts, posts.map((p) => p.id), userId) : Promise.resolve(),
       ])
@@ -489,7 +489,7 @@ export async function hydratePostPreviewRows(
   const previews = rows.map((r) => mapPost(r, userId))
   if (previews.length === 0) return previews
   await Promise.allSettled([
-    hydrateRepostedFrom(previews),
+    hydrateRepostedFrom(previews, userId),
     hydrateReposted(previews, userId),
     userId ? hydrateUserInteractions(previews, previews.map((p) => p.id), userId) : Promise.resolve(),
   ])
@@ -535,7 +535,7 @@ async function fetchOriginals(ids: string[]): Promise<Map<string, Post>> {
   return map
 }
 
-async function hydrateRepostedFrom(previews: PostPreview[]): Promise<void> {
+async function hydrateRepostedFrom(previews: PostPreview[], userId?: string): Promise<void> {
   const pairs = previews
     .map((p, i) => ({ i, id: (p as unknown as { _repostedFromId?: string })._repostedFromId }))
     .filter((x) => !!x.id) as { i: number; id: string }[]
@@ -543,6 +543,14 @@ async function hydrateRepostedFrom(previews: PostPreview[]): Promise<void> {
   const originals = await fetchOriginals(Array.from(new Set(pairs.map((p) => p.id))))
   for (const { i, id } of pairs) {
     previews[i].repostedFrom = originals.get(id) ?? null
+  }
+  if (userId) {
+    const originalsArr = Array.from(originals.values()) as PostPreview[]
+    await hydrateReposted(originalsArr, userId)
+    for (const { i, id } of pairs) {
+      const updated = originalsArr.find((o) => o.id === id)
+      if (updated) previews[i].repostedFrom = updated as Post
+    }
   }
   for (const p of previews) {
     delete (p as unknown as { _repostedFromId?: string })._repostedFromId
