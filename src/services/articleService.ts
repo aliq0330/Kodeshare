@@ -161,28 +161,64 @@ async function hydrateArticleInteractions(
     if (uid && r.user_id === uid) savedByMe.add(r.article_id)
   }
 
-  // Repost counts + isReposted: article reposts are stored as posts with type='repost'
-  // and a post_block of type='article' with data.articleId = article.id
-  const { data: allRepostPosts } = await supabase
-    .from('posts')
-    .select('id, author_id')
-    .eq('type', 'repost')
-  const allRepostIds = (allRepostPosts ?? []).map((p) => (p as { id: string }).id)
-  const repostAuthorMap = new Map(
-    (allRepostPosts ?? []).map((p) => [(p as { id: string }).id, (p as { author_id: string }).author_id]),
+  // Repost hydration: two mechanisms exist
+  // 1. Block-based (from ArticleView): post.type='repost', post_blocks has {type:'article', data:{articleId}}
+  // 2. reposted_from-based (from PostCard): post.type='repost', post.reposted_from = feed post id
+  //    where feed post has a block {type:'article', data:{articleId}}
+  //
+  // Find all post_blocks of type='article' referencing our articles (covers both: feed posts + direct article reposts)
+  const blockResults = await Promise.all(
+    ids.map((id) =>
+      supabase
+        .from('post_blocks')
+        .select('post_id')
+        .eq('type', 'article')
+        .contains('data', { articleId: id })
+        .then(({ data }) => ({
+          articleId: id,
+          postIds: (data ?? []).map((b) => (b as { post_id: string }).post_id),
+        })),
+    ),
   )
 
-  if (allRepostIds.length > 0) {
-    const { data: repostBlocks } = await supabase
-      .from('post_blocks')
-      .select('post_id, data')
-      .eq('type', 'article')
-      .in('post_id', allRepostIds)
-    for (const b of (repostBlocks ?? []) as Array<{ post_id: string; data: Record<string, unknown> }>) {
-      const aid = b.data?.articleId as string | undefined
-      if (!aid || !articleIdSet.has(aid)) continue
-      repostCountMap.set(aid, (repostCountMap.get(aid) ?? 0) + 1)
-      if (uid && repostAuthorMap.get(b.post_id) === uid) repostedByMe.add(aid)
+  const postIdToArticleId = new Map<string, string>()
+  for (const { articleId, postIds } of blockResults) {
+    for (const postId of postIds) postIdToArticleId.set(postId, articleId)
+  }
+
+  if (postIdToArticleId.size > 0) {
+    const allBlockPostIds = Array.from(postIdToArticleId.keys())
+    const { data: parentPosts } = await supabase
+      .from('posts')
+      .select('id, type, author_id')
+      .in('id', allBlockPostIds)
+
+    const feedPostIds: string[] = []
+    for (const p of (parentPosts ?? []) as Array<{ id: string; type: string; author_id: string }>) {
+      const aid = postIdToArticleId.get(p.id)
+      if (!aid) continue
+      if (p.type === 'repost') {
+        // Block-based article repost (created from ArticleView)
+        repostCountMap.set(aid, (repostCountMap.get(aid) ?? 0) + 1)
+        if (uid && p.author_id === uid) repostedByMe.add(aid)
+      } else if (p.type === 'post') {
+        // Feed post — reposts of this post use reposted_from
+        feedPostIds.push(p.id)
+      }
+    }
+
+    if (feedPostIds.length > 0) {
+      const { data: feedReposts } = await supabase
+        .from('posts')
+        .select('author_id, reposted_from')
+        .eq('type', 'repost')
+        .in('reposted_from', feedPostIds)
+      for (const r of (feedReposts ?? []) as Array<{ author_id: string; reposted_from: string }>) {
+        const aid = postIdToArticleId.get(r.reposted_from)
+        if (!aid) continue
+        repostCountMap.set(aid, (repostCountMap.get(aid) ?? 0) + 1)
+        if (uid && r.author_id === uid) repostedByMe.add(aid)
+      }
     }
   }
 
