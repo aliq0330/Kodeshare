@@ -181,7 +181,22 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
   const handleRepost = () => {
     if (!isAuthenticated) return
-    const targetId = localPost.type === 'repost' && localPost.repostedFrom ? localPost.repostedFrom.id : localPost.id
+    const isRepostType = localPost.type === 'repost' && !!localPost.repostedFrom
+    const targetId = isRepostType ? localPost.repostedFrom!.id : localPost.id
+    const wasReposted = isRepostType ? localPost.repostedFrom!.isReposted : localPost.isReposted
+    setLocalPost((prev) => {
+      if (isRepostType && prev.repostedFrom) {
+        return {
+          ...prev,
+          repostedFrom: {
+            ...prev.repostedFrom,
+            isReposted: !wasReposted,
+            repostCount: Math.max(0, prev.repostedFrom.repostCount + (wasReposted ? -1 : 1)),
+          },
+        }
+      }
+      return { ...prev, isReposted: !wasReposted, repostCount: Math.max(0, prev.repostCount + (wasReposted ? -1 : 1)) }
+    })
     void repostPost(targetId)
   }
 
@@ -191,7 +206,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   }
 
   const repostTarget: Post = localPost.type === 'repost' && localPost.repostedFrom
-    ? { ...localPost.repostedFrom, isReposted: localPost.isReposted }
+    ? localPost.repostedFrom
     : localPost
 
   if (deleted) return null
