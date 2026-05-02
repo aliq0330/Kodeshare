@@ -141,14 +141,22 @@ export default function ArticleViewPage() {
     if (!article) return
     if (!isAuthenticated) { toast.error('Paylaşmak için giriş yapmalısın'); return }
     setRepostMenuOpen(false)
+    const wasReposted = article.isReposted
+    setArticle((a) => a ? { ...a, isReposted: !wasReposted, repostCount: Math.max(0, a.repostCount + (wasReposted ? -1 : 1)) } : a)
     try {
-      await createPost({
-        type: 'repost',
-        title: article.title,
-        blocks: [{ type: 'article', position: 0, data: { articleId: article.id, title: article.title, coverImage: article.coverImage, content: extractPlainText(article) } }],
-      })
-      toast.success('Makale yeniden paylaşıldı!')
+      if (wasReposted) {
+        await articleService.undoArticleRepost(article.id)
+        toast.success('Repost kaldırıldı')
+      } else {
+        await createPost({
+          type: 'repost',
+          title: article.title,
+          blocks: [{ type: 'article', position: 0, data: { articleId: article.id, title: article.title, coverImage: article.coverImage, content: extractPlainText(article) } }],
+        })
+        toast.success('Makale yeniden paylaşıldı!')
+      }
     } catch {
+      setArticle((a) => a ? { ...a, isReposted: wasReposted, repostCount: Math.max(0, a.repostCount + (wasReposted ? 1 : -1)) } : a)
       toast.error('Bir hata oluştu')
     }
   }
@@ -284,13 +292,16 @@ export default function ArticleViewPage() {
         </div>
 
         {/* İstatistikler */}
-        {(article.likesCount > 0 || (article.commentsCount ?? 0) > 0 || article.savesCount > 0) && (
+        {(article.likesCount > 0 || (article.commentsCount ?? 0) > 0 || article.repostCount > 0 || article.savesCount > 0) && (
           <div className="border-t border-surface-border/40 py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             {article.likesCount > 0 && (
               <span className="text-gray-500"><strong className="text-white">{compactNumber(article.likesCount)}</strong> beğeni</span>
             )}
             {(article.commentsCount ?? 0) > 0 && (
               <span className="text-gray-500"><strong className="text-white">{compactNumber(article.commentsCount ?? 0)}</strong> yorum</span>
+            )}
+            {article.repostCount > 0 && (
+              <span className="text-gray-500"><strong className="text-white">{compactNumber(article.repostCount)}</strong> repost</span>
             )}
             {article.savesCount > 0 && (
               <span className="text-gray-500"><strong className="text-white">{compactNumber(article.savesCount)}</strong> kaydetme</span>
@@ -328,10 +339,11 @@ export default function ArticleViewPage() {
             <div className="relative" ref={repostMenuRef}>
               <button
                 onClick={() => setRepostMenuOpen((v) => !v)}
-                className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
+                className={`flex items-center gap-1.5 transition-colors ${article.isReposted ? 'text-green-400' : 'hover:text-green-400'}`}
                 title="Yeniden paylaş"
               >
                 <IconRepeat className="w-[22px] h-[22px]" />
+                {article.repostCount > 0 && <span className="text-sm text-black dark:text-white">{compactNumber(article.repostCount)}</span>}
               </button>
               {repostMenuOpen && (
                 <div className="absolute left-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
@@ -341,7 +353,7 @@ export default function ArticleViewPage() {
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors"
                   >
                     <IconRepeat className="w-4 h-4 text-green-400" />
-                    <span className="text-white">Yeniden Gönder</span>
+                    <span className="text-white">{article.isReposted ? 'Repost\'u kaldır' : 'Yeniden Gönder'}</span>
                   </button>
                   <button
                     type="button"

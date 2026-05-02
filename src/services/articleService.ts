@@ -67,6 +67,8 @@ export interface ArticleRecord {
   commentsCount: number
   isLiked: boolean
   isSaved: boolean
+  isReposted: boolean
+  repostCount: number
   createdAt: string
   updatedAt: string
   author?: {
@@ -136,6 +138,7 @@ async function hydrateArticleInteractions(
 ): Promise<void> {
   if (articles.length === 0) return
   const ids = articles.map((a) => a.id)
+  const articleIdSet = new Set(ids)
 
   const [{ data: likes }, { data: saves }] = await Promise.all([
     supabase.from('article_likes').select('article_id, user_id').in('article_id', ids),
@@ -144,8 +147,10 @@ async function hydrateArticleInteractions(
 
   const likeCounts = new Map<string, number>()
   const saveCounts = new Map<string, number>()
-  const likedByMe  = new Set<string>()
-  const savedByMe  = new Set<string>()
+  const repostCountMap = new Map<string, number>()
+  const likedByMe   = new Set<string>()
+  const savedByMe   = new Set<string>()
+  const repostedByMe = new Set<string>()
 
   for (const r of (likes ?? []) as Array<{ article_id: string; user_id: string }>) {
     likeCounts.set(r.article_id, (likeCounts.get(r.article_id) ?? 0) + 1)
@@ -155,11 +160,39 @@ async function hydrateArticleInteractions(
     saveCounts.set(r.article_id, (saveCounts.get(r.article_id) ?? 0) + 1)
     if (uid && r.user_id === uid) savedByMe.add(r.article_id)
   }
+
+  // Repost counts + isReposted: article reposts are stored as posts with type='repost'
+  // and a post_block of type='article' with data.articleId = article.id
+  const { data: allRepostPosts } = await supabase
+    .from('posts')
+    .select('id, author_id')
+    .eq('type', 'repost')
+  const allRepostIds = (allRepostPosts ?? []).map((p) => (p as { id: string }).id)
+  const repostAuthorMap = new Map(
+    (allRepostPosts ?? []).map((p) => [(p as { id: string }).id, (p as { author_id: string }).author_id]),
+  )
+
+  if (allRepostIds.length > 0) {
+    const { data: repostBlocks } = await supabase
+      .from('post_blocks')
+      .select('post_id, data')
+      .eq('type', 'article')
+      .in('post_id', allRepostIds)
+    for (const b of (repostBlocks ?? []) as Array<{ post_id: string; data: Record<string, unknown> }>) {
+      const aid = b.data?.articleId as string | undefined
+      if (!aid || !articleIdSet.has(aid)) continue
+      repostCountMap.set(aid, (repostCountMap.get(aid) ?? 0) + 1)
+      if (uid && repostAuthorMap.get(b.post_id) === uid) repostedByMe.add(aid)
+    }
+  }
+
   for (const a of articles) {
-    a.likesCount = likeCounts.get(a.id) ?? 0
-    a.savesCount = saveCounts.get(a.id) ?? 0
-    a.isLiked    = likedByMe.has(a.id)
-    a.isSaved    = savedByMe.has(a.id)
+    a.likesCount   = likeCounts.get(a.id) ?? 0
+    a.savesCount   = saveCounts.get(a.id) ?? 0
+    a.isLiked      = likedByMe.has(a.id)
+    a.isSaved      = savedByMe.has(a.id)
+    a.repostCount  = repostCountMap.get(a.id) ?? 0
+    a.isReposted   = repostedByMe.has(a.id)
   }
 }
 
@@ -179,6 +212,8 @@ function mapArticle(row: Record<string, unknown>, _currentUid?: string, comments
     commentsCount,
     isLiked:       false,
     isSaved:       false,
+    isReposted:    false,
+    repostCount:   0,
     createdAt:     row.created_at as string,
     updatedAt:     row.updated_at as string,
     author: a ? {
@@ -389,6 +424,28 @@ export const articleService = {
     const userId = await currentUserId()
     const { error } = await supabase.from('article_likes').delete().eq('article_id', id).eq('user_id', userId)
     if (error) throw new Error(error.message)
+  },
+
+  async undoArticleRepost(articleId: string): Promise<void> {
+    const userId = await currentUserId()
+    if (!userId) return
+    const { data: myReposts } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('author_id', userId)
+      .eq('type', 'repost')
+    const myRepostIds = (myReposts ?? []).map((p) => (p as { id: string }).id)
+    if (myRepostIds.length === 0) return
+    const { data: match } = await supabase
+      .from('post_blocks')
+      .select('post_id')
+      .eq('type', 'article')
+      .in('post_id', myRepostIds)
+      .contains('data', { articleId })
+      .limit(1)
+    const postId = (match?.[0] as { post_id: string } | undefined)?.post_id
+    if (!postId) return
+    await supabase.from('posts').delete().eq('id', postId).eq('author_id', userId)
   },
 
   async saveArticle(id: string): Promise<void> {
