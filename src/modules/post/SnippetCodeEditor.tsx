@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState, Compartment, Extension } from '@codemirror/state'
+import { EditorState, Compartment, Prec } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { javascript } from '@codemirror/lang-javascript'
@@ -39,17 +39,20 @@ const baseEditorThemeStatic = EditorView.theme({
   '.cm-content': { paddingTop: '10px', paddingBottom: '10px' },
 })
 
-function makeActiveLinesTheme(isLight: boolean): Extension {
-  return EditorView.theme({
+function makeActiveLinesTheme(isLight: boolean) {
+  const gutterBg   = isLight ? '#f6f8fa' : '#161b22'
+  const activeBg   = isLight ? '#eaeef2' : 'rgba(128,128,128,0.12)'
+  const gutterText = isLight ? '#6e7781' : '#5b6478'
+  const borderCol  = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(128,128,128,0.2)'
+  return Prec.highest(EditorView.theme({
     '.cm-gutters': {
-      backgroundColor: 'transparent',
-      borderRight: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : 'rgba(128,128,128,0.2)'}`,
-      color: isLight ? '#8c959f' : '#5b6478',
+      backgroundColor: gutterBg,
+      borderRight: `1px solid ${borderCol}`,
+      color: gutterText,
     },
-    '.cm-activeLineGutter, .cm-activeLine': {
-      backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(128,128,128,0.07)',
-    },
-  })
+    '.cm-activeLine':     { backgroundColor: activeBg },
+    '.cm-activeLineGutter': { backgroundColor: activeBg },
+  }))
 }
 
 interface SnippetCodeEditorProps {

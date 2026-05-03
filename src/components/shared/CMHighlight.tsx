@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { EditorView } from 'codemirror'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Prec } from '@codemirror/state'
 import { javascript } from '@codemirror/lang-javascript'
 import { css } from '@codemirror/lang-css'
 import { html } from '@codemirror/lang-html'
@@ -31,7 +31,8 @@ export default function CMHighlight({ code, lang, scroll = false, className }: P
     if (!containerRef.current) return
 
     const bg = isLight ? '#ffffff' : '#0d1117'
-    const customTheme = EditorView.theme({
+    const gutterBg = isLight ? '#f6f8fa' : '#161b22'
+    const customTheme = Prec.highest(EditorView.theme({
       '&': { background: `${bg} !important` },
       '&.cm-focused': { outline: 'none' },
       '.cm-scroller': {
@@ -44,7 +45,10 @@ export default function CMHighlight({ code, lang, scroll = false, className }: P
       '.cm-line': { padding: '0 !important' },
       '.cm-cursor': { display: 'none !important' },
       '.cm-selectionBackground': { display: 'none !important' },
-    })
+      '.cm-gutters': { backgroundColor: gutterBg },
+      '.cm-activeLine': { backgroundColor: 'transparent' },
+      '.cm-activeLineGutter': { backgroundColor: 'transparent' },
+    }))
 
     const view = new EditorView({
       state: EditorState.create({
