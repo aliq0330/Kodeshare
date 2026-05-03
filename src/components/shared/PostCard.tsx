@@ -8,6 +8,7 @@ import AddToCollectionModal from '@collections/AddToCollectionModal'
 import AddToSeriesModal from '@modules/series/AddToSeriesModal'
 import ShareModal from '@modules/social/ShareModal'
 import PostStatsModal from '@modules/post/PostStatsModal'
+import ArticleStatsModal from '@modules/post/ArticleStatsModal'
 import PostEditHistoryModal from '@modules/post/PostEditHistoryModal'
 import BlockView from '@modules/post/BlockView'
 import RepostMenu from '@modules/post/RepostMenu'
@@ -324,13 +325,24 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
         post={display}
         onRepost={() => repostPost(display.id)}
       />
-      <PostStatsModal
-        open={statsOpen}
-        onClose={() => setStatsOpen(false)}
-        postId={display.id}
-        likesCount={displayArticleId ? (articleData?.likesCount ?? 0) : display.likesCount}
-        repostCount={display.repostCount}
-      />
+      {displayArticleId ? (
+        <ArticleStatsModal
+          open={statsOpen}
+          onClose={() => setStatsOpen(false)}
+          articleId={displayArticleId}
+          likesCount={articleData?.likesCount ?? 0}
+          savesCount={articleData?.savesCount ?? 0}
+          viewsCount={articleData?.viewsCount ?? 0}
+        />
+      ) : (
+        <PostStatsModal
+          open={statsOpen}
+          onClose={() => setStatsOpen(false)}
+          postId={display.id}
+          likesCount={display.likesCount}
+          repostCount={display.repostCount}
+        />
+      )}
       {isOwnerPost && !displayArticleId && (
         <PostEditHistoryModal
           open={historyOpen}

@@ -107,6 +107,7 @@ async function optionalUserId(): Promise<string | undefined> {
 
 // Feed kartları için hafif etkileşim sorgusu (blocks çekmez)
 const INTERACTIONS_SELECT = [
+  'views_count',
   'likes:article_likes(user_id)',
   'saves:article_saves(user_id)',
 ].join(', ')
@@ -114,6 +115,7 @@ const INTERACTIONS_SELECT = [
 export interface ArticleInteractions {
   likesCount: number
   savesCount: number
+  viewsCount: number
   isLiked: boolean
   isSaved: boolean
 }
@@ -432,6 +434,7 @@ export const articleService = {
     return {
       likesCount: likes.length,
       savesCount: saves.length,
+      viewsCount: ((data as Record<string, unknown> | null)?.views_count as number) ?? 0,
       isLiked:    uid ? likes.some((l) => l.user_id === uid) : false,
       isSaved:    uid ? saves.some((s) => s.user_id === uid) : false,
     }
