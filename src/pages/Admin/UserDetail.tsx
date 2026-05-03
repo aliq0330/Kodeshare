@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Navigate, Link } from 'react-router-dom'
-import { IconArrowLeft, IconFileText, IconMessage, IconFolderOpen, IconHeart, IconBookmark, IconMail, IconChevronDown, IconChevronUp, IconTrash, IconShieldExclamation, IconExternalLink, IconRosetteFilled } from '@tabler/icons-react'
+import { IconArrowLeft, IconFileText, IconMessage, IconFolderOpen, IconHeart, IconBookmark, IconMail, IconChevronDown, IconChevronUp, IconTrash, IconShieldExclamation, IconExternalLink, IconRosetteFilled, IconStack2, IconRepeat } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import Button from '@components/ui/Button'
@@ -9,7 +9,7 @@ import { adminService } from '@services/adminService'
 import { isAdmin } from '@/lib/admin'
 import toast from 'react-hot-toast'
 
-type SectionKey = 'posts' | 'comments' | 'collections' | 'likes' | 'saves' | 'messages'
+type SectionKey = 'posts' | 'comments' | 'collections' | 'likes' | 'saves' | 'messages' | 'series' | 'reposts'
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ReactNode }[] = [
   { key: 'posts',       label: 'Gönderiler',        icon: <IconFileText className="w-4 h-4" /> },
@@ -18,6 +18,8 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ReactNode }[] = [
   { key: 'likes',       label: 'Beğeniler',          icon: <IconHeart className="w-4 h-4" /> },
   { key: 'saves',       label: 'Kaydedilenler',      icon: <IconBookmark className="w-4 h-4" /> },
   { key: 'messages',    label: 'Mesajlar',            icon: <IconMail className="w-4 h-4" /> },
+  { key: 'series',      label: 'Seriler',             icon: <IconStack2 className="w-4 h-4" /> },
+  { key: 'reposts',     label: 'Repostlar',           icon: <IconRepeat className="w-4 h-4" /> },
 ]
 
 export default function UserDetailPage() {
@@ -27,10 +29,10 @@ export default function UserDetailPage() {
 
   const [profile, setProfile] = useState<any>(null)
   const [activity, setActivity] = useState<Record<SectionKey, number>>({
-    posts: 0, comments: 0, collections: 0, likes: 0, saves: 0, messages: 0,
+    posts: 0, comments: 0, collections: 0, likes: 0, saves: 0, messages: 0, series: 0, reposts: 0,
   })
   const [items, setItems] = useState<Record<SectionKey, any[]>>({
-    posts: [], comments: [], collections: [], likes: [], saves: [], messages: [],
+    posts: [], comments: [], collections: [], likes: [], saves: [], messages: [], series: [], reposts: [],
   })
   const [expanded, setExpanded] = useState<SectionKey | null>(null)
   const [loadingItems, setLoadingItems] = useState<SectionKey | null>(null)
@@ -71,6 +73,8 @@ export default function UserDetailPage() {
         likes:       () => adminService.getUserLikes(userId!),
         saves:       () => adminService.getUserSaves(userId!),
         messages:    () => adminService.getUserMessages(userId!),
+        series:      () => adminService.getUserSeries(userId!),
+        reposts:     () => adminService.getUserReposts(userId!),
       }
       const data = await fetchers[key]()
       setItems((prev) => ({ ...prev, [key]: data }))
@@ -86,6 +90,7 @@ export default function UserDetailPage() {
       posts: 'tüm gönderilerini', comments: 'tüm yorumlarını',
       collections: 'tüm koleksiyonlarını', likes: 'tüm beğenilerini',
       saves: 'tüm kaydedilenlerini', messages: 'tüm mesajlarını',
+      series: 'tüm serilerini', reposts: 'tüm repostlarını',
     }
     if (!confirm(`@${profile?.username} kullanıcısının ${labels[key]} silmek istiyor musun?`)) return
     setDeleting(`bulk-${key}`)
@@ -97,6 +102,8 @@ export default function UserDetailPage() {
         likes:       () => adminService.deleteAllUserLikes(userId!),
         saves:       () => adminService.deleteAllUserSaves(userId!),
         messages:    () => adminService.deleteAllUserMessages(userId!),
+        series:      () => adminService.deleteAllUserSeries(userId!),
+        reposts:     () => adminService.deleteAllUserReposts(userId!),
       }
       await actions[key]()
       setItems((prev) => ({ ...prev, [key]: [] }))
@@ -112,8 +119,9 @@ export default function UserDetailPage() {
   const deleteItem = async (key: SectionKey, itemId: string) => {
     setDeleting(itemId)
     try {
-      if (key === 'posts')    await adminService.deletePost(itemId)
+      if (key === 'posts' || key === 'reposts') await adminService.deletePost(itemId)
       if (key === 'comments') await adminService.deleteComment(itemId)
+      if (key === 'series')   await adminService.deleteSeries(itemId)
       setItems((prev) => ({ ...prev, [key]: prev[key].filter((x: any) => (x.id ?? x.post_id) !== itemId) }))
       setActivity((prev) => ({ ...prev, [key]: Math.max(0, prev[key] - 1) }))
       toast.success('Silindi')
@@ -232,7 +240,7 @@ export default function UserDetailPage() {
                   <div className="divide-y divide-surface-border max-h-80 overflow-y-auto">
                     {items[key].map((item: any) => {
                       const id = item.id ?? item.post_id
-                      const canDelete = key === 'posts' || key === 'comments'
+                      const canDelete = key === 'posts' || key === 'comments' || key === 'series' || key === 'reposts'
                       return (
                         <div key={id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-surface-raised/50">
                           <div className="min-w-0 flex-1">
@@ -264,6 +272,18 @@ export default function UserDetailPage() {
                               <div>
                                 <p className="text-sm text-white truncate">{item.content}</p>
                                 <p className="text-xs text-gray-500">{new Date(item.created_at).toLocaleDateString('tr')}</p>
+                              </div>
+                            )}
+                            {key === 'series' && (
+                              <div>
+                                <p className="text-sm text-white truncate">{item.title}</p>
+                                <p className="text-xs text-gray-500">{item.posts_count} gönderi · {new Date(item.created_at).toLocaleDateString('tr')}</p>
+                              </div>
+                            )}
+                            {key === 'reposts' && (
+                              <div>
+                                <p className="text-sm text-white truncate">{item.title ?? 'Repost'}</p>
+                                <p className="text-xs text-gray-500">♥ {item.likes_count} · {new Date(item.created_at).toLocaleDateString('tr')}</p>
                               </div>
                             )}
                           </div>

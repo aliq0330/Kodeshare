@@ -68,13 +68,15 @@ export const adminService = {
   },
 
   async getUserActivity(userId: string) {
-    const [postsRes, commentsRes, collectionsRes, likesRes, savesRes, messagesRes] = await Promise.all([
+    const [postsRes, commentsRes, collectionsRes, likesRes, savesRes, messagesRes, seriesRes, repostsRes] = await Promise.all([
       supabase.from('posts').select('id', { count: 'exact', head: true }).eq('author_id', userId),
       supabase.from('comments').select('id', { count: 'exact', head: true }).eq('author_id', userId),
       supabase.from('collections').select('id', { count: 'exact', head: true }).eq('owner_id', userId),
       supabase.from('post_likes').select('post_id', { count: 'exact', head: true }).eq('user_id', userId),
       supabase.from('post_saves').select('post_id', { count: 'exact', head: true }).eq('user_id', userId),
       supabase.from('messages').select('id', { count: 'exact', head: true }).eq('sender_id', userId),
+      supabase.from('series').select('id', { count: 'exact', head: true }).eq('owner_id', userId),
+      supabase.from('posts').select('id', { count: 'exact', head: true }).eq('author_id', userId).eq('type', 'repost'),
     ])
     return {
       posts:       postsRes.count       ?? 0,
@@ -83,6 +85,8 @@ export const adminService = {
       likes:       likesRes.count       ?? 0,
       saves:       savesRes.count       ?? 0,
       messages:    messagesRes.count    ?? 0,
+      series:      seriesRes.count      ?? 0,
+      reposts:     repostsRes.count     ?? 0,
     }
   },
 
@@ -146,6 +150,27 @@ export const adminService = {
     return data ?? []
   },
 
+  async getUserSeries(userId: string) {
+    const { data, error } = await supabase
+      .from('series')
+      .select('id, title, description, posts_count, created_at')
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data ?? []
+  },
+
+  async getUserReposts(userId: string) {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('id, title, type, likes_count, created_at')
+      .eq('author_id', userId)
+      .eq('type', 'repost')
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data ?? []
+  },
+
   // ── Toplu silme ────────────────────────────────────────────────
   async deleteAllUserPosts(userId: string) {
     const { error } = await supabase.from('posts').delete().eq('author_id', userId)
@@ -174,6 +199,21 @@ export const adminService = {
 
   async deleteAllUserMessages(userId: string) {
     const { error } = await supabase.from('messages').delete().eq('sender_id', userId)
+    if (error) throw new Error(error.message)
+  },
+
+  async deleteAllUserSeries(userId: string) {
+    const { error } = await supabase.from('series').delete().eq('owner_id', userId)
+    if (error) throw new Error(error.message)
+  },
+
+  async deleteAllUserReposts(userId: string) {
+    const { error } = await supabase.from('posts').delete().eq('author_id', userId).eq('type', 'repost')
+    if (error) throw new Error(error.message)
+  },
+
+  async deleteSeries(seriesId: string) {
+    const { error } = await supabase.from('series').delete().eq('id', seriesId)
     if (error) throw new Error(error.message)
   },
 
