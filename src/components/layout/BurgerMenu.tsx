@@ -1,27 +1,47 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { IconMenu2, IconX, IconHome, IconCompass, IconStar, IconHash, IconBell, IconMessage, IconBookmark, IconUser, IconSettings, IconCode, IconEditCircle, IconWriting } from '@tabler/icons-react'
+import {
+  IconMenu2, IconX, IconCode, IconEdit,
+  IconHome, IconHomeFilled,
+  IconCompass, IconCompassFilled,
+  IconStar, IconStarFilled,
+  IconHash,
+  IconBell, IconMessage, IconBookmark,
+  IconUser, IconUserFilled,
+  IconSettings, IconSettingsFilled,
+  IconWriting,
+} from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 import { useComposerStore } from '@store/composerStore'
 import Avatar from '@components/ui/Avatar'
 
-const PUBLIC_NAV = [
-  { to: '/',         icon: IconHome,    label: 'Ana Sayfa',    end: true },
-  { to: '/explore',  icon: IconCompass, label: 'Keşfet' },
-  { to: '/featured', icon: IconStar,    label: 'Öne Çıkanlar' },
-  { to: '/explore',  icon: IconHash,    label: 'Etiketler' },
+type NavItem = {
+  to: string
+  icon: React.FC<{ className?: string }>
+  iconFilled?: React.FC<{ className?: string }>
+  cssFill?: boolean
+  label: string
+  end?: boolean
+  dynamic?: boolean
+}
+
+const PUBLIC_NAV: NavItem[] = [
+  { to: '/',         icon: IconHome,    iconFilled: IconHomeFilled,    label: 'Ana Sayfa',    end: true },
+  { to: '/explore',  icon: IconCompass, iconFilled: IconCompassFilled, label: 'Keşfet' },
+  { to: '/featured', icon: IconStar,    iconFilled: IconStarFilled,    label: 'Öne Çıkanlar' },
+  { to: '/explore',  icon: IconHash,                                   label: 'Etiketler' },
 ]
 
-const AUTH_NAV = [
-  { to: '/notifications', icon: IconBell,     label: 'Bildirimler' },
-  { to: '/messages',      icon: IconMessage,  label: 'Mesajlar' },
-  { to: '/makaleler',     icon: IconWriting,  label: 'Makale' },
-  { to: '/editor',        icon: IconCode,     label: 'Editör' },
-  { to: '',               icon: IconBookmark, label: 'Koleksiyonlar', dynamic: true },
-  { to: '',               icon: IconUser,     label: 'Profil',        dynamic: true },
-  { to: '/settings',      icon: IconSettings, label: 'Ayarlar' },
+const AUTH_NAV: NavItem[] = [
+  { to: '/notifications', icon: IconBell,     cssFill: true,              label: 'Bildirimler' },
+  { to: '/messages',      icon: IconMessage,  cssFill: true,              label: 'Mesajlar' },
+  { to: '/makaleler',     icon: IconWriting,                              label: 'Makale' },
+  { to: '/editor',        icon: IconCode,                                 label: 'Editör' },
+  { to: '',               icon: IconBookmark, cssFill: true,              label: 'Koleksiyonlar', dynamic: true },
+  { to: '',               icon: IconUser,     iconFilled: IconUserFilled,  label: 'Profil',        dynamic: true },
+  { to: '/settings',      icon: IconSettings, iconFilled: IconSettingsFilled, label: 'Ayarlar' },
 ]
 
 export default function BurgerMenu() {
@@ -54,6 +74,15 @@ export default function BurgerMenu() {
     if (label === 'Profil') return `/profile/${user?.username}`
     if (label === 'Koleksiyonlar') return `/profile/${user?.username}?tab=collections`
     return '/'
+  }
+
+  const renderNavIcon = (item: NavItem, isActive: boolean) => {
+    if (isActive && item.iconFilled) {
+      const IconFilled = item.iconFilled
+      return <IconFilled className="w-5 h-5 shrink-0" />
+    }
+    const Icon = item.icon
+    return <Icon className={cn('w-5 h-5 shrink-0', isActive && item.cssFill && 'fill-current stroke-none')} />
   }
 
   return (
@@ -102,22 +131,30 @@ export default function BurgerMenu() {
 
             {/* Nav */}
             <nav className="flex-1 flex flex-col gap-0.5 p-3 overflow-y-auto">
-              {PUBLIC_NAV.map(({ to, icon: Icon, label, end }) => (
-                <NavLink key={label} to={to} end={end} onClick={close} className={linkClass}>
-                  <Icon className="w-5 h-5 shrink-0" />
-                  {label}
+              {PUBLIC_NAV.map((item) => (
+                <NavLink key={item.label} to={item.to} end={item.end} onClick={close} className={linkClass}>
+                  {({ isActive }) => (
+                    <>
+                      {renderNavIcon(item, isActive)}
+                      {item.label}
+                    </>
+                  )}
                 </NavLink>
               ))}
 
               {isAuthenticated && (
                 <>
                   <div className="my-2 border-t border-surface-border" />
-                  {AUTH_NAV.map(({ icon: Icon, label, dynamic, to }) => {
-                    const href = dynamic ? getDynamicTo(label) : to
+                  {AUTH_NAV.map((item) => {
+                    const href = item.dynamic ? getDynamicTo(item.label) : item.to
                     return (
-                      <NavLink key={label} to={href} onClick={close} className={linkClass}>
-                        <Icon className="w-5 h-5 shrink-0" />
-                        {label}
+                      <NavLink key={item.label} to={href} onClick={close} className={linkClass}>
+                        {({ isActive }) => (
+                          <>
+                            {renderNavIcon(item, isActive)}
+                            {item.label}
+                          </>
+                        )}
                       </NavLink>
                     )
                   })}
@@ -132,7 +169,7 @@ export default function BurgerMenu() {
                   onClick={handleNewPost}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-colors"
                 >
-                  <IconEditCircle className="w-4 h-4" />
+                  <IconEdit className="w-4 h-4" />
                   Yeni Gönderi
                 </button>
               )}

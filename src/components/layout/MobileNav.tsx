@@ -1,5 +1,5 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { IconHome, IconSearch, IconEditCircle, IconBell, IconMessage } from '@tabler/icons-react'
+import { IconHome, IconHomeFilled, IconCompass, IconCompassFilled, IconEdit, IconBell, IconMessage } from '@tabler/icons-react'
 import { cn } from '@utils/cn'
 import { useAuthStore } from '@store/authStore'
 import { useNotificationStore } from '@store/notificationStore'
@@ -19,23 +19,27 @@ export default function MobileNav() {
     cn('flex items-center justify-center px-4 py-2 rounded-lg transition-colors',
       isActive ? 'text-brand-400' : 'text-gray-400')
 
-  const iconClass = (active: boolean) => cn('w-6 h-6', active && 'text-brand-400')
+  const isExplore = pathname === '/explore'
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-card border-t border-surface-border h-16 flex items-center justify-around px-2">
 
       {/* Anasayfa */}
       <NavLink to="/" end className={linkClass}>
-        {({ isActive }) => <IconHome className={iconClass(isActive)} />}
+        {({ isActive }) => isActive
+          ? <IconHomeFilled className="w-6 h-6" />
+          : <IconHome className="w-6 h-6" />}
       </NavLink>
 
-      {/* Ara */}
+      {/* Keşfet */}
       <button
         onClick={() => navigate('/explore', { state: { focusSearch: true } })}
         className={cn('flex items-center justify-center px-4 py-2 rounded-lg transition-colors',
-          pathname === '/explore' ? 'text-brand-400' : 'text-gray-400')}
+          isExplore ? 'text-brand-400' : 'text-gray-400')}
       >
-        <IconSearch className={iconClass(pathname === '/explore')} />
+        {isExplore
+          ? <IconCompassFilled className="w-6 h-6" />
+          : <IconCompass className="w-6 h-6" />}
       </button>
 
       {/* Yeni Gönderi */}
@@ -43,14 +47,14 @@ export default function MobileNav() {
         onClick={() => isAuthenticated ? openComposer() : navigate('/login')}
         className="flex items-center justify-center px-4 py-2 rounded-lg transition-colors text-gray-400 hover:text-brand-400"
       >
-        <IconEditCircle className="w-6 h-6" />
+        <IconEdit className="w-6 h-6" />
       </button>
 
       {/* Bildirim */}
       <NavLink to={isAuthenticated ? '/notifications' : '/login'} className={linkClass}>
         {({ isActive }) => (
           <span className="relative">
-            <IconBell className={iconClass(isActive)} />
+            <IconBell className={cn('w-6 h-6', isActive && 'fill-current stroke-none')} />
             {unreadNotifications > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-black rounded-full" />
             )}
@@ -62,7 +66,7 @@ export default function MobileNav() {
       <NavLink to={isAuthenticated ? '/messages' : '/login'} className={linkClass}>
         {({ isActive }) => (
           <span className="relative">
-            <IconMessage className={iconClass(isActive)} />
+            <IconMessage className={cn('w-6 h-6', isActive && 'fill-current stroke-none')} />
             {unreadMessages > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-black rounded-full" />
             )}
