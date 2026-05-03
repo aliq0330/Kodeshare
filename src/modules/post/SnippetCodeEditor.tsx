@@ -171,6 +171,7 @@ export default function SnippetCodeEditor({
 
   return (
     <div
+      data-ks="snippet-editor"
       className={cn(
         'flex flex-col overflow-hidden',
         expanded

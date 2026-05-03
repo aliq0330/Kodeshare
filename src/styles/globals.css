@@ -233,3 +233,14 @@ html.light svg.like-icon-liked *:not([fill="none"]),
 html.dark svg.like-icon-liked *:not([fill="none"]) {
   fill: rgb(248 113 113) !important;
 }
+
+/* Snippet code editor: force light gutter and active-line colors in light mode */
+html.light [data-ks="snippet-editor"] .cm-gutters {
+  background-color: #f6f8fa !important;
+  color: #6e7781 !important;
+  border-right-color: rgba(0,0,0,0.08) !important;
+}
+html.light [data-ks="snippet-editor"] .cm-activeLine,
+html.light [data-ks="snippet-editor"] .cm-activeLineGutter {
+  background-color: #eaeef2 !important;
+}
