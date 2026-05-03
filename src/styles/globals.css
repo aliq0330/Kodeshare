@@ -234,13 +234,23 @@ html.dark svg.like-icon-liked *:not([fill="none"]) {
   fill: rgb(248 113 113) !important;
 }
 
-/* Snippet code editor: force light gutter and active-line colors in light mode */
-html.light [data-ks="snippet-editor"] .cm-gutters {
+/* Snippet code editor: force gutter and active-line colors in light mode */
+/* Snippet code editor: force gutter and active-line colors */
+[data-ks="snippet-editor"] .cm-gutters {
   background-color: #f6f8fa !important;
   color: #6e7781 !important;
   border-right-color: rgba(0,0,0,0.08) !important;
 }
-html.light [data-ks="snippet-editor"] .cm-activeLine,
-html.light [data-ks="snippet-editor"] .cm-activeLineGutter {
+[data-ks="snippet-editor"] .cm-activeLine,
+[data-ks="snippet-editor"] .cm-activeLineGutter {
   background-color: #eaeef2 !important;
+}
+html.dark [data-ks="snippet-editor"] .cm-gutters {
+  background-color: #161b22 !important;
+  color: #5b6478 !important;
+  border-right-color: rgba(128,128,128,0.2) !important;
+}
+html.dark [data-ks="snippet-editor"] .cm-activeLine,
+html.dark [data-ks="snippet-editor"] .cm-activeLineGutter {
+  background-color: rgba(128,128,128,0.12) !important;
 }
