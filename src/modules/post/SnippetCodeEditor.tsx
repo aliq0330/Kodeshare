@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState, Compartment } from '@codemirror/state'
+import { EditorState, Compartment, Extension } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { javascript } from '@codemirror/lang-javascript'
@@ -27,7 +27,7 @@ function langExtension(lang: SnippetLang) {
   return javascript()
 }
 
-const baseEditorTheme = EditorView.theme({
+const baseEditorThemeStatic = EditorView.theme({
   '&': { height: '100%', backgroundColor: 'transparent' },
   '&.cm-focused': { outline: 'none' },
   '.cm-scroller': {
@@ -37,13 +37,20 @@ const baseEditorTheme = EditorView.theme({
     overflow: 'auto',
   },
   '.cm-content': { paddingTop: '10px', paddingBottom: '10px' },
-  '.cm-gutters': {
-    backgroundColor: 'transparent',
-    borderRight: '1px solid rgba(128,128,128,0.2)',
-    color: '#5b6478',
-  },
-  '.cm-activeLineGutter, .cm-activeLine': { backgroundColor: 'rgba(128,128,128,0.07)' },
 })
+
+function makeActiveLinesTheme(isLight: boolean): Extension {
+  return EditorView.theme({
+    '.cm-gutters': {
+      backgroundColor: 'transparent',
+      borderRight: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : 'rgba(128,128,128,0.2)'}`,
+      color: isLight ? '#8c959f' : '#5b6478',
+    },
+    '.cm-activeLineGutter, .cm-activeLine': {
+      backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(128,128,128,0.07)',
+    },
+  })
+}
 
 interface SnippetCodeEditorProps {
   value: string
@@ -64,8 +71,9 @@ export default function SnippetCodeEditor({
 }: SnippetCodeEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef      = useRef<EditorView | null>(null)
-  const langCompartment   = useRef(new Compartment())
-  const themeCompartment  = useRef(new Compartment())
+  const langCompartment        = useRef(new Compartment())
+  const themeCompartment       = useRef(new Compartment())
+  const activeLinesCompartment = useRef(new Compartment())
   const onChangeRef  = useRef(onChange)
   onChangeRef.current = onChange
 
@@ -86,7 +94,8 @@ export default function SnippetCodeEditor({
           basicSetup,
           keymap.of([indentWithTab]),
           themeCompartment.current.of(isLight ? githubLight : oneDark),
-          baseEditorTheme,
+          baseEditorThemeStatic,
+          activeLinesCompartment.current.of(makeActiveLinesTheme(isLight)),
           langCompartment.current.of(langExtension(language)),
           EditorView.updateListener.of((u) => {
             if (u.docChanged) onChangeRef.current(u.state.doc.toString())
@@ -106,10 +115,13 @@ export default function SnippetCodeEditor({
     })
   }, [language])
 
-  // Swap theme dynamically
+  // Swap theme + active-line styles dynamically
   useEffect(() => {
     viewRef.current?.dispatch({
-      effects: themeCompartment.current.reconfigure(isLight ? githubLight : oneDark),
+      effects: [
+        themeCompartment.current.reconfigure(isLight ? githubLight : oneDark),
+        activeLinesCompartment.current.reconfigure(makeActiveLinesTheme(isLight)),
+      ],
     })
   }, [isLight])
 
