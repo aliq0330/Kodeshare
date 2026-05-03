@@ -30,12 +30,14 @@ function langExtension(lang: string) {
   return []
 }
 
-function makeBaseTheme(fontSize: number) {
+function makeBaseTheme(fontSize: number, activeLine: string) {
   return EditorView.theme({
     '&': { height: '100%' },
     '.cm-scroller': { fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: `${fontSize}px`, lineHeight: '1.6' },
     '.cm-content': { paddingTop: '8px', paddingBottom: '8px' },
-    '.cm-gutters': { borderRight: 'none' },
+    '.cm-gutters': { borderRight: 'none', backgroundColor: activeLine },
+    '.cm-activeLine': { backgroundColor: activeLine },
+    '.cm-activeLineGutter': { backgroundColor: activeLine },
   })
 }
 
@@ -55,7 +57,6 @@ export default function EditorPane({ file, theme, fontSize, wordWrap, onChange, 
     const extensions = [
       basicSetup,
       langExtension(file.language),
-      makeBaseTheme(fontSize),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           onChangeRef.current(update.state.doc.toString())
@@ -75,6 +76,8 @@ export default function EditorPane({ file, theme, fontSize, wordWrap, onChange, 
     ]
 
     if (themeConfig.extension) extensions.push(themeConfig.extension)
+    // Push last so it wins CSS cascade over all theme extensions
+    extensions.push(makeBaseTheme(fontSize, themeConfig.preview.activeLine))
     if (wordWrap) extensions.push(EditorView.lineWrapping)
 
     const view = new EditorView({
