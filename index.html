@@ -1,8 +1,23 @@
 <!doctype html>
-<html lang="tr" class="dark">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // Apply theme class synchronously before first paint to avoid flash
+      ;(function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem('editor') || '{}')
+          var theme  = (stored.state && stored.state.appTheme) || 'light'
+          var isDark = theme === 'dark' ||
+            (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.toggle('dark',  isDark)
+          document.documentElement.classList.toggle('light', !isDark)
+        } catch (e) {
+          document.documentElement.classList.add('light')
+        }
+      })()
+    </script>
     <script>
       // spa-github-pages restore
       (function (l) {

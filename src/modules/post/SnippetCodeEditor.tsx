@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState, Compartment, Prec } from '@codemirror/state'
+import { EditorState, Compartment } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { javascript } from '@codemirror/lang-javascript'
@@ -44,15 +44,15 @@ function makeActiveLinesTheme(isLight: boolean) {
   const activeBg   = isLight ? '#eaeef2' : 'rgba(128,128,128,0.12)'
   const gutterText = isLight ? '#6e7781' : '#5b6478'
   const borderCol  = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(128,128,128,0.2)'
-  return Prec.highest(EditorView.theme({
+  return EditorView.theme({
     '.cm-gutters': {
       backgroundColor: gutterBg,
       borderRight: `1px solid ${borderCol}`,
       color: gutterText,
     },
-    '.cm-activeLine':     { backgroundColor: activeBg },
+    '.cm-activeLine':       { backgroundColor: activeBg },
     '.cm-activeLineGutter': { backgroundColor: activeBg },
-  }))
+  })
 }
 
 interface SnippetCodeEditorProps {
