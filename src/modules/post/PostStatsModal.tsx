@@ -30,24 +30,31 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      setLikers([])
+      setReposters([])
+      setSavers([])
+      setCollectors([])
+      setFollowingIds(new Set())
+      return
+    }
+    let cancelled = false
     setLoading(true)
-    Promise.all([
+    Promise.allSettled([
       postService.getPostLikers(postId),
       postService.getPostReposters(postId),
       postService.getPostSavers(postId),
       postService.getPostCollectors(postId),
       me ? userService.getFollowingIds() : Promise.resolve(new Set<string>()),
-    ])
-      .then(([l, r, s, c, ids]) => {
-        setLikers(l as User[])
-        setReposters(r as User[])
-        setSavers(s as User[])
-        setCollectors(c as User[])
-        setFollowingIds(ids)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    ]).then(([l, r, s, c, ids]) => {
+      if (cancelled) return
+      if (l.status === 'fulfilled') setLikers(l.value as User[])
+      if (r.status === 'fulfilled') setReposters(r.value as User[])
+      if (s.status === 'fulfilled') setSavers(s.value as User[])
+      if (c.status === 'fulfilled') setCollectors(c.value as User[])
+      if (ids.status === 'fulfilled') setFollowingIds(ids.value as Set<string>)
+    }).finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [open, postId, me])
 
   if (!open) return null
