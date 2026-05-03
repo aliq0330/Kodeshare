@@ -36,6 +36,7 @@ interface PostCardProps {
 interface ArticleData {
   likesCount: number
   savesCount: number
+  viewsCount: number
   isLiked: boolean
   isSaved: boolean
 }
