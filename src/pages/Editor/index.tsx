@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { IconFiles, IconCode, IconEye, IconTextWrap, IconSun, IconMoon, IconPlus, IconTrash, IconX, IconRefresh, IconExternalLink, IconDeviceDesktop, IconDeviceTablet, IconDeviceMobile, IconLoader2, IconDeviceFloppy, IconChevronRight, IconChevronDown, IconFolderOpen, IconCloud, IconPencil, IconCheck, IconPalette, IconHistory } from '@tabler/icons-react'
 import { useEditor } from '@editor/hooks/useEditor'
 import { useAutoSave } from '@editor/hooks/useAutoSave'
+import { useIsLightMode } from '@hooks/useIsLightMode'
 import { useEditorStore } from '@store/editorStore'
 import { useProjectStore } from '@store/projectStore'
 import { useAuthStore } from '@store/authStore'
@@ -837,10 +838,17 @@ export default function EditorPage() {
     setTooltipCoords(coords)
   }, [])
 
+  const isAppLight  = useIsLightMode()
   const themeConfig = getThemeConfig(theme)
   const ui          = themeConfig.ui
   const hasUnsaved  = files.some((f) => f.isModified)
   const isDark      = themeConfig.dark
+
+  // Sync editor theme with app light/dark mode
+  useEffect(() => {
+    if (isAppLight && themeConfig.dark)  setTheme('github-light')
+    if (!isAppLight && !themeConfig.dark) setTheme('one-dark')
+  }, [isAppLight]) // eslint-disable-line
 
   // ── Panel bar ─────────────────────────────────────────────────────────────
 

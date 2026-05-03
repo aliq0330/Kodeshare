@@ -54,7 +54,7 @@ export const useEditorStore = create<EditorStoreState>()(
       files: DEFAULT_FILES,
       activeFileId: '1',
       activeProjectId: null,
-      theme: 'one-dark' as EditorTheme,
+      theme: 'github-light' as EditorTheme,
       fontSize: 16,
       wordWrap: false,
       minimap: false,
