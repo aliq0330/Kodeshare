@@ -93,9 +93,12 @@ export default function ArticleStatsModal({
   useEffect(() => {
     if (!open) return
     setLoading(true)
-    Promise.all([fetchLikers(articleId), fetchSavers(articleId), fetchCollectors(articleId)])
-      .then(([l, s, c]) => { setLikers(l); setSavers(s); setCollectors(c) })
-      .catch(() => {})
+    Promise.allSettled([fetchLikers(articleId), fetchSavers(articleId), fetchCollectors(articleId)])
+      .then(([l, s, c]) => {
+        if (l.status === 'fulfilled') setLikers(l.value)
+        if (s.status === 'fulfilled') setSavers(s.value)
+        if (c.status === 'fulfilled') setCollectors(c.value)
+      })
       .finally(() => setLoading(false))
   }, [open, articleId])
 

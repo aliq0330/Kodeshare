@@ -4,10 +4,18 @@ import { IconX, IconHeart, IconRepeat, IconBookmark, IconFolderPlus, IconRosette
 import Avatar from '@components/ui/Avatar'
 import Spinner from '@components/ui/Spinner'
 import FollowButton from '@modules/social/FollowButton'
-import { postService } from '@services/postService'
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@store/authStore'
 import { userService } from '@services/userService'
-import type { User } from '@/types'
+
+interface UserRow {
+  id: string
+  username: string
+  displayName: string
+  avatarUrl: string | null
+  isVerified: boolean
+  isOnline: boolean
+}
 
 interface PostStatsModalProps {
   open: boolean
@@ -19,13 +27,100 @@ interface PostStatsModalProps {
 
 type Tab = 'likes' | 'reposts' | 'saves' | 'collections'
 
+async function fetchPostLikers(postId: string): Promise<UserRow[]> {
+  const { data, error } = await supabase
+    .from('post_likes')
+    .select('created_at, user:profiles!post_likes_user_id_fkey(id, username, display_name, avatar_url, is_verified, is_online)')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as unknown as Array<{ user: Record<string, unknown> | null }>)
+    .map((row) => row.user)
+    .filter((u): u is Record<string, unknown> => u !== null)
+    .map((u) => ({
+      id:          u.id as string,
+      username:    u.username as string,
+      displayName: u.display_name as string,
+      avatarUrl:   (u.avatar_url as string) ?? null,
+      isVerified:  (u.is_verified as boolean) ?? false,
+      isOnline:    (u.is_online as boolean) ?? false,
+    }))
+}
+
+async function fetchPostReposters(postId: string): Promise<UserRow[]> {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('created_at, author:profiles!posts_author_id_fkey(id, username, display_name, avatar_url, is_verified, is_online)')
+    .eq('reposted_from', postId)
+    .eq('type', 'repost')
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as unknown as Array<{ author: Record<string, unknown> | null }>)
+    .map((row) => row.author)
+    .filter((u): u is Record<string, unknown> => u !== null)
+    .map((u) => ({
+      id:          u.id as string,
+      username:    u.username as string,
+      displayName: u.display_name as string,
+      avatarUrl:   (u.avatar_url as string) ?? null,
+      isVerified:  (u.is_verified as boolean) ?? false,
+      isOnline:    (u.is_online as boolean) ?? false,
+    }))
+}
+
+async function fetchPostSavers(postId: string): Promise<UserRow[]> {
+  const { data, error } = await supabase
+    .from('post_saves')
+    .select('created_at, user:profiles!post_saves_user_id_fkey(id, username, display_name, avatar_url, is_verified, is_online)')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as unknown as Array<{ user: Record<string, unknown> | null }>)
+    .map((row) => row.user)
+    .filter((u): u is Record<string, unknown> => u !== null)
+    .map((u) => ({
+      id:          u.id as string,
+      username:    u.username as string,
+      displayName: u.display_name as string,
+      avatarUrl:   (u.avatar_url as string) ?? null,
+      isVerified:  (u.is_verified as boolean) ?? false,
+      isOnline:    (u.is_online as boolean) ?? false,
+    }))
+}
+
+async function fetchPostCollectors(postId: string): Promise<UserRow[]> {
+  const { data, error } = await supabase
+    .from('collection_posts')
+    .select('collection:collections!collection_posts_collection_id_fkey(owner:profiles!collections_owner_id_fkey(id, username, display_name, avatar_url, is_verified, is_online))')
+    .eq('post_id', postId)
+  if (error) throw new Error(error.message)
+
+  const seen = new Set<string>()
+  return ((data ?? []) as unknown as Array<{ collection: { owner: Record<string, unknown> | null } | null }>)
+    .map((row) => row.collection?.owner)
+    .filter((u): u is Record<string, unknown> => u !== null && u !== undefined)
+    .filter((u) => {
+      if (seen.has(u.id as string)) return false
+      seen.add(u.id as string)
+      return true
+    })
+    .map((u) => ({
+      id:          u.id as string,
+      username:    u.username as string,
+      displayName: u.display_name as string,
+      avatarUrl:   (u.avatar_url as string) ?? null,
+      isVerified:  (u.is_verified as boolean) ?? false,
+      isOnline:    (u.is_online as boolean) ?? false,
+    }))
+}
+
 export default function PostStatsModal({ open, onClose, postId, likesCount, repostCount }: PostStatsModalProps) {
   const { user: me } = useAuthStore()
   const [tab, setTab] = useState<Tab>('likes')
-  const [likers, setLikers]         = useState<User[]>([])
-  const [reposters, setReposters]   = useState<User[]>([])
-  const [savers, setSavers]         = useState<User[]>([])
-  const [collectors, setCollectors] = useState<User[]>([])
+  const [likers, setLikers]         = useState<UserRow[]>([])
+  const [reposters, setReposters]   = useState<UserRow[]>([])
+  const [savers, setSavers]         = useState<UserRow[]>([])
+  const [collectors, setCollectors] = useState<UserRow[]>([])
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
 
@@ -41,17 +136,17 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
     let cancelled = false
     setLoading(true)
     Promise.allSettled([
-      postService.getPostLikers(postId),
-      postService.getPostReposters(postId),
-      postService.getPostSavers(postId),
-      postService.getPostCollectors(postId),
+      fetchPostLikers(postId),
+      fetchPostReposters(postId),
+      fetchPostSavers(postId),
+      fetchPostCollectors(postId),
       me ? userService.getFollowingIds() : Promise.resolve(new Set<string>()),
     ]).then(([l, r, s, c, ids]) => {
       if (cancelled) return
-      if (l.status === 'fulfilled') setLikers(l.value as User[])
-      if (r.status === 'fulfilled') setReposters(r.value as User[])
-      if (s.status === 'fulfilled') setSavers(s.value as User[])
-      if (c.status === 'fulfilled') setCollectors(c.value as User[])
+      if (l.status === 'fulfilled') setLikers(l.value)
+      if (r.status === 'fulfilled') setReposters(r.value)
+      if (s.status === 'fulfilled') setSavers(s.value)
+      if (c.status === 'fulfilled') setCollectors(c.value)
       if (ids.status === 'fulfilled') setFollowingIds(ids.value as Set<string>)
     }).finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
@@ -59,7 +154,7 @@ export default function PostStatsModal({ open, onClose, postId, likesCount, repo
 
   if (!open) return null
 
-  const lists: Record<Tab, User[]> = {
+  const lists: Record<Tab, UserRow[]> = {
     likes: likers, reposts: reposters, saves: savers, collections: collectors,
   }
   const list = lists[tab]
