@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconChevronDown, IconX, IconTrash, IconCloud, IconCloudUpload, IconClock, IconHash, IconEye, IconPencil, IconQuote } from '@tabler/icons-react'
+import { IconCode, IconPhoto, IconLink, IconVideo, IconFileText, IconFolderOpen, IconChevronDown, IconX, IconTrash, IconCloud, IconCloudUpload, IconClock, IconHash, IconEye, IconQuote } from '@tabler/icons-react'
 import Avatar from '@components/ui/Avatar'
 import Button from '@components/ui/Button'
 import Modal from '@components/ui/Modal'
 import Input from '@components/ui/Input'
-import Textarea from '@components/ui/Textarea'
 import Spinner from '@components/ui/Spinner'
 import BlockView from '@modules/post/BlockView'
 import SnippetCodeEditor, { type SnippetLang } from './SnippetCodeEditor'
@@ -22,7 +21,6 @@ import { timeAgo } from '@utils/formatters'
 import toast from 'react-hot-toast'
 import type { PostBlock, PostBlockType, EditorFile, EditorLanguage } from '@/types'
 
-const DRAFT_KEY = 'kodeshare:composer-draft-v3'
 const DEFAULT_LANG: SnippetLang = 'javascript'
 
 const EXT_MAP: Record<SnippetLang, string> = {
@@ -57,22 +55,6 @@ type ComposerBlock =
   | { localId: string; type: 'link'; url: string; title: string }
   | { localId: string; type: 'video'; url: string }
   | { localId: string; type: 'article'; articleId: string | null; articleTitle: string; coverImage: string | null; content: string }
-
-interface Draft {
-  description: string
-  tags: string[]
-  blocks: ComposerBlock[]
-}
-
-function loadDraft(): Partial<Draft> | null {
-  try { const raw = localStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null } catch { return null }
-}
-function saveDraft(d: Draft) {
-  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)) } catch { /* noop */ }
-}
-function clearDraft() {
-  try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
-}
 
 const BLOCK_OPTIONS: { type: PostBlockType; label: string; icon: React.ReactNode }[] = [
   { type: 'snippet', label: 'Snippet', icon: <IconCode className="w-4 h-4" /> },
@@ -176,7 +158,10 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const { createPost } = usePostStore()
   const { open, prefilledProject, prefilledSnippet, prefilledArticle, editingPost, quotedPost, onEditSaved, openComposer, closeComposer } = useComposerStore()
 
-  const [composerMode, setComposerMode] = useState<'edit' | 'preview'>('edit')
+  const [previewMode, setPreviewMode]     = useState(false)
+  const [tagSectionOpen, setTagSectionOpen] = useState(false)
+  const [showDraftConfirm, setShowDraftConfirm] = useState(false)
+
   const [description, setDescription] = useState('')
   const [tags, setTags]               = useState<string[]>([])
   const [tagInput, setTagInput]       = useState('')
@@ -185,7 +170,6 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const [blocks, setBlocks]           = useState<ComposerBlock[]>([])
   const [loading, setLoading]         = useState(false)
   const [expandedId, setExpandedId]   = useState<string | null>(null)
-
 
   const tagSuggestRef   = useRef<HTMLDivElement>(null)
   const searchDebounce  = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -198,22 +182,42 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const [cloudDrafts, setCloudDrafts]     = useState<CloudDraft[]>([])
   const [draftsLoading, setDraftsLoading] = useState(false)
 
-  // Project picker state (per project block)
+  // Project picker state
   const [pickerBlockId, setPickerBlockId]       = useState<string | null>(null)
   const [pickerProjects, setPickerProjects]     = useState<SavedProject[]>([])
   const [pickerLoading, setPickerLoading]       = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
 
-  // Article picker state (per article block)
+  // Article picker state
   const [articlePickerBlockId, setArticlePickerBlockId] = useState<string | null>(null)
   const [pickerArticles, setPickerArticles]             = useState<ArticleRecord[]>([])
   const [articlePickerLoading, setArticlePickerLoading] = useState(false)
   const articlePickerRef = useRef<HTMLDivElement>(null)
 
-  // Restore draft / prefilled content
+  // Reset + load content each time modal opens
   useEffect(() => {
-    if (!open || hydratedRef.current) return
+    if (!open) {
+      hydratedRef.current = false
+      return
+    }
+    if (hydratedRef.current) return
     hydratedRef.current = true
+
+    // Always reset first so modal is clean on every open
+    setPreviewMode(false)
+    setTagSectionOpen(false)
+    setDescription('')
+    setTags([])
+    setTagInput('')
+    setTagSuggestions([])
+    setSuggestionsOpen(false)
+    setBlocks([])
+    setExpandedId(null)
+    setPickerBlockId(null)
+    setArticlePickerBlockId(null)
+    setCloudDraftId(null)
+    setShowDraftConfirm(false)
+
     if (editingPost) {
       setDescription(editingPost.description ?? '')
       setTags(editingPost.tags)
@@ -221,52 +225,18 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       return
     }
     if (prefilledSnippet) {
-      const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
-      setBlocks([b])
+      setBlocks([{ localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }])
       return
     }
     if (prefilledProject) {
-      const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
-      setBlocks([b])
+      setBlocks([{ localId: newId(), type: 'project', project: prefilledProject }])
       return
     }
     if (prefilledArticle) {
-      const b: ComposerBlock = { localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }
-      setBlocks([b])
+      setBlocks([{ localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }])
       return
     }
-    const d = loadDraft()
-    if (!d) return
-    if (d.description) setDescription(d.description)
-    if (d.tags?.length) setTags(d.tags)
-    if (d.blocks?.length) setBlocks(d.blocks)
   }, [open, editingPost, prefilledProject, prefilledSnippet, prefilledArticle])
-
-  useEffect(() => {
-    if (!open || !prefilledSnippet || editingPost) return
-    const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
-    setBlocks([b])
-  }, [prefilledSnippet, open, editingPost])
-
-  useEffect(() => {
-    if (!open || !prefilledProject || editingPost) return
-    const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
-    setBlocks([b])
-  }, [prefilledProject, open, editingPost])
-
-  useEffect(() => {
-    if (!open || !prefilledArticle || editingPost) return
-    const b: ComposerBlock = { localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }
-    setBlocks([b])
-  }, [prefilledArticle, open, editingPost])
-
-  // Auto-save draft to localStorage (only in create mode)
-  useEffect(() => {
-    if (!open || editingPost) return
-    const hasContent = description || tags.length > 0 || blocks.length > 0
-    if (!hasContent) return
-    saveDraft({ description, tags, blocks })
-  }, [open, editingPost, description, tags, blocks])
 
   // ESC closes expanded editor
   useEffect(() => {
@@ -384,16 +354,19 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     if (e.key === 'Escape') setSuggestionsOpen(false)
   }
 
-  const reset = () => {
-    setComposerMode('edit')
-    setDescription(''); setTags([]); setTagInput(''); setTagSuggestions([]); setSuggestionsOpen(false)
-    setBlocks([])
-    setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null)
-    setCloudDraftId(null)
-    hydratedRef.current = false
-  }
+  const doClose = useCallback(() => {
+    setShowDraftConfirm(false)
+    closeComposer()
+  }, [closeComposer])
 
-  const handleClose = () => { closeComposer(); reset() }
+  const handleClose = () => {
+    const hasContent = !editingPost && (description.trim() !== '' || tags.length > 0 || blocks.length > 0)
+    if (hasContent) {
+      setShowDraftConfirm(true)
+      return
+    }
+    doClose()
+  }
 
   // Cloud draft: save
   const handleCloudSave = async () => {
@@ -403,6 +376,24 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       const saved = await draftService.save(cloudDraftId, { description, tags: tags.join(', '), blocks })
       setCloudDraftId(saved.id)
       toast.success('Taslak buluta kaydedildi')
+    } catch {
+      toast.error('Taslak kaydedilemedi')
+    } finally {
+      setCloudSaving(false)
+    }
+  }
+
+  const handleSaveAndClose = async () => {
+    if (!isAuthenticated) {
+      toast.error('Taslak kaydetmek için giriş yapmalısın')
+      return
+    }
+    setCloudSaving(true)
+    try {
+      const saved = await draftService.save(cloudDraftId, { description, tags: tags.join(', '), blocks })
+      setCloudDraftId(saved.id)
+      toast.success('Taslak kaydedildi')
+      doClose()
     } catch {
       toast.error('Taslak kaydedilemedi')
     } finally {
@@ -466,6 +457,19 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       const desc = description.trim()
 
       if (editingPost) {
+        const originalDesc = editingPost.description ?? ''
+        const originalTags = editingPost.tags ?? []
+        const descChanged = desc !== originalDesc
+        const tagsChanged = JSON.stringify([...tags].sort()) !== JSON.stringify([...originalTags].sort())
+        const currentBlocksStr = JSON.stringify(validBlocks.map((b) => ({ type: b.type, data: b.data })))
+        const originalBlocksStr = JSON.stringify(editingPost.blocks.map((b) => ({ type: b.type, data: b.data })))
+        const blocksChanged = currentBlocksStr !== originalBlocksStr
+
+        if (!descChanged && !tagsChanged && !blocksChanged) {
+          toast.error('Herhangi bir değişiklik yapmadın')
+          return
+        }
+
         await postService.editPost(editingPost.id, {
           title:       desc.split('\n')[0].slice(0, 100) || editingPost.title,
           description: desc || undefined,
@@ -475,8 +479,13 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         const updatedBlocks: PostBlock[] = validBlocks.map((b, i) => ({ id: newId(), type: b.type, position: i, data: b.data }))
         onEditSaved?.({ description: desc || null, tags, blocks: updatedBlocks })
         toast.success('Gönderi güncellendi!')
-        reset(); closeComposer()
+        doClose()
       } else {
+        if (!desc && validBlocks.length === 0 && !quotedPost) {
+          toast.error('Gönderi için en az bir yazı veya içerik bloğu ekle')
+          return
+        }
+
         await createPost({
           type: 'post',
           title: desc.split('\n')[0].slice(0, 100) || 'Gönderi',
@@ -487,7 +496,7 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         })
         if (cloudDraftId) void draftService.delete(cloudDraftId).catch(() => {})
         toast.success('Gönderi paylaşıldı!')
-        clearDraft(); reset(); closeComposer()
+        doClose()
       }
     } catch (err) {
       toast.error((err as Error).message || 'Bir hata oluştu')
@@ -509,6 +518,25 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     </div>
   )
 
+  const titleAction = (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => setPreviewMode((v) => !v)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${previewMode ? 'text-white bg-surface-raised' : 'text-gray-500 hover:text-gray-300'}`}
+      >
+        <IconEye className="w-3.5 h-3.5" />
+        Önizleme
+      </button>
+      {isAuthenticated && !editingPost && (
+        <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
+          <IconCloud className="w-4 h-4" />
+          Taslaklar
+        </Button>
+      )}
+    </div>
+  )
+
   return (
     <>
       {triggerCard}
@@ -516,102 +544,85 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       <Modal
         open={open}
         onClose={handleClose}
-        title={editingPost ? 'Gönderiyi Düzenle' : 'Yeni Gönderi'}
+        title={editingPost ? 'Gönderiyi Düzenle' : undefined}
+        titleAction={titleAction}
         size="fullscreen"
         className="lg:max-w-[672px]"
-        titleAction={isAuthenticated ? (
-          <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
-            <IconCloud className="w-4 h-4" />
-            Taslaklar
-          </Button>
-        ) : undefined}
-        subheader={
-          <div className="flex px-1">
-            <button
-              type="button"
-              onClick={() => setComposerMode('edit')}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'edit' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-            >
-              <IconPencil className="w-3.5 h-3.5" />
-              Düzenle
-            </button>
-            <button
-              type="button"
-              onClick={() => setComposerMode('preview')}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'preview' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-            >
-              <IconEye className="w-3.5 h-3.5" />
-              Önizleme
-            </button>
-          </div>
-        }
       >
-        {composerMode === 'edit' && (
+        {!previewMode && (
         <div className="flex flex-col gap-4 flex-1">
-          <Textarea
-            label="Açıklama"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Ne hakkında?"
-            rows={2}
-          />
-          {/* Tag input */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-300">
-              Etiketler
-              <span className="ml-1.5 text-xs text-gray-500 font-normal">({tags.length}/5)</span>
-            </label>
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => (
-                  <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 text-xs font-medium border border-brand-500/30">
-                    #{tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
-                      <IconX className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-            {tags.length < 5 && (
-              <div className="relative flex gap-2" ref={tagSuggestRef}>
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                    <IconHash className="w-3.5 h-3.5" />
-                  </span>
-                  <input
-                    value={tagInput}
-                    onChange={(e) => handleTagInputChange(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                    placeholder="etiket yaz, Enter ile ekle"
-                    className="w-full bg-surface-card border border-surface-border rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                  />
-                  {suggestionsOpen && tagSuggestions.length > 0 && (
-                    <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-44 overflow-y-auto">
-                      {tagSuggestions.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onMouseDown={(e) => { e.preventDefault(); addTag(s) }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-raised text-gray-300 hover:text-white transition-colors"
-                        >
-                          <IconHash className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => addTag(tagInput)}
-                  className="shrink-0 px-3 py-2 text-sm rounded-lg border border-surface-border text-gray-400 hover:text-white hover:border-brand-500 transition-colors"
-                >
-                  Ekle
-                </button>
-              </div>
-            )}
+          <div className="flex items-start gap-3">
+            <Avatar src={user?.avatarUrl} alt={user?.displayName ?? ''} size="sm" className="shrink-0 mt-1" />
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Neler oluyor?"
+              rows={3}
+              className="flex-1 bg-transparent border-0 outline-none resize-none text-sm text-white placeholder:text-gray-500 leading-relaxed"
+            />
           </div>
+
+          {/* Tag chips — always visible when tags exist */}
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pl-10">
+              {tags.map((tag) => (
+                <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 text-xs font-medium border border-brand-500/30">
+                  #{tag}
+                  <button type="button" onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
+                    <IconX className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Tag input section — visible only when opened */}
+          {tagSectionOpen && (
+            <div className="flex flex-col gap-1.5 pl-10">
+              <label className="text-sm font-medium text-gray-300">
+                Etiketler
+                <span className="ml-1.5 text-xs text-gray-500 font-normal">({tags.length}/5)</span>
+              </label>
+              {tags.length < 5 && (
+                <div className="relative flex gap-2" ref={tagSuggestRef}>
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      <IconHash className="w-3.5 h-3.5" />
+                    </span>
+                    <input
+                      value={tagInput}
+                      onChange={(e) => handleTagInputChange(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                      placeholder="etiket yaz, Enter ile ekle"
+                      className="w-full bg-surface-card border border-surface-border rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    />
+                    {suggestionsOpen && tagSuggestions.length > 0 && (
+                      <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-44 overflow-y-auto">
+                        {tagSuggestions.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onMouseDown={(e) => { e.preventDefault(); addTag(s) }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-raised text-gray-300 hover:text-white transition-colors"
+                          >
+                            <IconHash className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addTag(tagInput)}
+                    className="shrink-0 px-3 py-2 text-sm rounded-lg border border-surface-border text-gray-400 hover:text-white hover:border-brand-500 transition-colors"
+                  >
+                    Ekle
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Block list */}
           {blocks.length > 0 && (
@@ -822,9 +833,9 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           )}
 
         </div>
-        )} {/* end composerMode === 'edit' */}
+        )} {/* end !previewMode */}
 
-        {composerMode === 'preview' && (() => {
+        {previewMode && (() => {
           const previewTitle = description.trim().split('\n')[0].slice(0, 100) || 'Gönderi'
           const previewBlocks = composerBlocksToPostBlocks(blocks)
           const hasContent = description.trim() || tags.length > 0 || previewBlocks.length > 0 || !!quotedPost
@@ -880,19 +891,36 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         {/* Sticky footer */}
         <div className="shrink-0 border-t border-surface-border bg-surface-card">
           {/* Block type buttons */}
-          {composerMode === 'edit' && (
+          {!previewMode && (
             <div className="flex items-center gap-2 px-4 py-2 border-b border-surface-border overflow-x-auto scrollbar-none">
-              {BLOCK_OPTIONS.map((opt) => (
-                <button
-                  key={opt.type}
-                  type="button"
-                  onClick={() => addBlock(opt.type)}
-                  className="flex flex-col items-center justify-center gap-1 h-[50px] w-[50px] shrink-0 rounded-lg border border-surface-border text-gray-400 hover:text-brand-400 hover:border-brand-500 transition-colors"
-                >
-                  <span className="text-brand-400">{opt.icon}</span>
-                  <span className="text-[9px] font-medium leading-none">{opt.label}</span>
-                </button>
-              ))}
+              {BLOCK_OPTIONS.flatMap((opt, i) => {
+                const blockBtn = (
+                  <button
+                    key={opt.type}
+                    type="button"
+                    onClick={() => addBlock(opt.type)}
+                    className="flex flex-col items-center justify-center gap-1 h-[50px] w-[50px] shrink-0 rounded-lg border border-surface-border text-gray-400 hover:text-brand-400 hover:border-brand-500 transition-colors"
+                  >
+                    <span className="text-brand-400">{opt.icon}</span>
+                    <span className="text-[9px] font-medium leading-none">{opt.label}</span>
+                  </button>
+                )
+                if (i === 0) {
+                  return [
+                    blockBtn,
+                    <button
+                      key="__tag"
+                      type="button"
+                      onClick={() => setTagSectionOpen((v) => !v)}
+                      className={`flex flex-col items-center justify-center gap-1 h-[50px] w-[50px] shrink-0 rounded-lg border transition-colors ${tagSectionOpen ? 'border-brand-500 text-brand-400' : 'border-surface-border text-gray-400 hover:text-brand-400 hover:border-brand-500'}`}
+                    >
+                      <span className={tagSectionOpen ? 'text-brand-400' : 'text-brand-400'}><IconHash className="w-4 h-4" /></span>
+                      <span className="text-[9px] font-medium leading-none">Etiket</span>
+                    </button>,
+                  ]
+                }
+                return [blockBtn]
+              })}
             </div>
           )}
           {/* Action buttons */}
@@ -913,7 +941,28 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
         </div>
       </Modal>
 
-      {/* Cloud Drafts Modal — rendered after main modal so it appears on top (same z-index, later in DOM wins) */}
+      {/* Draft save confirmation */}
+      <Modal open={showDraftConfirm} onClose={() => setShowDraftConfirm(false)} title="Taslak" size="sm">
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-gray-300">Taslağa kaydetmek istiyor musun?</p>
+          <div className="flex flex-col gap-2">
+            {isAuthenticated && (
+              <Button variant="primary" onClick={handleSaveAndClose} loading={cloudSaving} className="w-full justify-center">
+                <IconCloud className="w-4 h-4" />
+                Taslağa Kaydet
+              </Button>
+            )}
+            <Button variant="ghost" onClick={doClose} className="w-full justify-center text-red-400 hover:text-red-300">
+              Kaydetme
+            </Button>
+            <Button variant="ghost" onClick={() => setShowDraftConfirm(false)} className="w-full justify-center">
+              İptal
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Cloud Drafts Modal */}
       <Modal open={draftsOpen} onClose={() => setDraftsOpen(false)} title="Bulut Taslaklar" size="fullscreen">
         <div className="flex flex-col gap-3">
           {draftsLoading ? (

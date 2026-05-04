@@ -40,6 +40,8 @@ export default function Modal({ open, onClose, title, titleAction, subheader, ch
 
   if (!open) return null
 
+  const showHeader = !!(title || titleAction)
+
   return (
     <div
       className={cn(
@@ -58,13 +60,13 @@ export default function Modal({ open, onClose, title, titleAction, subheader, ch
         className={cn(
           'relative w-full bg-surface-card flex flex-col animate-slide-up z-10',
           isFullscreen
-            ? 'h-full max-h-full rounded-none lg:h-auto lg:max-h-[calc(100dvh-2rem)] lg:rounded-xl lg:max-w-2xl lg:shadow-2xl lg:border lg:border-surface-border'
+            ? 'h-full max-h-full rounded-none lg:h-auto lg:max-h-[calc(100dvh-2rem)] lg:rounded-xl lg:shadow-2xl lg:border lg:border-surface-border'
             : 'card shadow-2xl max-h-[calc(100dvh-2rem)]',
           sizes[size],
           className,
         )}
       >
-        {title && (
+        {showHeader && (
           <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border shrink-0">
             <h2 className="text-base font-semibold">{title}</h2>
             <div className="flex items-center gap-2">
