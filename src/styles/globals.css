@@ -164,6 +164,18 @@ html.dark svg *:not([stroke="none"]) {
   stroke: white !important;
 }
 
+/* Editor page has its own per-theme icon colors — exempt from global SVG override */
+html [data-ks="editor-page"] svg,
+html.light [data-ks="editor-page"] svg,
+html.dark [data-ks="editor-page"] svg {
+  color: inherit !important;
+}
+html [data-ks="editor-page"] svg *:not([stroke="none"]),
+html.light [data-ks="editor-page"] svg *:not([stroke="none"]),
+html.dark [data-ks="editor-page"] svg *:not([stroke="none"]) {
+  stroke: currentColor !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

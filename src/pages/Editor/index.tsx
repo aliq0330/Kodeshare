@@ -1032,7 +1032,7 @@ export default function EditorPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full overflow-hidden" style={{ background: ui.pageBg, color: ui.text }}>
+    <div data-ks="editor-page" className="flex flex-col h-full overflow-hidden" style={{ background: ui.pageBg, color: ui.text }}>
       {/* ── File type selection modal ─────────────────────────────────── */}
       {addFileTarget !== null && (
         <div
