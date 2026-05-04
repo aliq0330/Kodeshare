@@ -254,3 +254,12 @@ html.dark [data-ks="snippet-editor"] .cm-activeLine,
 html.dark [data-ks="snippet-editor"] .cm-activeLineGutter {
   background-color: rgba(128,128,128,0.12) !important;
 }
+
+/* Editor page: use per-theme color set as CSS custom property on the container */
+[data-ks="editor-pane"] .cm-gutters {
+  background-color: var(--ks-ep-color) !important;
+}
+[data-ks="editor-pane"] .cm-activeLine,
+[data-ks="editor-pane"] .cm-activeLineGutter {
+  background-color: var(--ks-ep-color) !important;
+}

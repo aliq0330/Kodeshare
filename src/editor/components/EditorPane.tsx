@@ -109,8 +109,12 @@ export default function EditorPane({ file, theme, fontSize, wordWrap, onChange, 
   return (
     <div
       ref={containerRef}
+      data-ks="editor-pane"
       className="h-full overflow-hidden"
-      style={{ background: themeConfig.bg }}
+      style={{
+        background: themeConfig.bg,
+        '--ks-ep-color': themeConfig.preview.activeLine,
+      } as React.CSSProperties}
     />
   )
 }
