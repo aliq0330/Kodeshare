@@ -152,19 +152,18 @@ function InlineEdit({
 
 // ─── PanelBtn ──────────────────────────────────────────────────────────────
 
-function PanelBtn({ active, onClick, icon: Icon, label }: {
-  active: boolean; onClick: () => void; icon: React.ElementType; label: string
+function PanelBtn({ active, onClick, icon: Icon, label, ui }: {
+  active: boolean; onClick: () => void; icon: React.ElementType; label: string; ui: UiColors
 }) {
   return (
     <button
       onClick={onClick}
       title={label}
-      className={cn(
-        'flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all select-none',
-        active
-          ? 'bg-[#1e2a3a] text-[#8aa8ff] border border-[#2a3a56]'
-          : 'text-gray-500 hover:text-gray-300 border border-transparent',
-      )}
+      className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all select-none border"
+      style={active
+        ? { background: ui.raisedBg, color: '#8aa8ff', borderColor: ui.border }
+        : { color: ui.textMuted, borderColor: 'transparent' }
+      }
     >
       <Icon className="w-3.5 h-3.5" />
       <span className="hidden sm:inline">{label}</span>
@@ -851,26 +850,28 @@ export default function EditorPage() {
       style={{ height: 40, background: ui.panelBg, borderBottom: `1px solid ${ui.border}`, color: ui.text }}
     >
       <div className="flex items-center gap-1">
-        <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={IconFiles}   label="Projeler"  />
-        <PanelBtn active={showPreview}  onClick={() => setShowPreview((p)  => !p)} icon={IconEye}     label="Önizleme" />
+        <PanelBtn active={showProjects} onClick={() => setShowProjects((p) => !p)} icon={IconFiles}   label="Projeler"  ui={ui} />
+        <PanelBtn active={showPreview}  onClick={() => setShowPreview((p)  => !p)} icon={IconEye}     label="Önizleme" ui={ui} />
         {activeProjectId && (
-          <PanelBtn active={showVersions} onClick={() => setShowVersions(!showVersions)} icon={IconHistory} label="Geçmiş" />
+          <PanelBtn active={showVersions} onClick={() => setShowVersions(!showVersions)} icon={IconHistory} label="Geçmiş" ui={ui} />
         )}
       </div>
 
-      <div className="w-px h-4 bg-[#1e2535] mx-1" />
+      <div className="w-px h-4 mx-1" style={{ background: ui.border }} />
 
       <button
         onClick={toggleWordWrap}
         title="Kelime kaydır"
-        className={cn('p-1.5 rounded transition-colors', wordWrap ? 'text-[#8aa8ff]' : 'text-gray-600 hover:text-gray-300')}
+        className="p-1.5 rounded transition-colors"
+        style={{ color: wordWrap ? '#8aa8ff' : ui.textMuted }}
       >
         <IconTextWrap className="w-3.5 h-3.5" />
       </button>
       <button
         onClick={() => setTheme(isDark ? 'github-light' : 'one-dark')}
         title={isDark ? 'Açık tema' : 'Koyu tema'}
-        className="p-1.5 rounded text-gray-600 hover:text-gray-300 transition-colors"
+        className="p-1.5 rounded transition-colors"
+        style={{ color: ui.textMuted }}
       >
         {isDark ? <IconSun className="w-3.5 h-3.5" /> : <IconMoon className="w-3.5 h-3.5" />}
       </button>
@@ -879,8 +880,8 @@ export default function EditorPage() {
       {/* Project title */}
       {activeProjectId && (
         <>
-          <div className="w-px h-4 bg-[#1e2535] mx-1" />
-          <span className="text-[12px] text-gray-500 font-mono truncate max-w-[180px]">
+          <div className="w-px h-4 mx-1" style={{ background: ui.border }} />
+          <span className="text-[12px] font-mono truncate max-w-[180px]" style={{ color: ui.textFaint }}>
             {projectTitle}
           </span>
         </>
@@ -892,12 +893,11 @@ export default function EditorPage() {
             onClick={handleSave}
             disabled={isSaving}
             title="Kaydet (Ctrl+S)"
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-              hasUnsaved || !activeProjectId
-                ? 'bg-[#1e2a3a] text-[#8aa8ff] border border-[#2a3a56] hover:bg-[#243247]'
-                : 'text-gray-600 border border-transparent',
-            )}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all border"
+            style={hasUnsaved || !activeProjectId
+              ? { background: ui.raisedBg, color: '#8aa8ff', borderColor: ui.border }
+              : { color: ui.textMuted, borderColor: 'transparent' }
+            }
           >
             {isSaving
               ? <IconLoader2 className="w-3.5 h-3.5 animate-spin" />
@@ -923,12 +923,11 @@ export default function EditorPage() {
         <button
           key={id}
           onClick={() => setMobilePanel(id)}
-          className={cn(
-            'flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors',
-            mobilePanel === id
-              ? 'text-[#8aa8ff] border-b-2 border-[#8aa8ff]'
-              : 'text-gray-600 border-b-2 border-transparent hover:text-gray-400',
-          )}
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors border-b-2"
+          style={mobilePanel === id
+            ? { color: '#8aa8ff', borderBottomColor: '#8aa8ff' }
+            : { color: ui.textMuted, borderBottomColor: 'transparent' }
+          }
         >
           <Icon className="w-4 h-4" />
           {label}
@@ -940,10 +939,8 @@ export default function EditorPage() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className={cn(
-            'flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-[11px] font-medium transition-colors border-b-2 border-transparent',
-            hasUnsaved ? 'text-[#8aa8ff]' : 'text-gray-600',
-          )}
+          className="flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-[11px] font-medium transition-colors border-b-2 border-transparent"
+          style={{ color: hasUnsaved ? '#8aa8ff' : ui.textMuted }}
         >
           {isSaving
             ? <IconLoader2 className="w-4 h-4 animate-spin" />
@@ -956,10 +953,11 @@ export default function EditorPage() {
       {activeProjectId && (
         <button
           onClick={() => setShowVersions(!showVersions)}
-          className={cn(
-            'flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-[11px] font-medium transition-colors border-b-2',
-            showVersions ? 'text-[#8aa8ff] border-[#8aa8ff]' : 'text-gray-600 border-transparent',
-          )}
+          className="flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-[11px] font-medium transition-colors border-b-2"
+          style={showVersions
+            ? { color: '#8aa8ff', borderBottomColor: '#8aa8ff' }
+            : { color: ui.textMuted, borderBottomColor: 'transparent' }
+          }
         >
           <IconHistory className="w-4 h-4" />
           <span>Geçmiş</span>
