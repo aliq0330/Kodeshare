@@ -185,11 +185,11 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const [blocks, setBlocks]           = useState<ComposerBlock[]>([])
   const [loading, setLoading]         = useState(false)
   const [expandedId, setExpandedId]   = useState<string | null>(null)
-
+  const [showTags, setShowTags]       = useState(false)
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false)
 
   const tagSuggestRef   = useRef<HTMLDivElement>(null)
   const searchDebounce  = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const hydratedRef     = useRef(false)
 
   // Cloud draft state
   const [cloudDraftId, setCloudDraftId]   = useState<string | null>(null)
@@ -210,10 +210,16 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   const [articlePickerLoading, setArticlePickerLoading] = useState(false)
   const articlePickerRef = useRef<HTMLDivElement>(null)
 
-  // Restore draft / prefilled content
+  // Reset and hydrate whenever the modal opens (always start fresh)
   useEffect(() => {
-    if (!open || hydratedRef.current) return
-    hydratedRef.current = true
+    if (!open) return
+    setComposerMode('edit')
+    setDescription(''); setTags([]); setTagInput(''); setTagSuggestions([]); setSuggestionsOpen(false)
+    setBlocks([])
+    setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null)
+    setCloudDraftId(null)
+    setShowTags(false)
+    setShowDraftPrompt(false)
     if (editingPost) {
       setDescription(editingPost.description ?? '')
       setTags(editingPost.tags)
@@ -221,44 +227,18 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       return
     }
     if (prefilledSnippet) {
-      const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
-      setBlocks([b])
+      setBlocks([{ localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }])
       return
     }
     if (prefilledProject) {
-      const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
-      setBlocks([b])
+      setBlocks([{ localId: newId(), type: 'project', project: prefilledProject }])
       return
     }
     if (prefilledArticle) {
-      const b: ComposerBlock = { localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }
-      setBlocks([b])
+      setBlocks([{ localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }])
       return
     }
-    const d = loadDraft()
-    if (!d) return
-    if (d.description) setDescription(d.description)
-    if (d.tags?.length) setTags(d.tags)
-    if (d.blocks?.length) setBlocks(d.blocks)
-  }, [open, editingPost, prefilledProject, prefilledSnippet, prefilledArticle])
-
-  useEffect(() => {
-    if (!open || !prefilledSnippet || editingPost) return
-    const b: ComposerBlock = { localId: newId(), type: 'snippet', code: prefilledSnippet.code, language: toSnippetLang(prefilledSnippet.language), manual: true }
-    setBlocks([b])
-  }, [prefilledSnippet, open, editingPost])
-
-  useEffect(() => {
-    if (!open || !prefilledProject || editingPost) return
-    const b: ComposerBlock = { localId: newId(), type: 'project', project: prefilledProject }
-    setBlocks([b])
-  }, [prefilledProject, open, editingPost])
-
-  useEffect(() => {
-    if (!open || !prefilledArticle || editingPost) return
-    const b: ComposerBlock = { localId: newId(), type: 'article', articleId: prefilledArticle.id, articleTitle: prefilledArticle.title, coverImage: prefilledArticle.coverImage, content: prefilledArticle.content }
-    setBlocks([b])
-  }, [prefilledArticle, open, editingPost])
+  }, [open]) // eslint-disable-line
 
   // Auto-save draft to localStorage (only in create mode)
   useEffect(() => {
@@ -390,10 +370,28 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
     setBlocks([])
     setExpandedId(null); setPickerBlockId(null); setArticlePickerBlockId(null)
     setCloudDraftId(null)
-    hydratedRef.current = false
+    setShowTags(false)
+    setShowDraftPrompt(false)
   }
 
-  const handleClose = () => { closeComposer(); reset() }
+  const hasContent = () => description.trim().length > 0 || tags.length > 0 || blocks.length > 0
+
+  const handleClose = () => {
+    if (!editingPost && hasContent()) { setShowDraftPrompt(true); return }
+    closeComposer(); reset()
+  }
+
+  const handleSaveDraftAndClose = async () => {
+    setShowDraftPrompt(false)
+    if (isAuthenticated) await handleCloudSave()
+    closeComposer(); reset()
+  }
+
+  const handleDiscardAndClose = () => {
+    setShowDraftPrompt(false)
+    clearDraft()
+    closeComposer(); reset()
+  }
 
   // Cloud draft: save
   const handleCloudSave = async () => {
@@ -449,22 +447,27 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
   }
 
   const handleSubmit = async () => {
+    const validBlocks = blocks
+      .filter((b) => {
+        if (b.type === 'snippet')  return b.code.trim()
+        if (b.type === 'project')  return !!b.project
+        if (b.type === 'image')    return b.url.trim()
+        if (b.type === 'link')     return b.url.trim()
+        if (b.type === 'video')    return b.url.trim()
+        if (b.type === 'article')  return !!b.articleId
+        return false
+      })
+      .map((b, i) => blockToPayload(b, i))
+
+    const desc = description.trim()
+
+    if (!desc && validBlocks.length === 0) {
+      toast.error('Göndermek için bir şeyler yaz veya blok ekle')
+      return
+    }
+
     setLoading(true)
     try {
-      const validBlocks = blocks
-        .filter((b) => {
-          if (b.type === 'snippet')  return b.code.trim()
-          if (b.type === 'project')  return !!b.project
-          if (b.type === 'image')    return b.url.trim()
-          if (b.type === 'link')     return b.url.trim()
-          if (b.type === 'video')    return b.url.trim()
-          if (b.type === 'article')  return !!b.articleId
-          return false
-        })
-        .map((b, i) => blockToPayload(b, i))
-
-      const desc = description.trim()
-
       if (editingPost) {
         await postService.editPost(editingPost.id, {
           title:       desc.split('\n')[0].slice(0, 100) || editingPost.title,
@@ -516,33 +519,26 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
       <Modal
         open={open}
         onClose={handleClose}
-        title={editingPost ? 'Gönderiyi Düzenle' : 'Yeni Gönderi'}
+        title={editingPost ? 'Gönderiyi Düzenle' : ''}
         size="fullscreen"
         className="lg:max-w-[672px]"
-        titleAction={isAuthenticated ? (
-          <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
-            <IconCloud className="w-4 h-4" />
-            Taslaklar
-          </Button>
-        ) : undefined}
-        subheader={
-          <div className="flex px-1">
-            <button
-              type="button"
-              onClick={() => setComposerMode('edit')}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'edit' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+        titleAction={
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-500"
+              onClick={() => setComposerMode((m) => m === 'preview' ? 'edit' : 'preview')}
             >
-              <IconPencil className="w-3.5 h-3.5" />
-              Düzenle
-            </button>
-            <button
-              type="button"
-              onClick={() => setComposerMode('preview')}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${composerMode === 'preview' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-            >
-              <IconEye className="w-3.5 h-3.5" />
-              Önizleme
-            </button>
+              {composerMode === 'preview' ? <IconPencil className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+              {composerMode === 'preview' ? 'Düzenle' : 'Önizle'}
+            </Button>
+            {isAuthenticated && (
+              <Button variant="ghost" size="sm" className="text-gray-500" onClick={handleOpenDrafts}>
+                <IconCloud className="w-4 h-4" />
+                Taslaklar
+              </Button>
+            )}
           </div>
         }
       >
@@ -555,63 +551,65 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
             placeholder="Ne hakkında?"
             rows={2}
           />
-          {/* Tag input */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-300">
-              Etiketler
-              <span className="ml-1.5 text-xs text-gray-500 font-normal">({tags.length}/5)</span>
-            </label>
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => (
-                  <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 text-xs font-medium border border-brand-500/30">
-                    #{tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
-                      <IconX className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-            {tags.length < 5 && (
-              <div className="relative flex gap-2" ref={tagSuggestRef}>
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                    <IconHash className="w-3.5 h-3.5" />
-                  </span>
-                  <input
-                    value={tagInput}
-                    onChange={(e) => handleTagInputChange(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                    placeholder="etiket yaz, Enter ile ekle"
-                    className="w-full bg-surface-card border border-surface-border rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                  />
-                  {suggestionsOpen && tagSuggestions.length > 0 && (
-                    <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-44 overflow-y-auto">
-                      {tagSuggestions.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onMouseDown={(e) => { e.preventDefault(); addTag(s) }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-raised text-gray-300 hover:text-white transition-colors"
-                        >
-                          <IconHash className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+          {/* Tag input — only shown when toggled via footer tag button */}
+          {showTags && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-300">
+                Etiketler
+                <span className="ml-1.5 text-xs text-gray-500 font-normal">({tags.length}/5)</span>
+              </label>
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {tags.map((tag) => (
+                    <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 text-xs font-medium border border-brand-500/30">
+                      #{tag}
+                      <button type="button" onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
+                        <IconX className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => addTag(tagInput)}
-                  className="shrink-0 px-3 py-2 text-sm rounded-lg border border-surface-border text-gray-400 hover:text-white hover:border-brand-500 transition-colors"
-                >
-                  Ekle
-                </button>
-              </div>
-            )}
-          </div>
+              )}
+              {tags.length < 5 && (
+                <div className="relative flex gap-2" ref={tagSuggestRef}>
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      <IconHash className="w-3.5 h-3.5" />
+                    </span>
+                    <input
+                      value={tagInput}
+                      onChange={(e) => handleTagInputChange(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                      placeholder="etiket yaz, Enter ile ekle"
+                      className="w-full bg-surface-card border border-surface-border rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    />
+                    {suggestionsOpen && tagSuggestions.length > 0 && (
+                      <div className="absolute top-full mt-1 left-0 right-0 z-20 card shadow-2xl py-1 max-h-44 overflow-y-auto">
+                        {tagSuggestions.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onMouseDown={(e) => { e.preventDefault(); addTag(s) }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-raised text-gray-300 hover:text-white transition-colors"
+                          >
+                            <IconHash className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addTag(tagInput)}
+                    className="shrink-0 px-3 py-2 text-sm rounded-lg border border-surface-border text-gray-400 hover:text-white hover:border-brand-500 transition-colors"
+                  >
+                    Ekle
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Block list */}
           {blocks.length > 0 && (
@@ -882,7 +880,26 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
           {/* Block type buttons */}
           {composerMode === 'edit' && (
             <div className="flex items-center gap-2 px-4 py-2 border-b border-surface-border overflow-x-auto scrollbar-none">
-              {BLOCK_OPTIONS.map((opt) => (
+              {/* Snippet */}
+              <button
+                type="button"
+                onClick={() => addBlock('snippet')}
+                className="flex flex-col items-center justify-center gap-1 h-[50px] w-[50px] shrink-0 rounded-lg border border-surface-border text-gray-400 hover:text-brand-400 hover:border-brand-500 transition-colors"
+              >
+                <span className="text-brand-400"><IconCode className="w-4 h-4" /></span>
+                <span className="text-[9px] font-medium leading-none">Snippet</span>
+              </button>
+              {/* Tag toggle button — between Snippet and Proje */}
+              <button
+                type="button"
+                onClick={() => setShowTags((v) => !v)}
+                className={`flex flex-col items-center justify-center gap-1 h-[50px] w-[50px] shrink-0 rounded-lg border transition-colors ${showTags ? 'border-brand-500 text-brand-400' : 'border-surface-border text-gray-400 hover:text-brand-400 hover:border-brand-500'}`}
+              >
+                <span className="text-brand-400"><IconHash className="w-4 h-4" /></span>
+                <span className="text-[9px] font-medium leading-none">Etiket</span>
+              </button>
+              {/* Proje and remaining block buttons */}
+              {BLOCK_OPTIONS.slice(1).map((opt) => (
                 <button
                   key={opt.type}
                   type="button"
@@ -959,6 +976,28 @@ export default function PostComposer({ hideCard = false }: PostComposerProps) {
                 )}
               </button>
             ))
+          )}
+        </div>
+      </Modal>
+
+      {/* Draft save prompt — shown when closing with unsaved content */}
+      <Modal
+        open={showDraftPrompt}
+        onClose={() => setShowDraftPrompt(false)}
+        title="Taslak Olarak Kaydet?"
+        size="sm"
+      >
+        <p className="text-sm text-gray-400 mb-5">Yazdıklarını kaybetmek istemiyorsan buluta taslak olarak kaydedebilirsin.</p>
+        <div className="flex gap-2 justify-end">
+          <Button variant="ghost" onClick={handleDiscardAndClose}>Kaydetme</Button>
+          {isAuthenticated && (
+            <Button variant="primary" onClick={handleSaveDraftAndClose} loading={cloudSaving}>
+              <IconCloudUpload className="w-4 h-4" />
+              Taslağa Kaydet
+            </Button>
+          )}
+          {!isAuthenticated && (
+            <Button variant="ghost" onClick={handleDiscardAndClose}>Kapat</Button>
           )}
         </div>
       </Modal>

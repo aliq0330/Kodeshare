@@ -169,7 +169,7 @@ export default function ArticleViewPage() {
       id:         article.id,
       title:      article.title,
       coverImage: article.coverImage,
-      content:    extractPlainText(article),
+      content:    article.subtitle ?? '',
     })
   }
 
