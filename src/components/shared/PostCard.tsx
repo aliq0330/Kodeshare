@@ -363,7 +363,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
 
   // ── Makale postu layout'u (ArticleCard stili) ─────────────────────────────
   if (displayArticleId) {
-    // Block datasından anlık değerler (fetch tamamlanana kadar)
     const blockData  = display.blocks[0]?.data ?? {}
     const coverImage = (blockData.coverImage as string) || null
     const title      = (blockData.title as string) || display.title
@@ -372,7 +371,7 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
     return (
       <article className="border-b border-surface-border/40 lg:border-x lg:hover:bg-surface-raised/50 transition-colors group">
         {localPost.type === 'repost' && localPost.repostedFrom && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 pl-[68px] pr-4">
             <IconRepeat className="w-3.5 h-3.5" />
             <Link to={`/profile/${localPost.author.username}`} className="hover:text-gray-300">
               {localPost.author.displayName}
@@ -381,29 +380,34 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
           </div>
         )}
 
-        <div className="px-4 pt-3 pb-4">
-          {/* Yazar satırı */}
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <Link to={`/profile/${display.author.username}`} className="flex items-center gap-3 min-w-0">
-              <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" online={display.author.isOnline} className="shrink-0" />
-              <div className="min-w-0">
-                <span className="block font-bold text-base text-white leading-none">{display.author.displayName}</span>
-                <span className="text-sm text-gray-400">@{display.author.username} · {timeAgo(display.createdAt)}</span>
-              </div>
-            </Link>
-            {isAuthenticated && user?.id !== display.author.id && (
-              <FollowButton userId={display.author.id} isFollowing={initialized ? followingIds.has(display.author.id) : false} size="xs" />
-            )}
-          </div>
+        <div className="flex gap-3 px-4 pt-3 pb-3">
+          {/* Avatar */}
+          <Link to={`/profile/${display.author.username}`} className="shrink-0">
+            <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" online={display.author.isOnline} />
+          </Link>
 
-            {/* Kapak görseli */}
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {/* Author line */}
+            <div className="flex items-start justify-between gap-2 mb-1.5">
+              <Link to={`/profile/${display.author.username}`} className="flex-1 min-w-0">
+                <span className="font-bold text-[15px] text-white">{display.author.displayName}</span>
+                <span className="text-sm text-gray-400"> @{display.author.username} · {timeAgo(display.createdAt)}</span>
+              </Link>
+              <div className="flex items-center gap-1 shrink-0">
+                {isAuthenticated && user?.id !== display.author.id && (
+                  <FollowButton userId={display.author.id} isFollowing={initialized ? followingIds.has(display.author.id) : false} size="xs" />
+                )}
+                {menuDropdown}
+              </div>
+            </div>
+
             {coverImage && (
               <Link to={primaryLink} className="block mb-2 rounded-xl overflow-hidden border border-surface-border">
                 <img src={coverImage} alt="" className="w-full h-36 object-cover" />
               </Link>
             )}
 
-            {/* Başlık + altyazı */}
             <Link to={primaryLink} className="block mb-2">
               <div className="flex items-start gap-2">
                 {!coverImage && (
@@ -413,62 +417,47 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                 )}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm text-white line-clamp-2">{title}</h3>
-                  {subtitle && (
-                    <p className="text-sm text-gray-400 line-clamp-2 mt-0.5">{subtitle}</p>
-                  )}
+                  {subtitle && <p className="text-sm text-gray-400 line-clamp-2 mt-0.5">{subtitle}</p>}
                 </div>
               </div>
             </Link>
 
-            {/* Aksiyon çubuğu */}
-            <div className="flex items-center text-gray-400">
-              <div className="w-3/5 grid grid-cols-3 items-center">
-                <button
-                  onClick={handleArticleLike}
-                  className={`flex items-center gap-1.5 transition-colors ${
-                    articleData?.isLiked ? 'text-red-500' : 'hover:text-red-400'
-                  }`}
-                >
-                  <IconHeart
-                    className={`w-[22px] h-[22px] ${articleData?.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
-                    onAnimationEnd={() => setLikePulsing(false)}
-                  />
-                  {(articleData?.likesCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(articleData?.likesCount ?? 0)}</span>}
-                </button>
+            {/* Action bar */}
+            <div className="flex items-center mt-1 text-gray-400">
+              <button
+                onClick={handleArticleLike}
+                className={`flex items-center gap-1.5 transition-colors mr-5 ${articleData?.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
+              >
+                <IconHeart
+                  className={`w-[19px] h-[19px] ${articleData?.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                  onAnimationEnd={() => setLikePulsing(false)}
+                />
+                {(articleData?.likesCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(articleData?.likesCount ?? 0)}</span>}
+              </button>
 
-                <Link
-                  to={commentLink}
-                  className="flex items-center gap-1.5 hover:text-white transition-colors"
-                >
-                  <IconMessageCircle className="w-[22px] h-[22px]" />
-                </Link>
+              <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors mr-5">
+                <IconMessageCircle className="w-[19px] h-[19px]" />
+              </Link>
 
-                {isAuthenticated ? (
-                  <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
-                ) : (
-                  <span className="flex items-center gap-1.5 text-xs">
-                    <IconRepeat className="w-[22px] h-[22px]" />
-                    {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
-                  </span>
-                )}
-              </div>
+              {isAuthenticated ? (
+                <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <IconRepeat className="w-[19px] h-[19px]" />
+                  {repostTarget.repostCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
+                </span>
+              )}
 
-              <div className="w-2/5 flex items-center justify-end gap-1">
-                <button
-                  onClick={handleArticleSave}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    articleData?.isSaved ? 'text-white' : 'hover:text-white'
-                  }`}
-                >
-                  <IconBookmark className={`w-[22px] h-[22px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
-                </button>
-                {menuDropdown}
-              </div>
+              <button
+                onClick={handleArticleSave}
+                className={`ml-auto transition-colors ${articleData?.isSaved ? 'text-white' : 'hover:text-white'}`}
+              >
+                <IconBookmark className={`w-[19px] h-[19px] ${articleData?.isSaved ? 'fill-current' : ''}`} />
+              </button>
             </div>
-            <CommentPreview
-              articleId={displayArticleId}
-              detailLink={commentLink}
-            />
+
+            <CommentPreview articleId={displayArticleId} detailLink={commentLink} />
+          </div>
         </div>
 
         {modals}
@@ -479,9 +468,8 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
   // ── Normal post layout ────────────────────────────────────────────────────
   return (
     <article className="border-b border-surface-border/40 lg:border-x lg:hover:bg-surface-raised/50 transition-colors group">
-      {/* Repost indicator */}
       {localPost.type === 'repost' && localPost.repostedFrom && (
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 px-4">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-3 pl-[68px] pr-4">
           <IconRepeat className="w-3.5 h-3.5" />
           <Link to={`/profile/${localPost.author.username}`} className="hover:text-gray-300">
             {localPost.author.displayName}
@@ -490,16 +478,19 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
         </div>
       )}
 
-      <div className="px-4 pt-3 pb-4">
-        {/* Author row */}
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <Link to={`/profile/${display.author.username}`} className="flex items-center gap-3 min-w-0">
-            <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" className="shrink-0" />
-            <div className="min-w-0">
-              <span className="block font-bold text-base text-white leading-none">{display.author.displayName}</span>
-              <span className="text-sm text-gray-400">
-                @{display.author.username} · {timeAgo(display.createdAt)}
-              </span>
+      <div className="flex gap-3 px-4 pt-3 pb-3">
+        {/* Avatar */}
+        <Link to={`/profile/${display.author.username}`} className="shrink-0">
+          <Avatar src={display.author.avatarUrl} alt={display.author.displayName} size="md" />
+        </Link>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Author line */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <Link to={`/profile/${display.author.username}`} className="flex-1 min-w-0">
+              <span className="font-bold text-[15px] text-white">{display.author.displayName}</span>
+              <span className="text-sm text-gray-400"> @{display.author.username} · {timeAgo(display.createdAt)}</span>
               {localPost.isEdited && (
                 <button
                   type="button"
@@ -509,35 +500,33 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
                   <IconClock className="w-3 h-3" />
                 </button>
               )}
+            </Link>
+            <div className="flex items-center gap-1 shrink-0">
+              {isAuthenticated && user?.id !== display.author.id && (
+                <FollowButton userId={display.author.id} isFollowing={initialized ? followingIds.has(display.author.id) : false} size="xs" />
+              )}
+              {menuDropdown}
             </div>
-          </Link>
-          {isAuthenticated && user?.id !== display.author.id && (
-            <FollowButton userId={display.author.id} isFollowing={false} size="xs" />
-          )}
-        </div>
+          </div>
 
-          {/* Description */}
           {display.description && (
             <Link to={primaryLink} className="block mb-2">
-              <p className="text-[16.9px] leading-[22px] tracking-normal text-white line-clamp-3 whitespace-pre-wrap">{display.description}</p>
+              <p className="text-[15px] leading-[22px] text-white whitespace-pre-wrap">{display.description}</p>
             </Link>
           )}
 
-          {/* Blocks (compact mode) */}
           {display.blocks.length > 0 && (
             <Link to={primaryLink} className="block mb-2">
               <BlockView blocks={display.blocks} compact postTitle={display.title} />
             </Link>
           )}
 
-          {/* Preview image fallback */}
           {display.blocks.length === 0 && display.previewImageUrl && (
             <Link to={primaryLink} className="block mb-2 rounded-xl overflow-hidden border border-surface-border">
               <img src={display.previewImageUrl} alt={display.title} className="w-full aspect-video object-cover" />
             </Link>
           )}
 
-          {/* Quote embed */}
           {isQuote && localPost.repostedFrom && (
             <div className="mb-2 rounded-xl border border-surface-border bg-surface-raised/40 p-3">
               <div className="flex items-center gap-2 mb-1.5">
@@ -557,7 +546,6 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             </div>
           )}
 
-          {/* Tags */}
           {display.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
               {display.tags.map((tag) => (
@@ -568,52 +556,47 @@ export default function PostCard({ post, onLike, onSave, onRemoveFromCollection,
             </div>
           )}
 
-          {/* Actions */}
+          {/* Action bar */}
           <div className="flex items-center mt-1 text-gray-400">
-            <div className="w-3/5 grid grid-cols-3 items-center">
-              <button
-                onClick={handlePostLike}
-                className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
-              >
-                <IconHeart
-                  className={`w-[22px] h-[22px] ${display.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
-                  onAnimationEnd={() => setLikePulsing(false)}
-                />
-                {display.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.likesCount)}</span>}
-              </button>
+            <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors mr-5">
+              <IconMessageCircle className="w-[19px] h-[19px]" />
+              {display.commentsCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.commentsCount)}</span>}
+            </Link>
 
-              <Link to={commentLink} className="flex items-center gap-1.5 hover:text-white transition-colors">
-                <IconMessageCircle className="w-[22px] h-[22px]" />
-                {display.commentsCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.commentsCount)}</span>}
-              </Link>
-
+            <div className="mr-5">
               {isAuthenticated ? (
                 <RepostMenu post={repostTarget} onRepost={handleRepost} onQuote={handleQuote} />
               ) : (
-                <span className="flex items-center gap-1.5 text-xs">
-                  <IconRepeat className="w-[22px] h-[22px]" />
-                  {repostTarget.repostCount > 0 && <span className="text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
+                <span className="flex items-center gap-1.5">
+                  <IconRepeat className="w-[19px] h-[19px]" />
+                  {repostTarget.repostCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(repostTarget.repostCount)}</span>}
                 </span>
               )}
             </div>
 
-            <div className="w-2/5 flex items-center justify-end gap-1">
-              <button
-                onClick={handlePostSave}
-                className={`p-1.5 rounded-lg transition-colors ${display.isSaved ? 'text-white' : 'hover:text-white'}`}
-              >
-                <IconBookmark className={`w-[22px] h-[22px] ${display.isSaved ? 'fill-current' : ''}`} />
-              </button>
-              {menuDropdown}
-            </div>
+            <button
+              onClick={handlePostLike}
+              className={`flex items-center gap-1.5 transition-colors ${display.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
+            >
+              <IconHeart
+                className={`w-[19px] h-[19px] ${display.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                onAnimationEnd={() => setLikePulsing(false)}
+              />
+              {display.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(display.likesCount)}</span>}
+            </button>
+
+            <button
+              onClick={handlePostSave}
+              className={`ml-auto transition-colors ${display.isSaved ? 'text-white' : 'hover:text-white'}`}
+            >
+              <IconBookmark className={`w-[19px] h-[19px] ${display.isSaved ? 'fill-current' : ''}`} />
+            </button>
           </div>
+
           {display.commentsCount > 0 && (
-            <CommentPreview
-              postId={display.id}
-              commentsCount={display.commentsCount}
-              detailLink={commentLink}
-            />
+            <CommentPreview postId={display.id} commentsCount={display.commentsCount} detailLink={commentLink} />
           )}
+        </div>
       </div>
 
       {modals}

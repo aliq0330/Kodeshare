@@ -67,34 +67,71 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
     }
   }
 
+  const menuDropdown = isAuthenticated && (
+    <div className="relative shrink-0" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setMenuOpen((v) => !v)}
+        className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
+      >
+        <IconDots className="w-4 h-4" />
+      </button>
+      {menuOpen && (
+        <div className="absolute right-0 top-full mt-1 z-20 w-48 card shadow-2xl py-1">
+          <button type="button" onClick={() => { setShareOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+            <IconShare className="w-4 h-4 text-sky-400" /><span className="text-white">Paylaş</span>
+          </button>
+          <button type="button" onClick={() => { setCollectOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+            <IconFolderPlus className="w-4 h-4 text-brand-400" /><span className="text-white">Koleksiyona ekle</span>
+          </button>
+          {onRemoveFromCollection && (
+            <button type="button" onClick={() => { setMenuOpen(false); onRemoveFromCollection() }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+              <IconFolderMinus className="w-4 h-4 text-red-400" /><span className="text-red-400">Bu koleksiyondan çıkar</span>
+            </button>
+          )}
+          <button type="button" onClick={() => { setStatsOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
+            <IconChartBar className="w-4 h-4 text-purple-400" /><span className="text-white">İstatistikler</span>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <>
-      <article className="border-b border-surface-border/40 group">
-        <div className="px-4 pt-3 pb-4">
-          {/* Author row */}
-          <div className="flex items-center justify-between gap-2 mb-2">
-            {article.author && (
-              <Link to={`/profile/${article.author.username}`} className="flex items-center gap-3 min-w-0">
-                <Avatar src={article.author.avatarUrl} alt={article.author.displayName} size="md" className="shrink-0" />
-                <div className="min-w-0">
-                  <span className="block font-bold text-base text-white leading-none">{article.author.displayName}</span>
-                  <span className="text-sm text-gray-400">@{article.author.username} · {timeAgo(article.createdAt)}</span>
-                </div>
-              </Link>
-            )}
-            {isAuthenticated && user?.id !== article.authorId && (
-              <FollowButton userId={article.authorId} isFollowing={initialized ? followingIds.has(article.authorId) : false} size="xs" />
-            )}
-          </div>
+      <article className="border-b border-surface-border/40 group lg:hover:bg-surface-raised/50 transition-colors">
+        <div className="flex gap-3 px-4 pt-3 pb-3">
+          {/* Avatar */}
+          {article.author && (
+            <Link to={`/profile/${article.author.username}`} className="shrink-0">
+              <Avatar src={article.author.avatarUrl} alt={article.author.displayName} size="md" />
+            </Link>
+          )}
 
-            {/* Cover image */}
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {/* Author line */}
+            <div className="flex items-start justify-between gap-2 mb-1.5">
+              {article.author && (
+                <Link to={`/profile/${article.author.username}`} className="flex-1 min-w-0">
+                  <span className="font-bold text-[15px] text-white">{article.author.displayName}</span>
+                  <span className="text-sm text-gray-400"> @{article.author.username} · {timeAgo(article.createdAt)}</span>
+                </Link>
+              )}
+              <div className="flex items-center gap-1 shrink-0">
+                {isAuthenticated && user?.id !== article.authorId && (
+                  <FollowButton userId={article.authorId} isFollowing={initialized ? followingIds.has(article.authorId) : false} size="xs" />
+                )}
+                {menuDropdown}
+              </div>
+            </div>
+
             {article.coverImage && (
               <Link to={`/makale/${article.id}`} className="block mb-2 rounded-xl overflow-hidden border border-surface-border">
                 <img src={article.coverImage} alt="" className="w-full h-36 object-cover" />
               </Link>
             )}
 
-            {/* Title + subtitle */}
             <Link to={`/makale/${article.id}`} className="block mb-2">
               <div className="flex items-start gap-2">
                 {!article.coverImage && (
@@ -105,90 +142,57 @@ export default function ArticleCard({ article: initialArticle, onRemoveFromColle
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm text-white line-clamp-2 group-hover:text-brand-300 transition-colors">{article.title}</h3>
                   {article.subtitle && (
-                    <p className="text-[16.9px] leading-[22px] tracking-normal text-gray-400 line-clamp-2 mt-0.5">{article.subtitle}</p>
+                    <p className="text-[15px] leading-[22px] text-gray-400 line-clamp-2 mt-0.5">{article.subtitle}</p>
                   )}
                 </div>
               </div>
             </Link>
 
-            {/* Actions */}
-            <div className="flex items-center text-gray-400">
-              <div className="w-3/5 grid grid-cols-3 items-center">
+            {/* Action bar */}
+            <div className="flex items-center mt-1 text-gray-400">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-1.5 transition-colors mr-5 ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
+              >
+                <IconHeart
+                  className={`w-[19px] h-[19px] ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
+                  onAnimationEnd={() => setLikePulsing(false)}
+                />
+                {article.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.likesCount)}</span>}
+              </button>
+
+              <Link to={`/makale/${article.id}#comments`} className="flex items-center gap-1.5 hover:text-white transition-colors mr-5">
+                <IconMessageCircle className="w-[19px] h-[19px]" />
+                {(article.commentsCount ?? 0) > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.commentsCount ?? 0)}</span>}
+              </Link>
+
+              {isAuthenticated ? (
                 <button
-                  onClick={handleLike}
-                  className={`flex items-center gap-1.5 transition-colors ${article.isLiked ? 'text-red-500' : 'hover:text-red-400'}`}
+                  onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
+                  className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
                 >
-                  <IconHeart
-                    className={`w-[22px] h-[22px] ${article.isLiked ? 'fill-current like-icon-liked' : ''} ${likePulsing ? 'animate-like-pulse' : ''}`}
-                    onAnimationEnd={() => setLikePulsing(false)}
-                  />
-                  {article.likesCount > 0 && <span className="text-xs text-black dark:text-white">{compactNumber(article.likesCount)}</span>}
+                  <IconRepeat className="w-[19px] h-[19px]" />
                 </button>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <IconRepeat className="w-[19px] h-[19px]" />
+                </span>
+              )}
 
-                <Link
-                  to={`/makale/${article.id}#comments`}
-                  className="flex items-center gap-1.5 hover:text-white transition-colors"
-                >
-                  <IconMessageCircle className="w-[22px] h-[22px]" />
-                </Link>
-
-                {isAuthenticated ? (
-                  <button
-                    onClick={() => openWithArticle({ id: article.id, title: article.title, coverImage: article.coverImage, content: article.subtitle ?? '' })}
-                    className="flex items-center gap-1.5 hover:text-green-400 transition-colors"
-                  >
-                    <IconRepeat className="w-[22px] h-[22px]" />
-                  </button>
-                ) : (
-                  <span className="flex items-center gap-1.5">
-                    <IconRepeat className="w-[22px] h-[22px]" />
-                  </span>
-                )}
-              </div>
-
-              <div className="w-2/5 flex items-center justify-end gap-1">
-                <button
-                  onClick={handleSave}
-                  className={`p-1.5 rounded-lg transition-colors ${article.isSaved ? 'text-white' : 'hover:text-white'}`}
-                >
-                  <IconBookmark className={`w-[22px] h-[22px] ${article.isSaved ? 'fill-current' : ''}`} />
-                </button>
-                {isAuthenticated && (
-                  <div className="relative shrink-0" ref={menuRef}>
-                    <button
-                      type="button"
-                      onClick={() => setMenuOpen((v) => !v)}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-surface-raised transition-colors"
-                    >
-                      <IconDots className="w-4 h-4" />
-                    </button>
-                    {menuOpen && (
-                      <div className="absolute right-0 bottom-full mb-1 z-20 w-48 card shadow-2xl py-1">
-                        <button type="button" onClick={() => { setShareOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                          <IconShare className="w-4 h-4 text-sky-400" /><span className="text-white">Paylaş</span>
-                        </button>
-                        <button type="button" onClick={() => { setCollectOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                          <IconFolderPlus className="w-4 h-4 text-brand-400" /><span className="text-white">Koleksiyona ekle</span>
-                        </button>
-                        {onRemoveFromCollection && (
-                          <button type="button" onClick={() => { setMenuOpen(false); onRemoveFromCollection() }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                            <IconFolderMinus className="w-4 h-4 text-red-400" /><span className="text-red-400">Bu koleksiyondan çıkar</span>
-                          </button>
-                        )}
-                        <button type="button" onClick={() => { setStatsOpen(true); setMenuOpen(false) }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-raised transition-colors">
-                          <IconChartBar className="w-4 h-4 text-purple-400" /><span className="text-white">İstatistikler</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={handleSave}
+                className={`ml-auto transition-colors ${article.isSaved ? 'text-white' : 'hover:text-white'}`}
+              >
+                <IconBookmark className={`w-[19px] h-[19px] ${article.isSaved ? 'fill-current' : ''}`} />
+              </button>
             </div>
+
             <CommentPreview
               articleId={article.id}
               commentsCount={article.commentsCount}
               detailLink={`/makale/${article.id}#comments`}
             />
+          </div>
         </div>
       </article>
 
